@@ -56,7 +56,7 @@ align="center">](https://github.com/khuza08/Pulse/releases/latest)
   script that discovers hidden YouTube API clients. Just a research project.
 - [**ionicons**](https://github.com/ionic-team/ionicons): Premium hand-crafted icons built by Ionic,
   for Ionic apps and web apps everywhere.
-- [**Framer: Shapes 2.0**](https://www.shapes.gallery/): the app's logo uses icon made by him.
+- [**Framer: Shapes 2.0**](https://www.shapes.gallery/): the app's logo uses modified icon made by mo.
 - [**Python for Android**](https://github.com/chaquo/chaquopy): A tool for running Python code
   on Android.
 
