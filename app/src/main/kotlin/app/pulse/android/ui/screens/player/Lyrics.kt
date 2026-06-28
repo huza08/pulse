@@ -130,10 +130,6 @@ fun Lyrics(
     shouldKeepScreenAwake: Boolean = PlayerPreferences.lyricsKeepScreenAwake,
     shouldUpdateLyrics: Boolean = true,
     showControls: Boolean = true
-) = AnimatedVisibility(
-    visible = isDisplayed,
-    enter = fadeIn(),
-    exit = fadeOut()
 ) {
     val currentEnsureSongInserted by rememberUpdatedState(ensureSongInserted)
     val currentMediaMetadataProvider by rememberUpdatedState(mediaMetadataProvider)
@@ -260,7 +256,12 @@ fun Lyrics(
         }
     }
 
-    if (editing) TextFieldDialog(
+    AnimatedVisibility(
+        visible = isDisplayed,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        if (editing) TextFieldDialog(
         hintText = stringResource(R.string.enter_lyrics),
         initialTextInput = (if (shouldShowSynchronizedLyrics) lyrics?.synced else lyrics?.fixed)
             .orEmpty(),
@@ -624,6 +625,7 @@ fun Lyrics(
                     .align(Alignment.BottomEnd)
             )
         }
+    }
     }
 }
 
