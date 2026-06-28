@@ -19,6 +19,7 @@ import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.support.v4.media.session.MediaSessionCompat
 import android.text.format.DateUtils
 import androidx.annotation.OptIn
@@ -46,6 +47,7 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
@@ -106,6 +108,7 @@ import app.pulse.android.utils.toast
 import app.pulse.compose.preferences.SharedPreferencesProperty
 import app.pulse.core.data.enums.ExoPlayerDiskCacheSize
 import app.pulse.core.data.utils.UriCache
+import androidx.media3.exoplayer.DefaultLoadControl
 import app.pulse.core.ui.utils.EqualizerIntentBundleAccessor
 import app.pulse.core.ui.utils.isAtLeastAndroid10
 import app.pulse.core.ui.utils.isAtLeastAndroid12
@@ -131,6 +134,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -182,6 +186,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private lateinit var mediaSession: MediaSession
     private lateinit var cache: Cache
     private lateinit var player: ExoPlayer
+    private val uriCache = UriCache<String, Long?>()
 
     private val defaultActions =
         PlaybackState.ACTION_PLAY or
@@ -228,6 +233,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var preferenceUpdaterJob: Job? = null
     private var volumeNormalizationJob: Job? = null
     private var sponsorBlockJob: Job? = null
+    private var preFetchJob: Job? = null
 
     override var isInvincibilityEnabled by mutableStateOf(false)
 
@@ -294,6 +300,16 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         cache = createCache(this)
         player = ExoPlayer.Builder(this, createRendersFactory(), createMediaSourceFactory())
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        /* minBufferMs             = */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
+                        /* maxBufferMs             = */ DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
+                        /* bufferForPlaybackMs     = */ DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                        /* bufferForPlaybackAfterRebufferMs = */ 10_000
+                    )
+                    .build()
+            )
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .setAudioAttributes(
@@ -430,6 +446,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             cache.release()
 
             loudnessEnhancer?.release()
+            preFetchJob?.cancel()
             preferenceUpdaterJob?.cancel()
 
             coroutineScope.cancel()
@@ -488,6 +505,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         }
 
         mediaItemState.update { mediaItem }
+
+        if (mediaItem != null && !mediaItem.isLocal) {
+            maybePreFetch(mediaItem)
+        }
 
         maybeRecoverPlaybackError()
         maybeNormalizeVolume()
@@ -577,6 +598,56 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     private fun maybeRecoverPlaybackError() {
         if (player.playerError != null) player.prepare()
+    }
+
+    private fun maybePreFetch(mediaItem: MediaItem) {
+        preFetchJob?.cancel()
+
+        if (PlayerPreferences.pauseCache) return
+
+        val fullKey = mediaItem.mediaId
+        val videoId = fullKey.removePrefix("https://youtube.com/watch?v=")
+
+        preFetchJob = coroutineScope.launch {
+            // Wait for URL to be resolved and cached by the player's resolver
+            delay(500)
+
+            val cachedUri = uriCache[videoId] ?: return@launch
+            val url = cachedUri.uri
+            val contentLength = cachedUri.meta ?: return@launch
+            val chunkSize = DEFAULT_CHUNK_LENGTH
+
+            val prefetchFactory = CacheDataSource.Factory()
+                .setCache(this@PlayerService.cache)
+                .setUpstreamDataSourceFactory(this@PlayerService.applicationContext.defaultDataSource)
+
+            for (i in 1..3) {
+                val position = i * chunkSize
+                if (position >= contentLength) break
+                val length = minOf(chunkSize, contentLength - position)
+
+                if (cache.isCached(videoId, position, length)) continue
+
+                try {
+                    val dataSpec = DataSpec.Builder()
+                        .setUri(url)
+                        .setPosition(position)
+                        .setLength(length)
+                        .setKey(fullKey)
+                        .build()
+
+                    val dataSource = prefetchFactory.createDataSource()
+                    dataSource.open(dataSpec)
+                    val buffer = ByteArray(8192)
+                    while (dataSource.read(buffer, 0, buffer.size) > 0) { }
+                    dataSource.close()
+
+                    Log.d(TAG, "pre-fetched chunk $position for $videoId")
+                } catch (e: Exception) {
+                    Log.w(TAG, "pre-fetch chunk $position failed: ${e.message}")
+                }
+            }
+        }
     }
 
     private fun maybeProcessRadio() {
@@ -1050,7 +1121,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 }
             },
             context = applicationContext,
-            cache = cache
+            cache = cache,
+            uriCache = uriCache
         ),
         /* extractorsFactory = */ DefaultExtractorsFactory()
     ).setLoadErrorHandlingPolicy(
@@ -1306,7 +1378,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     companion object {
         private const val DEFAULT_CACHE_DIRECTORY = "exoplayer"
-        private const val DEFAULT_CHUNK_LENGTH = 512 * 1024L
+        private const val DEFAULT_CHUNK_LENGTH = 4 * 1024 * 1024L
 
         fun createDatabaseProvider(context: Context) = StandaloneDatabaseProvider(context)
         fun createCache(
@@ -1368,16 +1440,19 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     .withUri(cachedUri.uri)
                     .ranged(cachedUri.meta)
             } ?: run {
-                val body = runBlocking(Dispatchers.IO) {
-                    Innertube.player(PlayerBody(videoId = mediaId))
-                }?.getOrNull()
+                val (body, info) = runBlocking(Dispatchers.IO) {
+                    val bodyDeferred = async {
+                        Innertube.player(PlayerBody(videoId = mediaId))
+                    }
+                    val infoDeferred = async {
+                        runCatching { Dependencies.runDownload(mediaId) }
+                            .mapCatching { YouTubeDLResponse.fromString(it) }
+                            .also { it.exceptionOrNull()?.printStackTrace() }
+                            .getOrNull()
+                    }
+                    bodyDeferred.await()?.getOrNull() to infoDeferred.await()
+                }
                 val youtubeFormat = body?.streamingData?.highestQualityFormat
-
-                val info = runCatching {
-                    Dependencies.runDownload(mediaId)
-                }.mapCatching {
-                    YouTubeDLResponse.fromString(it)
-                }.also { it.exceptionOrNull()?.printStackTrace() }.getOrNull()
                 if (info?.id != mediaId) throw VideoIdMismatchException()
                 val format = info.formats?.firstOrNull { it.formatId == info.formatId }
 
