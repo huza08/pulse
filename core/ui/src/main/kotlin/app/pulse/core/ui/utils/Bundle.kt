@@ -35,7 +35,6 @@ private inline fun <T> bundleDelegate(
             set(bundle, actualName, value)
     }
 }
-
 context(_: BundleAccessor)
 val Bundle.boolean get() = boolean()
 
@@ -46,35 +45,6 @@ fun Bundle.boolean(name: String? = null) = bundleDelegate(
     set = { k, v -> putBoolean(k, v) }
 )
 
-context(_: BundleAccessor)
-val Bundle.byte get() = byte()
-
-context(_: BundleAccessor)
-fun Bundle.byte(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getByte(it) },
-    set = { k, v -> putByte(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.char get() = char()
-
-context(_: BundleAccessor)
-fun Bundle.char(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getChar(it) },
-    set = { k, v -> putChar(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.short get() = short()
-
-context(_: BundleAccessor)
-fun Bundle.short(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getShort(it) },
-    set = { k, v -> putShort(k, v) }
-)
 
 context(_: BundleAccessor)
 val Bundle.int get() = int()
@@ -86,35 +56,6 @@ fun Bundle.int(name: String? = null) = bundleDelegate(
     set = { k, v -> putInt(k, v) }
 )
 
-context(_: BundleAccessor)
-val Bundle.long get() = long()
-
-context(_: BundleAccessor)
-fun Bundle.long(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getLong(it) },
-    set = { k, v -> putLong(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.float get() = float()
-
-context(_: BundleAccessor)
-fun Bundle.float(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getFloat(it) },
-    set = { k, v -> putFloat(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.double get() = double()
-
-context(_: BundleAccessor)
-fun Bundle.double(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getDouble(it) },
-    set = { k, v -> putDouble(k, v) }
-)
 
 context(_: BundleAccessor)
 val Bundle.string get() = string()
@@ -126,15 +67,6 @@ fun Bundle.string(name: String? = null) = bundleDelegate(
     set = { k, v -> putString(k, v) }
 )
 
-context(_: BundleAccessor)
-val Bundle.intList get() = intList()
-
-context(_: BundleAccessor)
-fun Bundle.intList(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getIntegerArrayList(it) },
-    set = { k, v -> putIntegerArrayList(k, v) }
-)
 
 context(_: BundleAccessor)
 val Bundle.stringList get() = stringList()
@@ -146,85 +78,7 @@ fun Bundle.stringList(name: String? = null) = bundleDelegate<List<String>?>(
     set = { k, v -> putStringArrayList(k, v?.let { ArrayList(it) }) }
 )
 
-context(_: BundleAccessor)
-val Bundle.booleanArray get() = booleanArray()
 
-context(_: BundleAccessor)
-fun Bundle.booleanArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getBooleanArray(it) },
-    set = { k, v -> putBooleanArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.byteArray get() = byteArray()
-
-context(_: BundleAccessor)
-fun Bundle.byteArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getByteArray(it) },
-    set = { k, v -> putByteArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.shortArray get() = shortArray()
-
-context(_: BundleAccessor)
-fun Bundle.shortArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getShortArray(it) },
-    set = { k, v -> putShortArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.charArray get() = charArray()
-
-context(_: BundleAccessor)
-fun Bundle.charArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getCharArray(it) },
-    set = { k, v -> putCharArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.intArray get() = intArray()
-
-context(_: BundleAccessor)
-fun Bundle.intArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getIntArray(it) },
-    set = { k, v -> putIntArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.floatArray get() = floatArray()
-
-context(_: BundleAccessor)
-fun Bundle.floatArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getFloatArray(it) },
-    set = { k, v -> putFloatArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.doubleArray get() = doubleArray()
-
-context(_: BundleAccessor)
-fun Bundle.doubleArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getDoubleArray(it) },
-    set = { k, v -> putDoubleArray(k, v) }
-)
-
-context(_: BundleAccessor)
-val Bundle.stringArray get() = stringArray()
-
-context(_: BundleAccessor)
-fun Bundle.stringArray(name: String? = null) = bundleDelegate(
-    name = name,
-    get = { getStringArray(it) },
-    set = { k, v -> putStringArray(k, v) }
-)
 
 class SongBundleAccessor(val extras: Bundle = Bundle()) : BundleAccessor {
     companion object {
