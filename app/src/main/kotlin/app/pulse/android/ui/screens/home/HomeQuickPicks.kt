@@ -121,7 +121,6 @@ fun QuickPicks(
         suspend fun handleSong(song: Song?) {
             var seedId = song?.id
             if (seedId == null && trending == null) {
-                // First launch with no data — fall back to region trending from Explore
                 Innertube.discoverPage()
                     ?.getOrNull()
                     ?.trending

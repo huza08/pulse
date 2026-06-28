@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(quickjs-android LANGUAGES C)
 
-set(QUICKJS_VERSION 2025-09-13)
-set(QUICKJS_URL https://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz) # why is there a difference between the version and the version
+set(QUICKJS_VERSION 2026-06-04)
+set(QUICKJS_URL https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz)
 
 set(QUICKJS_CACHE_DIR ${CMAKE_SOURCE_DIR}/.quickjs_cache)
 file(MAKE_DIRECTORY ${QUICKJS_CACHE_DIR})
