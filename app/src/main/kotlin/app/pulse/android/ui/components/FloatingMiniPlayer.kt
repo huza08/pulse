@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -121,108 +118,7 @@ data class MiniPlayerState(
     val historyMediaItem: MediaItem?
 )
 
-@Composable
-fun FloatingMiniPlayer(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val (colorPalette, typography) = LocalAppearance.current
-    val state = rememberMiniPlayerState()
-    val (activeMediaItem, metadata, shouldBePlaying, isBuffering, binder) = state
 
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(colorPalette.background1)
-            .clickable(
-                enabled = activeMediaItem != null,
-                onClick = onClick
-            )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(Dimensions.items.collapsedPlayerHeight)
-                        .padding(8.dp)
-                        .clip(CircleShape)
-                        .background(colorPalette.background0)
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    BasicText(
-                        text = metadata?.title ?: stringResource(R.string.no_music_played),
-                        style = typography.xs.semiBold.copy(color = colorPalette.text),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    BasicText(
-                        text = metadata?.artist ?: "-",
-                        style = typography.xs.secondary.copy(color = colorPalette.textSecondary),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            if (activeMediaItem != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AnimatedContent(
-                        targetState = shouldBePlaying to isBuffering,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = ""
-                    ) { (isPlaying, buffering) ->
-                        Box(
-                            modifier = Modifier
-                                .padding(all = 8.dp)
-                                .size(24.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = {
-                                        if (shouldBePlaying) binder?.player?.pause()
-                                        else if (state.mediaItem != null) binder?.player?.play()
-                                        else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
-                                    }
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (buffering && isPlaying) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            } else {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                                    contentDescription = null,
-                                    colorFilter = ColorFilter.tint(colorPalette.text),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun MorphingMiniPlayer(
