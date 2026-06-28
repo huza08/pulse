@@ -1503,8 +1503,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     .withUri(uri)
                     .ranged(info.fileSize)
             }
-        }.handleUnknownErrors {
-            uriCache.clear()
+        }.handleUnknownErrors { error ->
+            if (error.findCause<InterruptedException>() == null) uriCache.clear()
         }
     }
 }
