@@ -164,7 +164,6 @@ import com.valentinilk.shimmer.LocalShimmerTheme
 import dev.kdrag0n.monet.theme.ColorScheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -184,13 +183,6 @@ class MainViewModel : ViewModel() {
     suspend fun awaitBinder(): PlayerService.Binder =
         binder ?: snapshotFlow { binder }.filterNotNull().first()
 
-    fun warmUpEngine(scope: CoroutineScope) {
-        scope.launch {
-            snapshotFlow { isReady }.first { it }
-            delay(1000)
-            Dependencies.warmUp()
-        }
-    }
 }
 
 class MainActivity : ComponentActivity(), MonetColorsChangedListener {
@@ -220,8 +212,6 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         setupSplashScreen()
         super.onCreate(savedInstanceState)
-
-        vm.warmUpEngine(coroutineScope)
 
         initializeSystemUI()
         initializeThemeEngine()
@@ -436,7 +426,7 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                                 modifier = Modifier.align(Alignment.BottomCenter)
                             )
                         }
-                        
+
                         BottomSheetMenu()
                     }
                 }
@@ -654,6 +644,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory, Configurati
         super.onCreate()
 
         applicationScope.launch {
+            Dependencies.warmUp()
             MonetCompat.enablePaletteCompat()
             with(ServiceNotifications) { createAll() }
         }
