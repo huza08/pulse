@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import app.pulse.android.R
+import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
 import androidx.compose.foundation.text.BasicText
@@ -47,9 +48,13 @@ internal fun PillNavigationItem(
         label = "iconColor"
     )
 
+    val compact = AppearancePreferences.compactDock
+    val tabWidth = if (compact) 60.dp else 72.dp
+    val tabIconSize = if (compact) 20.dp else 22.dp
+
     Column(
         modifier = Modifier
-            .width(72.dp)
+            .width(tabWidth)
             .fillMaxHeight()
             .padding(vertical = 4.dp)
             .clip(CircleShape)
@@ -62,7 +67,7 @@ internal fun PillNavigationItem(
             painter = painterResource(tab.icon),
             contentDescription = null,
             colorFilter = ColorFilter.tint(iconColor),
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(tabIconSize)
         )
 
         if (labelAlpha > 0.05f) {
@@ -86,6 +91,8 @@ fun FloatingSearchButton(
     modifier: Modifier = Modifier
 ) {
     val (colorPalette) = LocalAppearance.current
+    val compact = AppearancePreferences.compactDock
+    val iconSize = if (compact) 20.dp else 24.dp
     Box(
         modifier = modifier
             .background(colorPalette.background1, CircleShape)
@@ -97,7 +104,7 @@ fun FloatingSearchButton(
             painter = painterResource(R.drawable.search),
             contentDescription = null,
             colorFilter = ColorFilter.tint(colorPalette.text),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(iconSize)
         )
     }
 }
@@ -194,6 +201,8 @@ fun RadioCircleButton(
     modifier: Modifier = Modifier
 ) {
     val (colorPalette) = LocalAppearance.current
+    val compact = AppearancePreferences.compactDock
+    val iconSize = if (compact) 20.dp else 24.dp
     Box(
         modifier = modifier
             .background(colorPalette.background1, CircleShape)
@@ -205,7 +214,7 @@ fun RadioCircleButton(
             painter = painterResource(R.drawable.radio),
             contentDescription = null,
             colorFilter = ColorFilter.tint(colorPalette.text),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(iconSize)
         )
     }
 }

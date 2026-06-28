@@ -99,6 +99,12 @@ fun AppearanceSettings() {
             }
         }
         SettingsGroup(title = stringResource(R.string.shapes)) {
+            SwitchSettingsEntry(
+                title = stringResource(R.string.compact_dock),
+                text = stringResource(R.string.compact_dock_description),
+                isChecked = compactDock,
+                onCheckedChange = { compactDock = it }
+            )
             EnumValueSelectorSettingsEntry(
                 title = stringResource(R.string.thumbnail_roundness),
                 selectedValue = thumbnailRoundness,

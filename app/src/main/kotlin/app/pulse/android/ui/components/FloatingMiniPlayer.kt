@@ -42,6 +42,7 @@ import androidx.media3.common.Player
 import app.pulse.android.Database
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
+import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.models.ui.toUiMedia
 import app.pulse.android.ui.components.themed.CircularProgressIndicator
 import app.pulse.core.ui.utils.px
@@ -145,7 +146,7 @@ fun MorphingMiniPlayer(
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val thumbSize = (Dimensions.items.collapsedPlayerHeight * (1f - 0.45f * progress))
+            val thumbSize = (if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * (1f - 0.45f * progress)
 
             AsyncImage(
                 model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
@@ -272,7 +273,7 @@ fun CompactMiniPlayer(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(Dimensions.items.collapsedPlayerHeight * 0.55f) // Smaller, more balanced size
+                    .size((if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * 0.55f) // Smaller, more balanced size
                     .padding(2.dp)
                     .clip(CircleShape)
                     .background(colorPalette.background0)

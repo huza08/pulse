@@ -393,6 +393,8 @@
     <string name="reverb_medium_hall">Medium hall</string>
     <string name="reverb_large_hall">Large hall</string>
     <string name="reverb_plate">Plate</string>
+    <string name="compact_dock">Compact dock</string>
+    <string name="compact_dock_description">Reduce bottom dock height and spacing</string>
     <string name="tabs">Tabs</string>
     <string name="please_wait">Please wait, this may take some time</string>
     <string name="yt_dlp_success">Upgrading yt-dlp succeeded</string>

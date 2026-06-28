@@ -348,9 +348,11 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 animatedBottomDp,
                 playerBottomSheetState.value,
                 imeVisible,
-                imeBottomDp
+                imeBottomDp,
+                AppearancePreferences.compactDock
             ) {
-                val baseBottom = animatedBottomDp + Dimensions.items.collapsedPlayerHeight + 16.dp + 80.dp
+                val dockHeight = if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp
+                val baseBottom = animatedBottomDp + dockHeight + 16.dp + 80.dp
                 val bottom =
                     if (imeVisible) imeBottomDp.coerceAtLeast(playerBottomSheetState.value)
                     else playerBottomSheetState.value.coerceAtLeast(baseBottom)
