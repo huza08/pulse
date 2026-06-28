@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
@@ -54,7 +55,7 @@ fun adaptiveThumbnailContent(
     ) {
         val (colorPalette, _, _, thumbnailShape) = LocalAppearance.current
         val thumbnailSize =
-            if (isLandscape) (maxHeight - 96.dp - Dimensions.items.collapsedPlayerHeight)
+            if (isLandscape) (maxHeight - 96.dp - if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp)
             else maxWidth
 
         val innerModifier = Modifier

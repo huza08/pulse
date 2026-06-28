@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.ui.components.MorphingMiniPlayer
 import app.pulse.android.ui.components.CompactMiniPlayer
 import app.pulse.core.ui.Dimensions
@@ -25,7 +26,12 @@ fun MorphingDock(
     isLandscape: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val spacing = 8.dp
+    val compact = AppearancePreferences.compactDock
+    val dockPad = if (compact) 16.dp else 24.dp
+    val dockSpacing = if (compact) 6.dp else 8.dp
+    val dockHeightExtra = if (compact) 64.dp else 80.dp
+    val dockCompactWidth = if (compact) 200.dp else 240.dp
+    val dockOverscrollDip = if (compact) 12.dp else 16.dp
 
     val isSubPage = navigationState == null
     val radioAction = LocalRadioAction.current
@@ -118,19 +124,19 @@ fun MorphingDock(
                 )
             )
             .safeDrawingPadding()
-            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .padding(horizontal = dockPad, vertical = dockPad)
             .fillMaxWidth()
-            .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing + 80.dp)
+            .height(Dimensions.items.collapsedPlayerHeight * 2 + dockSpacing + dockHeightExtra)
     ) {
         val fullWidth = maxWidth
-        val baseSize  = Dimensions.items.collapsedPlayerHeight
+        val baseSize  = if (compact) Dimensions.items.collapsedPlayerHeight else 64.dp
 
         // Structural morph: shrink circle to 80% of baseSize at p=1.0
         val morphFactor       = homeP.coerceIn(0f, 1f)
         val targetSize        = baseSize * (1f - 0.2f * morphFactor)
         val overscroll        = (homeP - 1f).coerceAtLeast(0f)
         val currentCircleSize = (targetSize - (baseSize * 0.4f * overscroll)).coerceAtLeast(baseSize * 0.6f)
-        val commonDip         = with(density) { 16.dp.toPx() * overscroll }
+        val commonDip         = with(density) { dockOverscrollDip.toPx() * overscroll }
 
         // ── 1. Search button ─────────────────────────────────────────────────
         Box(
@@ -150,7 +156,7 @@ fun MorphingDock(
         // ── 2. Navigation bar ─────────────────────────────────────────────────
         val currentNavState = lastNavState.value
         if (!isLandscape && currentNavState != null && (1f - navHideFactor) > 0f) {
-            val expandedNavWidth = fullWidth - baseSize - spacing
+            val expandedNavWidth = fullWidth - baseSize - dockSpacing
             val currentNavWidth  = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
                 .coerceAtLeast(currentCircleSize)
 
@@ -178,8 +184,8 @@ fun MorphingDock(
         }
 
         // ── 3. Player & radio shared sizing ──────────────────────────────────
-        val targetCompactWidth  = 240.dp
-        val playerLandingWidth  = fullWidth - (currentCircleSize * 2) - (spacing * 2)
+        val targetCompactWidth  = dockCompactWidth
+        val playerLandingWidth  = fullWidth - (currentCircleSize * 2) - (dockSpacing * 2)
         val expandedPlayerWidth = fullWidth
 
         val currentPlayerWidth = if (p < 1f) {
@@ -195,11 +201,11 @@ fun MorphingDock(
                 .size(currentCircleSize)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
-                    translationX = (currentPlayerWidth / 2 + spacing / 2).toPx() * radioShowFactor
+                    translationX = (currentPlayerWidth / 2 + dockSpacing / 2).toPx() * radioShowFactor
                     alpha        = radioShowFactor
                     scaleX       = radioShowFactor
                     scaleY       = radioShowFactor
-                    val liftDistance = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
+                    val liftDistance = dockSpacing.toPx() * (p - 1f).coerceIn(0f, 1f)
                     translationY = -liftDistance + commonDip
                 }
         ) {
@@ -216,10 +222,10 @@ fun MorphingDock(
                 .width(currentPlayerWidth)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
-                    val travelDistance = (baseSize + spacing).toPx()
-                    val liftDistance   = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
+                    val travelDistance = (baseSize + dockSpacing).toPx()
+                    val liftDistance   = dockSpacing.toPx() * (p - 1f).coerceIn(0f, 1f)
                     translationY = -travelDistance * (1f - playerSlideProgress) - liftDistance + commonDip
-                    translationX = -(currentCircleSize / 2 + spacing / 2).toPx() * radioShowFactor
+                    translationX = -(currentCircleSize / 2 + dockSpacing / 2).toPx() * radioShowFactor
                 }
         ) {
             if (p < 1f) {
