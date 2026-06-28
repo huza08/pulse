@@ -80,6 +80,7 @@ import app.pulse.core.ui.utils.isLandscape
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.NavigationEndpoint
 import app.pulse.providers.innertube.models.bodies.NextBody
+import app.pulse.providers.innertube.requests.discoverPage
 import app.pulse.providers.innertube.requests.relatedPage
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -118,11 +119,30 @@ fun QuickPicks(
         ) relatedPageResult = Result.success(DataPreferences.cachedQuickPicks)
 
         suspend fun handleSong(song: Song?) {
+            var seedId = song?.id
+            if (seedId == null && trending == null) {
+                // First launch with no data — fall back to region trending from Explore
+                Innertube.discoverPage()
+                    ?.getOrNull()
+                    ?.trending
+                    ?.songs
+                    ?.firstOrNull()
+                    ?.let { fallback ->
+                        seedId = fallback.key
+                        trending = Song(
+                            id = fallback.key,
+                            title = fallback.info?.name ?: "",
+                            durationText = fallback.durationText,
+                            thumbnailUrl = fallback.thumbnail?.url
+                        )
+                    }
+            }
+            seedId = seedId ?: "J7p4bzqLvCw"
             if (relatedPageResult == null || trending?.id != song?.id) relatedPageResult =
                 Innertube.relatedPage(
-                    body = NextBody(videoId = (song?.id ?: "J7p4bzqLvCw"))
+                    body = NextBody(videoId = seedId)
                 )
-            trending = song
+            if (song != null) trending = song
         }
 
         when (DataPreferences.quickPicksSource) {
