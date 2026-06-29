@@ -233,11 +233,6 @@ fun Player(
                     1f to colorPalette.background0
                 )
             )
-            .padding(
-                windowInsets
-                    .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
-                    .asPaddingValues()
-            )
             .padding(bottom = playerBottomSheetState.collapsedBound)
 
         val thumbnailContent: @Composable (modifier: Modifier) -> Unit = { innerModifier ->
