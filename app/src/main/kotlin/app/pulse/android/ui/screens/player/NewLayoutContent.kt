@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -146,6 +147,17 @@ fun NewLayoutContent(
                         .asPaddingValues()
                 )
         ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .size(width = 36.dp, height = 4.dp)
+                    .background(
+                        color = colorPalette.text.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .align(Alignment.TopCenter)
+            )
+
             Column(modifier = Modifier.fillMaxSize()) {
                 Spacer(modifier = Modifier.weight(1f))
 
