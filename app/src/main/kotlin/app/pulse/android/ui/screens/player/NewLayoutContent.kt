@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,6 +47,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -86,6 +90,8 @@ fun NewLayoutContent(
     onLyricsClick: () -> Unit,
     onQueueClick: () -> Unit,
     onMenuLaunch: () -> Unit,
+    onDrag: (Float) -> Unit,
+    onDragEnd: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val (colorPalette, typography) = LocalAppearance.current
@@ -149,14 +155,38 @@ fun NewLayoutContent(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = 12.dp)
-                    .size(width = 36.dp, height = 4.dp)
-                    .background(
-                        color = colorPalette.text.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .align(Alignment.TopCenter)
-            )
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f)
+                    .pointerInput(Unit) {
+                        val velocityTracker = VelocityTracker()
+                        detectVerticalDragGestures(
+                            onVerticalDrag = { change, dragAmount ->
+                                velocityTracker.addPointerInputChange(change)
+                                onDrag(dragAmount)
+                            },
+                            onDragEnd = {
+                                val velocity = -velocityTracker.calculateVelocity().y
+                                velocityTracker.resetTracking()
+                                onDragEnd(velocity)
+                            },
+                            onDragCancel = {
+                                velocityTracker.resetTracking()
+                                onDragEnd(0f)
+                            }
+                        )
+                    }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .size(width = 36.dp, height = 4.dp)
+                        .background(
+                            color = colorPalette.text.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .align(Alignment.TopCenter)
+                )
+            }
 
             Column(modifier = Modifier.fillMaxSize()) {
                 Spacer(modifier = Modifier.weight(1f))

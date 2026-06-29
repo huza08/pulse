@@ -201,15 +201,17 @@ fun Player(
 
     OnGlobalRoute { if (layoutState.expanded) layoutState.collapseSoft() }
 
+    val dismissAction = {
+        if (mediaItem != null) {
+            binder?.let { onDismiss(it) }
+        }
+        layoutState.collapseSoft()
+    }
+
     BottomSheet(
         state = layoutState,
         modifier = modifier.fillMaxSize(),
-        onDismiss = {
-            if (mediaItem != null) {
-                binder?.let { onDismiss(it) }
-            }
-            layoutState.collapseSoft()
-        },
+        onDismiss = dismissAction,
         backHandlerEnabled = !menuState.isDisplayed,
         dragEnabled = false,
         collapsedContent = { },
@@ -312,6 +314,8 @@ fun Player(
                         }
                     }
                 },
+                onDrag = { layoutState.dispatchRawDelta(it) },
+                onDragEnd = { layoutState.fling(it, dismissAction) },
                 modifier = containerModifier
             )
         } else if (isLandscape) Row(
