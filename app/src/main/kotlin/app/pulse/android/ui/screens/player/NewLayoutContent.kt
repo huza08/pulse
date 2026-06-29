@@ -50,6 +50,7 @@ import androidx.media3.common.Player
 import app.pulse.android.R
 import app.pulse.android.models.ui.UiMedia
 import app.pulse.android.models.ui.toUiMedia
+import app.pulse.android.preferences.PlayerPreferences
 import app.pulse.android.service.PlayerService
 import app.pulse.android.ui.components.SeekBar
 import app.pulse.android.utils.bold
@@ -125,173 +126,181 @@ fun NewLayoutContent(
         }
 
         Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 48.dp)
-                .padding(bottom = 8.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                BasicText(
-                    text = metadata?.title?.toString().orEmpty(),
-                    style = typography.l.bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                BasicText(
-                    text = metadata?.artist?.toString().orEmpty(),
-                    style = typography.s.semiBold.secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Column(modifier = Modifier.fillMaxSize()) {
+                Spacer(modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Image(
-                painter = painterResource(
-                    if (likedAt == null) R.drawable.heart_outline else R.drawable.heart
-                ),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
-                modifier = Modifier
-                    .clickable {
-                        setLikedAt(
-                            if (likedAt == null) System.currentTimeMillis() else null
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        BasicText(
+                            text = metadata?.title?.toString().orEmpty(),
+                            style = typography.l.bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        BasicText(
+                            text = metadata?.artist?.toString().orEmpty(),
+                            style = typography.s.semiBold.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    .size(24.dp)
-            )
-        }
 
-        if (uiMedia != null) {
-            Box(modifier = Modifier.padding(horizontal = 48.dp)) {
-                SeekBar(
-                    binder = binder,
-                    position = position,
-                    media = uiMedia,
-                    alwaysShowDuration = true,
-                )
-            }
-        }
+                    Spacer(modifier = Modifier.width(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-
-            Image(
-                painter = painterResource(R.drawable.play_skip_back),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier
-                    .clickable { player.forceSeekToPrevious() }
-                    .size(32.dp)
-            )
-
-            Spacer(modifier = Modifier.width(48.dp))
-
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clickable {
-                        if (shouldBePlaying) player.pause()
-                        else {
-                            if (player.playbackState == Player.STATE_IDLE) player.prepare()
-                            player.play()
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                if (isBuffering && shouldBePlaying) {
-                    app.pulse.android.ui.components.themed.CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        color = colorPalette.text
-                    )
-                } else {
                     Image(
                         painter = painterResource(
-                            if (shouldBePlaying) R.drawable.pause else R.drawable.play
+                            if (likedAt == null) R.drawable.heart_outline else R.drawable.heart
                         ),
                         contentDescription = null,
+                        colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                        modifier = Modifier
+                            .clickable {
+                                setLikedAt(
+                                    if (likedAt == null) System.currentTimeMillis() else null
+                                )
+                            }
+                            .size(24.dp)
+                    )
+                }
+
+                if (uiMedia != null) {
+                    Box(modifier = Modifier.padding(horizontal = 48.dp)) {
+                        SeekBar(
+                            binder = binder,
+                            position = position,
+                            media = uiMedia,
+                            alwaysShowDuration = true,
+                            style = PlayerPreferences.SeekBarStyle.Static,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Image(
+                        painter = painterResource(R.drawable.play_skip_back),
+                        contentDescription = null,
                         colorFilter = ColorFilter.tint(colorPalette.text),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .clickable { player.forceSeekToPrevious() }
+                            .size(32.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(48.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clickable {
+                                if (shouldBePlaying) player.pause()
+                                else {
+                                    if (player.playbackState == Player.STATE_IDLE) player.prepare()
+                                    player.play()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isBuffering && shouldBePlaying) {
+                            app.pulse.android.ui.components.themed.CircularProgressIndicator(
+                                modifier = Modifier.size(40.dp),
+                                color = colorPalette.text
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(
+                                    if (shouldBePlaying) R.drawable.pause else R.drawable.play
+                                ),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(colorPalette.text),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(48.dp))
+
+                    Image(
+                        painter = painterResource(R.drawable.play_skip_forward),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        modifier = Modifier
+                            .clickable { player.forceSeekToNext() }
+                            .size(32.dp)
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(150.dp))
+            }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.height(28.dp))
+
+                NewLayoutVolumeSlider(
+                    context = context,
+                    colorPalette = colorPalette,
+                    modifier = Modifier
+                        .padding(horizontal = 48.dp)
+                        .height(24.dp)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp).padding(top = 24.dp, bottom = 48.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.sparkles),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        modifier = Modifier
+                            .clickable(onClick = onLyricsClick)
+                            .size(24.dp)
+                    )
+
+                    Image(
+                        painter = painterResource(R.drawable.list),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        modifier = Modifier
+                            .clickable(onClick = onQueueClick)
+                            .size(24.dp)
+                    )
+
+                    Image(
+                        painter = painterResource(R.drawable.ellipsis_horizontal),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        modifier = Modifier
+                            .clickable(onClick = onMenuLaunch)
+                            .size(24.dp)
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.width(48.dp))
-
-            Image(
-                painter = painterResource(R.drawable.play_skip_forward),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier
-                    .clickable { player.forceSeekToNext() }
-                    .size(32.dp)
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        NewLayoutVolumeSlider(
-            context = context,
-            colorPalette = colorPalette,
-            modifier = Modifier
-                .padding(horizontal = 48.dp)
-                .height(24.dp)
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 48.dp, vertical = 12.dp)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.sparkles),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier
-                    .clickable(onClick = onLyricsClick)
-                    .size(24.dp)
-            )
-
-            Image(
-                painter = painterResource(R.drawable.list),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier
-                    .clickable(onClick = onQueueClick)
-                    .size(24.dp)
-            )
-
-            Image(
-                painter = painterResource(R.drawable.ellipsis_horizontal),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier
-                    .clickable(onClick = onMenuLaunch)
-                    .size(24.dp)
-            )            }
         }
     }
-}
 }
 
 @Composable
