@@ -57,6 +57,8 @@ class CatchingDataSourceFactory(
         }.getOrElse { ex ->
             ex.printStackTrace()
 
+            // ponytail: let InterruptedException propagate — ExoPlayer's LoadTask treats it as clean cancellation
+            if (ex is InterruptedException) throw ex
             if (ex is PlaybackException) throw ex
             else throw PlaybackException(
                 /* message = */ "Unknown playback error",
@@ -187,5 +189,6 @@ val Context.defaultDataSource
         this,
         DefaultHttpDataSource.Factory().setConnectTimeoutMs(16000)
             .setReadTimeoutMs(8000)
-            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:136.0) Gecko/20100101 Firefox/136.0")
+            .setDefaultRequestProperties(mapOf("Referer" to "https://www.youtube.com"))
     )
