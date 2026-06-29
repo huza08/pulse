@@ -127,6 +127,7 @@ fun NewLayoutContent(
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
+                            0.25f to Color.Transparent,
                             0.45f to Color.Transparent,
                             0.7f to colorPalette.background0,
                             1f to colorPalette.background0
@@ -263,7 +264,7 @@ fun NewLayoutContent(
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
-                Spacer(modifier = Modifier.height(150.dp))
+                Spacer(modifier = Modifier.height(162.dp))
             }
 
             Column(
@@ -286,7 +287,7 @@ fun NewLayoutContent(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 48.dp).padding(top = 24.dp, bottom = 48.dp)
+                        .padding(horizontal = 48.dp).padding(top = 28.dp, bottom = 48.dp)
                 ) {
                     Image(
                         painter = painterResource(R.drawable.sparkles),
