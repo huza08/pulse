@@ -211,6 +211,7 @@ fun Player(
             layoutState.collapseSoft()
         },
         backHandlerEnabled = !menuState.isDisplayed,
+        dragEnabled = false,
         collapsedContent = { },
     ) {
         var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
@@ -287,7 +288,37 @@ fun Player(
             )
         }
 
-        if (isLandscape) Row(
+        var audioDialogOpen by rememberSaveable { mutableStateOf(false) }
+        var boostDialogOpen by rememberSaveable { mutableStateOf(false) }
+
+        if (playerLayout == PlayerPreferences.PlayerLayout.New) {
+            NewLayoutContent(
+                mediaItem = activeMediaItem,
+                binder = binder,
+                likedAt = likedAt,
+                setLikedAt = { likedAt = it },
+                position = position,
+                duration = duration,
+                onLyricsClick = { isShowingLyricsDialog = true },
+                onQueueClick = { playerBottomSheetState.expandSoft() },
+                onMenuLaunch = {
+                    mediaItem?.let {
+                        menuState.display {
+                            PlayerMenu(
+                                onDismiss = menuState::hide,
+                                mediaItem = it,
+                                binder = binder!!,
+                                onShowSpeedDialog = { audioDialogOpen = true },
+                                onShowNormalizationDialog = {
+                                    boostDialogOpen = true
+                                }.takeIf { volumeNormalization }
+                            )
+                        }
+                    }
+                },
+                modifier = containerModifier
+            )
+        } else if (isLandscape) Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = containerModifier.padding(top = 32.dp)
         ) {
@@ -324,8 +355,6 @@ fun Player(
                     .weight(1f)
             )
         }
-
-        var audioDialogOpen by rememberSaveable { mutableStateOf(false) }
 
         if (audioDialogOpen) SliderDialog(
             onDismiss = { audioDialogOpen = false },
@@ -368,8 +397,6 @@ fun Player(
                 )
             }
         }
-
-        var boostDialogOpen by rememberSaveable { mutableStateOf(false) }
 
         if (boostDialogOpen) {
             fun submit(state: Float) = transaction {
@@ -421,14 +448,7 @@ fun Player(
             layoutState = playerBottomSheetState,
             binder = binder,
             beforeContent = {
-                if (playerLayout == PlayerPreferences.PlayerLayout.New) IconButton(
-                    onClick = { trackLoopEnabled = !trackLoopEnabled },
-                    icon = R.drawable.infinite,
-                    enabled = trackLoopEnabled,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .size(20.dp)
-                ) else Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(20.dp))
             },
             afterContent = {
                 IconButton(
