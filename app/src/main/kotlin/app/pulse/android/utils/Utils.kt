@@ -149,10 +149,26 @@ fun String?.thumbnail(
     size: Int,
     maxSize: Int = AppearancePreferences.maxThumbnailSize
 ): String? {
+    if (this == null) return null
     val actualSize = size.coerceAtMost(maxSize)
     return when {
-        this?.startsWith("https://lh3.googleusercontent.com") == true -> "$this-w$actualSize-h$actualSize"
-        this?.startsWith("https://yt3.ggpht.com") == true -> "$this-w$actualSize-h$actualSize-s$actualSize"
+        startsWith("https://lh3.googleusercontent.com") ||
+            startsWith("https://yt3.ggpht.com") -> {
+            val baseUrl = substringBeforeLast('=')
+            if (startsWith("https://lh3.googleusercontent.com")) {
+                "$baseUrl=w$actualSize-h$actualSize-p-rj-nu"
+            } else {
+                "$baseUrl=s$actualSize-p-rj-nu"
+            }
+        }
+        contains("googleusercontent.com") || contains("ggpht.com") -> {
+            val baseUrl = if (contains("=")) substringBeforeLast('=') else this
+            if (contains("googleusercontent.com")) {
+                "$baseUrl=w$actualSize-h$actualSize-p-rj-nu"
+            } else {
+                "$baseUrl=s$actualSize-p-rj-nu"
+            }
+        }
         else -> this
     }
 }
