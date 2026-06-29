@@ -165,7 +165,7 @@ private fun ClassicSeekBarBody(
     showDuration: Boolean,
     modifier: Modifier = Modifier,
     range: ClosedRange<Long> = 0L..duration,
-    barHeight: Dp = 3.dp,
+    barHeight: Dp = 5.dp,
     scrubberColor: Color = color,
     drawSteps: Boolean = false
 ) = Column {
@@ -175,11 +175,9 @@ private fun ClassicSeekBarBody(
     )
 
     val currentBarHeight by transition.animateDp(label = "") { if (it) scrubberRadius else barHeight }
-    val currentScrubberRadius by transition.animateDp(label = "") { if (it) 0.dp else scrubberRadius }
 
-    Box(
+            Box(
         modifier = modifier
-            .padding(horizontal = scrubberRadius)
             .drawWithContent {
                 drawContent()
 
@@ -187,11 +185,19 @@ private fun ClassicSeekBarBody(
                     if (range.endInclusive < range.start) 0f
                     else (position.toFloat() - range.start) / (range.endInclusive - range.start) * size.width
 
-                drawCircle(
-                    color = scrubberColor,
-                    radius = currentScrubberRadius.toPx(),
-                    center = center.copy(x = scrubberPosition)
-                )
+                if (isDragging) {
+                    val thumbWidth = 8.dp.toPx()
+                    val thumbHeight = 16.dp.toPx()
+                    drawRoundRect(
+                        color = scrubberColor,
+                        topLeft = Offset(
+                            x = scrubberPosition - thumbWidth / 2f,
+                            y = (size.height - thumbHeight) / 2f
+                        ),
+                        size = Size(thumbWidth, thumbHeight),
+                        cornerRadius = CornerRadius(thumbHeight / 2f)
+                    )
+                }
 
                 if (poiTimestamp != null && position < poiTimestamp) drawPoi(
                     range = range,
@@ -267,9 +273,8 @@ private fun WavySeekBarBody(
         label = ""
     )
 
-    Box(
+            Box(
         modifier = modifier
-            .padding(horizontal = scrubberRadius)
             .drawWithContent {
                 drawContent()
 
@@ -448,7 +453,7 @@ private fun Duration(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 0.dp)
         ) {
             BasicText(
                 text = if (PlayerPreferences.showRemaining) "-${formatAsDuration(duration - position)}"
