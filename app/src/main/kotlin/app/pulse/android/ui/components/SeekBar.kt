@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import app.pulse.android.models.ui.UiMedia
 import app.pulse.android.preferences.PlayerPreferences
@@ -437,19 +438,22 @@ private fun Duration(
     enter = fadeIn() + expandVertically { -it },
     exit = fadeOut() + shrinkVertically { -it }
 ) {
-    val typography = LocalAppearance.current.typography
+    val (colorPalette, typography) = LocalAppearance.current
+    val fadedText = colorPalette.text.copy(alpha = 0.8f)
 
     Column {
         Spacer(Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         ) {
             BasicText(
                 text = if (PlayerPreferences.showRemaining) "-${formatAsDuration(duration - position)}"
                 else formatAsDuration(position),
-                style = typography.xxs.semiBold,
+                style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clickable {
@@ -457,9 +461,9 @@ private fun Duration(
                 }
             )
 
-            if (duration != C.TIME_UNSET) BasicText(
-                text = formatAsDuration(duration),
-                style = typography.xxs.semiBold,
+            BasicText(
+                text = if (duration != C.TIME_UNSET) formatAsDuration(duration) else "--:--",
+                style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
