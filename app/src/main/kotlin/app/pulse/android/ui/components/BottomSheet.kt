@@ -56,30 +56,33 @@ fun BottomSheet(
     onDismiss: (() -> Unit)? = null,
     indication: Indication? = LocalIndication.current,
     backHandlerEnabled: Boolean = true,
+    dragEnabled: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) = Box(
     modifier = modifier
         .offset(y = (state.expandedBound - state.value).coerceAtLeast(0.dp))
-        .pointerInput(state) {
-            val velocityTracker = VelocityTracker()
+        .then(
+            if (dragEnabled) Modifier.pointerInput(state) {
+                val velocityTracker = VelocityTracker()
 
-            detectVerticalDragGestures(
-                onVerticalDrag = { change, dragAmount ->
-                    velocityTracker.addPointerInputChange(change)
-                    state.dispatchRawDelta(dragAmount)
-                },
-                onDragCancel = {
-                    velocityTracker.resetTracking()
-                    state.snapTo(state.collapsedBound)
-                },
-                onDragEnd = {
-                    val velocity = -velocityTracker.calculateVelocity().y
-                    velocityTracker.resetTracking()
-                    state.fling(velocity, onDismiss)
-                }
-            )
-        }
-) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { change, dragAmount ->
+                        velocityTracker.addPointerInputChange(change)
+                        state.dispatchRawDelta(dragAmount)
+                    },
+                    onDragCancel = {
+                        velocityTracker.resetTracking()
+                        state.snapTo(state.collapsedBound)
+                    },
+                    onDragEnd = {
+                        val velocity = -velocityTracker.calculateVelocity().y
+                        velocityTracker.resetTracking()
+                        state.fling(velocity, onDismiss)
+                    }
+                )
+            } else Modifier
+        )
+    ) {
     if (state.value > state.collapsedBound) CallbackPredictiveBackHandler(
         enabled = !state.collapsing && backHandlerEnabled,
         onStart = { },
