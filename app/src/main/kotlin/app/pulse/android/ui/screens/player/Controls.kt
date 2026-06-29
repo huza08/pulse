@@ -1,10 +1,8 @@
 package app.pulse.android.ui.screens.player
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
@@ -13,18 +11,13 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,12 +37,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.media3.common.Player
 import app.pulse.android.Database
-import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.models.Info
 import app.pulse.android.models.ui.UiMedia
@@ -57,7 +48,6 @@ import app.pulse.android.preferences.PlayerPreferences
 import app.pulse.android.service.PlayerService
 import app.pulse.android.ui.components.FadingRow
 import app.pulse.android.ui.components.SeekBar
-import app.pulse.android.ui.components.themed.BigIconButton
 import app.pulse.android.ui.components.themed.IconButton
 import app.pulse.android.ui.screens.artistRoute
 import app.pulse.android.utils.bold
@@ -73,8 +63,6 @@ import app.pulse.core.ui.utils.roundedShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val DefaultOffset = 24.dp
-
 @Composable
 fun Controls(
     media: UiMedia?,
@@ -84,7 +72,6 @@ fun Controls(
     shouldBePlaying: Boolean,
     position: Long,
     modifier: Modifier = Modifier,
-    layout: PlayerPreferences.PlayerLayout = PlayerPreferences.playerLayout,
     isBuffering: Boolean = binder?.player?.rememberIsBuffering() ?: false
 ) {
     val shouldBePlayingTransition = updateTransition(
@@ -98,31 +85,17 @@ fun Controls(
         targetValueByState = { if (it) 16.dp else 32.dp }
     )
 
-    if (media != null && binder != null) when (layout) {
-        PlayerPreferences.PlayerLayout.Classic -> ClassicControls(
-            media = media,
-            binder = binder,
-            shouldBePlaying = shouldBePlaying,
-            position = position,
-            likedAt = likedAt,
-            setLikedAt = setLikedAt,
-            playButtonRadius = playButtonRadius,
-            modifier = modifier,
-            isBuffering = isBuffering
-        )
-
-        PlayerPreferences.PlayerLayout.New -> ModernControls(
-            media = media,
-            binder = binder,
-            shouldBePlaying = shouldBePlaying,
-            position = position,
-            likedAt = likedAt,
-            setLikedAt = setLikedAt,
-            playButtonRadius = playButtonRadius,
-            modifier = modifier,
-            isBuffering = isBuffering
-        )
-    }
+    if (media != null && binder != null) ClassicControls(
+        media = media,
+        binder = binder,
+        shouldBePlaying = shouldBePlaying,
+        position = position,
+        likedAt = likedAt,
+        setLikedAt = setLikedAt,
+        playButtonRadius = playButtonRadius,
+        modifier = modifier,
+        isBuffering = isBuffering
+    )
 }
 
 @Composable
@@ -227,149 +200,6 @@ private fun ClassicControls(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun ModernControls(
-    media: UiMedia,
-    binder: PlayerService.Binder,
-    shouldBePlaying: Boolean,
-    position: Long,
-    likedAt: Long?,
-    setLikedAt: (Long?) -> Unit,
-    playButtonRadius: Dp,
-    modifier: Modifier = Modifier,
-    controlHeight: Dp = 64.dp,
-    isBuffering: Boolean = false
-) {
-    val previousButtonContent: @Composable RowScope.() -> Unit = {
-        SkipButton(
-            iconId = R.drawable.play_skip_back,
-            onClick = binder.player::forceSeekToPrevious,
-            modifier = Modifier.weight(1f),
-            offsetOnPress = -DefaultOffset
-        )
-    }
-
-    val likeButtonContent: @Composable RowScope.() -> Unit = {
-        BigIconButton(
-            iconId = if (likedAt == null) R.drawable.heart_outline else R.drawable.heart,
-            onClick = {
-                setLikedAt(if (likedAt == null) System.currentTimeMillis() else null)
-            },
-            modifier = Modifier.weight(1f)
-        )
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)
-    ) {
-        Spacer(modifier = Modifier.weight(1f))
-        MediaInfo(media)
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(if (PlayerPreferences.showLike) 4.dp else 8.dp)
-        ) {
-            if (PlayerPreferences.showLike) previousButtonContent()
-            PlayButton(
-                radius = playButtonRadius,
-                shouldBePlaying = shouldBePlaying,
-                modifier = Modifier
-                    .height(controlHeight)
-                    .weight(if (PlayerPreferences.showLike) 3f else 4f),
-                isBuffering = isBuffering
-            )
-            SkipButton(
-                iconId = R.drawable.play_skip_forward,
-                onClick = binder.player::forceSeekToNext,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (PlayerPreferences.showLike) likeButtonContent() else previousButtonContent()
-
-            Column(modifier = Modifier.weight(4f)) {
-                SeekBar(
-                    binder = binder,
-                    position = position,
-                    media = media
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun SkipButton(
-    @DrawableRes iconId: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    offsetOnPress: Dp = DefaultOffset
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val offset by animateDpAsState(
-        targetValue = if (pressed) offsetOnPress else 0.dp,
-        label = ""
-    )
-
-    BigIconButton(
-        iconId = iconId,
-        modifier = modifier
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-            .offset {
-                IntOffset(x = offset.roundToPx(), y = 0)
-            }
-    )
-}
-
-@Composable
-private fun PlayButton(
-    radius: Dp,
-    shouldBePlaying: Boolean,
-    modifier: Modifier = Modifier,
-    isBuffering: Boolean = false
-) {
-    val (colorPalette) = LocalAppearance.current
-    val binder = LocalPlayerServiceBinder.current
-
-    Box(
-        modifier = modifier
-            .clip(radius.roundedShape)
-            .clickable {
-                if (shouldBePlaying) binder?.player?.pause() else {
-                    if (binder?.player?.playbackState == Player.STATE_IDLE) binder.player.prepare()
-                    binder?.player?.play()
-                }
-            }
-            .background(colorPalette.accent)
-    ) {
-        AnimatedPlayPauseButton(
-            playing = shouldBePlaying,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(32.dp),
-            buffering = isBuffering,
-            tint = colorPalette.background0
-        )
     }
 }
 

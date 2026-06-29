@@ -1439,7 +1439,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 dataSpec
                     .withUri(cachedUri.uri)
                     .ranged(cachedUri.meta)
-            } ?: run {
+            } ?: runCatching {
+                val format = runBlocking(Dispatchers.IO) { Database.formatSync(mediaId) }
+                format?.url?.let { url ->
+                    dataSpec
+                        .withUri(url.toUri())
+                        .ranged(format.contentLength)
+                }
+            }.getOrNull() ?: run {
                 val (body, info) = runBlocking(Dispatchers.IO) {
                     val bodyDeferred = async {
                         Innertube.player(PlayerBody(videoId = mediaId))
@@ -1487,7 +1494,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                                 bitrate = format?.abr?.let { it * 1000 }?.toLong(),
                                 loudnessDb = body?.playerConfig?.audioConfig?.normalizedLoudnessDb,
                                 contentLength = info.fileSize,
-                                lastModified = youtubeFormat?.lastModified
+                                lastModified = youtubeFormat?.lastModified,
+                                url = uri.toString()
                             )
                         )
                     }
