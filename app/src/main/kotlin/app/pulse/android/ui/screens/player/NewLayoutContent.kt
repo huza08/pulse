@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,13 +63,15 @@ import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
 import app.pulse.android.utils.shouldBePlaying
-import app.pulse.android.utils.thumbnail
 import app.pulse.android.utils.rememberIsBuffering
+import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.favoritesIcon
 import app.pulse.core.ui.utils.px
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import kotlin.math.roundToInt
 
 @Composable
@@ -94,9 +95,11 @@ fun NewLayoutContent(
         (shouldBePlaying && player.playbackState != Player.STATE_READY)
 
     val metadata = remember(mediaItem) { mediaItem?.mediaMetadata }
-    val thumbSize = with(LocalDensity.current) { Dimensions.thumbnails.player.song.roundToPx() }
-    val artworkUri = remember(metadata, thumbSize) {
-        metadata?.artworkUri?.thumbnail(thumbSize)
+    val artworkUri = remember(mediaItem) {
+        val thumbSize = with(context.resources.displayMetrics) {
+            maxOf(widthPixels, heightPixels)
+        }
+        mediaItem?.mediaMetadata?.artworkUri?.thumbnail(thumbSize)
     }
     val uiMedia = remember(mediaItem, duration) { mediaItem?.toUiMedia(duration) }
 
@@ -108,7 +111,10 @@ fun NewLayoutContent(
         ) {
             if (artworkUri != null) {
                 AsyncImage(
-                    model = artworkUri,
+                    model = ImageRequest.Builder(context)
+                        .data(artworkUri)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

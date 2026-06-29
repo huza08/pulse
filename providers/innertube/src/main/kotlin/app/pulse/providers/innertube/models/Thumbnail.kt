@@ -9,8 +9,8 @@ data class Thumbnail(
     val width: Int?
 ) {
     fun size(size: Int) = when {
-        url.startsWith("https://lh3.googleusercontent.com") -> "$url-w$size-h$size"
-        url.startsWith("https://yt3.ggpht.com") -> "$url-s$size"
+        url.startsWith("https://lh3.googleusercontent.com") -> "${url.substringBeforeLast('=')}=w$size-h$size-p-rj-nu"
+        url.startsWith("https://yt3.ggpht.com") -> "${url.substringBeforeLast('=')}=s$size-p-rj-nu"
         else -> url
     }
 }
