@@ -227,33 +227,7 @@ fun Queue(
     BottomSheet(
         state = layoutState,
         modifier = modifier.fillMaxSize(),
-        collapsedContent = { innerModifier ->
-            Row(
-                modifier = Modifier
-                    .clip(shape)
-                    .background(colorPalette.background2)
-                    .fillMaxSize()
-                    .then(innerModifier)
-                    .padding(horizontalBottomPaddingValues),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Spacer(modifier = Modifier.width(4.dp))
-                beforeContent()
-                Spacer(modifier = Modifier.weight(1f))
-
-                Image(
-                    painter = painterResource(R.drawable.playlist),
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(colorPalette.text),
-                    modifier = Modifier.size(18.dp)
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-                afterContent()
-                Spacer(modifier = Modifier.width(4.dp))
-            }
-        }
+        collapsedContent = { }
     ) {
         val musicBarsTransition = updateTransition(
             targetState = if (reorderingState.isDragging) -1L else mediaItemIndex,
