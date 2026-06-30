@@ -443,7 +443,7 @@ fun Lyrics(
             lyricsState.sentences?.let {
                 SynchronizedLyrics(it.toImmutableMap()) {
                     binder?.player?.let { player ->
-                        player.currentPosition + UPDATE_DELAY + lyricsState.offset -
+                        player.currentPosition + lyricsState.offset -
                             (lyrics?.startTime ?: 0L)
                     } ?: 0L
                 }
@@ -471,7 +471,7 @@ fun Lyrics(
                         delay(UPDATE_DELAY)
                         if (!currentSynchronizedLyrics.update()) continue
 
-                        lazyListState.animateScrollToItem(
+                        lazyListState.scrollToItem(
                             index = currentSynchronizedLyrics.index + 1,
                             scrollOffset = centerOffset
                         )
