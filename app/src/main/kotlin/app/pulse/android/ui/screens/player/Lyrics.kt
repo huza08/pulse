@@ -78,6 +78,7 @@ import app.pulse.android.ui.components.themed.ValueSelectorDialogBody
 import app.pulse.android.ui.modifiers.verticalFadingEdge
 import app.pulse.android.utils.SynchronizedLyrics
 import app.pulse.android.utils.SynchronizedLyricsState
+import app.pulse.android.utils.bold
 import app.pulse.android.utils.center
 import app.pulse.android.utils.color
 import app.pulse.android.utils.isInPip
@@ -329,7 +330,6 @@ fun Lyrics(
                 detectTapGestures(onTap = { onDismiss() })
             }
             .fillMaxSize()
-            .background(colorPalette.overlay)
     ) {
         val animatedHeight by animateDpAsState(
             targetValue = this.maxHeight, // `this` needed, thanks Android Lint!
@@ -427,49 +427,59 @@ fun Lyrics(
 
                 if (synchronizedLyrics != null) LazyColumn(
                     state = lazyListState,
-                    userScrollEnabled = false,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                    userScrollEnabled = true,
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top,
                     modifier = Modifier
                         .verticalFadingEdge()
                         .fillMaxWidth()
                 ) {
                     item(key = "header", contentType = 0) {
-                        Spacer(modifier = Modifier.height(maxHeight))
+                        Spacer(modifier = Modifier.height(maxHeight / 2 - 64.dp))
                     }
                     itemsIndexed(
                         items = synchronizedLyrics.sentences.values.toImmutableList()
                     ) { index, sentence ->
+                        val active = index == synchronizedLyrics.index
                         val color by animateColorAsState(
-                            if (index == synchronizedLyrics.index) Color.White
-                            else colorPalette.textDisabled
+                            if (active) Color.White
+                            else colorPalette.text.copy(alpha = 0.5f)
                         )
+                        val scale by animateDpAsState(if (active) 1.dp else 0.dp)
 
                         if (sentence.isBlank()) Image(
                             painter = painterResource(R.drawable.musical_notes),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(color),
                             modifier = Modifier
-                                .padding(vertical = 4.dp, horizontal = 32.dp)
-                                .size(typography.xs.fontSize.dp)
+                                .padding(vertical = 16.dp, horizontal = 48.dp)
+                                .size(typography.m.fontSize.dp)
                         ) else BasicText(
                             text = sentence,
-                            style = typography.xs.center.medium.color(color),
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 32.dp)
+                            style = if (active) typography.m.bold.color(color) else typography.m.semiBold.color(color),
+                            modifier = Modifier
+                                .padding(vertical = 12.dp, horizontal = 48.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = {
+                                        binder?.player?.seekTo(synchronizedLyrics.sentences.keys.elementAt(index))
+                                    }
+                                )
                         )
                     }
                     item(key = "footer", contentType = 0) {
-                        Spacer(modifier = Modifier.height(maxHeight))
+                        Spacer(modifier = Modifier.height(maxHeight / 2))
                     }
                 }
             } else BasicText(
                 text = lyrics?.fixed.orEmpty(),
-                style = typography.xs.center.medium.color(colorPalette.onOverlay),
+                style = typography.m.semiBold.color(colorPalette.text.copy(alpha = 0.8f)),
                 modifier = Modifier
                     .verticalFadingEdge()
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
-                    .padding(vertical = maxHeight / 4, horizontal = 32.dp)
+                    .padding(vertical = maxHeight / 4, horizontal = 48.dp)
             )
         }
 

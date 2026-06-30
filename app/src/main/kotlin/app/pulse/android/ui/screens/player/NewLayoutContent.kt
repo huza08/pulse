@@ -5,6 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +46,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -75,6 +83,7 @@ import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.favoritesIcon
 import app.pulse.core.ui.utils.px
+import app.pulse.core.ui.utils.roundedShape
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -93,9 +102,11 @@ fun NewLayoutContent(
     onMenuLaunch: () -> Unit,
     onDrag: (Float) -> Unit,
     onDragEnd: (Float) -> Unit,
+    isShowingLyrics: Boolean,
+    onShowLyrics: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (colorPalette, typography) = LocalAppearance.current
+    val (colorPalette, typography, thumbnailCornerSize) = LocalAppearance.current
     val context = LocalContext.current
     val player = binder?.player ?: return
     val shouldBePlaying = player.shouldBePlaying
@@ -103,13 +114,14 @@ fun NewLayoutContent(
         (shouldBePlaying && player.playbackState != Player.STATE_READY)
 
     val metadata = remember(mediaItem) { mediaItem?.mediaMetadata }
-    val artworkUri = remember(mediaItem) {
+    val mediaId = mediaItem?.mediaId ?: return
+    val artworkUri = remember(mediaId) {
         val thumbSize = with(context.resources.displayMetrics) {
             maxOf(widthPixels, heightPixels)
         }
-        mediaItem?.mediaMetadata?.artworkUri?.thumbnail(thumbSize)
+        mediaItem.mediaMetadata.artworkUri?.thumbnail(thumbSize)
     }
-    val uiMedia = remember(mediaItem, duration) { mediaItem?.toUiMedia(duration) }
+    val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
     Box(
         modifier = modifier
@@ -131,7 +143,9 @@ fun NewLayoutContent(
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .let { if (isShowingLyrics) it.blur(32.dp) else it }
                 )
             }
 
@@ -196,46 +210,129 @@ fun NewLayoutContent(
             }
 
             Column(modifier = Modifier.fillMaxSize()) {
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 48.dp)
-                        .padding(bottom = 8.dp)
+                AnimatedVisibility(
+                    visible = isShowingLyrics,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        BasicText(
-                            text = metadata?.title?.toString().orEmpty(),
-                            style = typography.l.bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 48.dp)
+                            .padding(top = 16.dp, bottom = 8.dp)
+                    ) {
+                        AsyncImage(
+                            model = artworkUri,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(thumbnailCornerSize.roundedShape)
                         )
-                        BasicText(
-                            text = metadata?.artist?.toString().orEmpty(),
-                            style = typography.s.semiBold.secondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            BasicText(
+                                text = metadata?.title?.toString().orEmpty(),
+                                style = typography.s.bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            BasicText(
+                                text = metadata?.artist?.toString().orEmpty(),
+                                style = typography.xs.semiBold.secondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Image(
+                            painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
+                            else painterResource(R.drawable.heart),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                            modifier = Modifier
+                                .clickable {
+                                    setLikedAt(
+                                        if (likedAt == null) System.currentTimeMillis() else null
+                                    )
+                                }
+                                .size(24.dp)
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    this@Column.AnimatedVisibility(
+                        visible = isShowingLyrics,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Lyrics(
+                            mediaId = mediaId,
+                            isDisplayed = true,
+                            onDismiss = { onShowLyrics(false) },
+                            mediaMetadataProvider = { mediaItem!!.mediaMetadata },
+                            durationProvider = { player.duration },
+                            ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
+                            modifier = Modifier.fillMaxSize(),
+                            showControls = false
+                        )
+                    }
+                }
 
-                    Image(
-                        painter = painterResource(
-                            if (likedAt == null) R.drawable.heart_outline else R.drawable.heart
-                        ),
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                this@Column.AnimatedVisibility(
+                    visible = !isShowingLyrics,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clickable {
-                                setLikedAt(
-                                    if (likedAt == null) System.currentTimeMillis() else null
-                                )
-                            }
-                            .size(24.dp)
-                    )
+                            .fillMaxWidth()
+                            .padding(horizontal = 48.dp)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            BasicText(
+                                text = metadata?.title?.toString().orEmpty(),
+                                style = typography.l.bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            BasicText(
+                                text = metadata?.artist?.toString().orEmpty(),
+                                style = typography.s.semiBold.secondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Image(
+                            painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
+                            else painterResource(R.drawable.heart),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                            modifier = Modifier
+                                .clickable {
+                                    setLikedAt(
+                                        if (likedAt == null) System.currentTimeMillis() else null
+                                    )
+                                }
+                                .size(24.dp)
+                        )
+                    }
                 }
 
                 if (uiMedia != null) {
@@ -289,9 +386,8 @@ fun NewLayoutContent(
                             )
                         } else {
                             Image(
-                                painter = painterResource(
-                                    if (shouldBePlaying) R.drawable.pause else R.drawable.play
-                                ),
+                                painter = if (shouldBePlaying) painterResource(R.drawable.pause)
+                                else painterResource(R.drawable.play),
                                 contentDescription = null,
                                 colorFilter = ColorFilter.tint(colorPalette.text),
                                 modifier = Modifier.size(40.dp)
@@ -341,7 +437,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.lyrics),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        colorFilter = ColorFilter.tint(if (isShowingLyrics) colorPalette.accent else colorPalette.text),
                         modifier = Modifier
                             .clickable(onClick = onLyricsClick)
                             .size(24.dp)

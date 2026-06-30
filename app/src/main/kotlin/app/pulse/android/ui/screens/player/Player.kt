@@ -297,7 +297,7 @@ fun Player(
                 setLikedAt = { likedAt = it },
                 position = position,
                 duration = duration,
-                onLyricsClick = { isShowingLyricsDialog = true },
+                onLyricsClick = { isShowingLyrics = !isShowingLyrics },
                 onQueueClick = { playerBottomSheetState.expandSoft() },
                 onMenuLaunch = {
                     mediaItem?.let {
@@ -316,6 +316,8 @@ fun Player(
                 },
                 onDrag = { layoutState.dispatchRawDelta(it) },
                 onDragEnd = { layoutState.fling(it, dismissAction) },
+                isShowingLyrics = isShowingLyrics,
+                onShowLyrics = { isShowingLyrics = it },
                 modifier = containerModifier
             )
         } else if (isLandscape) Row(
