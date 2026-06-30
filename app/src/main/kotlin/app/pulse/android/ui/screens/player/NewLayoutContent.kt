@@ -121,7 +121,6 @@ fun NewLayoutContent(
     val shouldBePlaying = player.shouldBePlaying
     val isBuffering = player.rememberIsBuffering() ||
         (shouldBePlaying && player.playbackState != Player.STATE_READY)
-
     val metadata = remember(mediaItem) { mediaItem?.mediaMetadata }
     val mediaId = mediaItem?.mediaId ?: return
     val artworkUri = remember(mediaId) {
@@ -133,12 +132,17 @@ fun NewLayoutContent(
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
     var dominantArtworkColor by remember(mediaId) { mutableStateOf<Color?>(null) }
+    var lyricsReady by remember(mediaId) { mutableStateOf(LyricsCache[mediaId] != null) }
 
     LaunchedEffect(mediaId) {
-        if (LyricsCache[mediaId] != null) return@LaunchedEffect
+        if (LyricsCache[mediaId] != null) {
+            lyricsReady = true
+            return@LaunchedEffect
+        }
         val existing = Database.lyrics(mediaId).first()
         if (existing?.fixed != null && existing?.synced != null) {
             LyricsCache[mediaId] = existing
+            lyricsReady = true
             return@LaunchedEffect
         }
 
@@ -160,7 +164,8 @@ fun NewLayoutContent(
             currentSynced = null
         )
 
-        if (fixed != null || synced != null) {
+        lyricsReady = (fixed != null || synced != null)
+        if (lyricsReady) {
             val lyrics = app.pulse.android.models.Lyrics(
                 songId = mediaId,
                 fixed = fixed.orEmpty(),
@@ -208,7 +213,7 @@ fun NewLayoutContent(
     }
 
     val gradientEndColor = remember(colorPalette) {
-        colorPalette.background0.copy(alpha = 1f)
+        colorPalette.background0.copy(alpha = 0.95f)
     }
 
 
@@ -235,14 +240,13 @@ fun NewLayoutContent(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(if (isShowingLyrics) Modifier.cloudy(radius = 64) else Modifier)
+                        .then(if (isShowingLyrics) Modifier.cloudy(radius = 96) else Modifier)
                 )
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .then(if (isShowingLyrics) Modifier.cloudy(radius = 64) else Modifier)
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
@@ -530,9 +534,12 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.lyrics),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.accent),
+                        colorFilter = ColorFilter.tint(
+                            if (lyricsReady) colorPalette.accent
+                            else colorPalette.accent.copy(alpha = 0.25f)
+                        ),
                         modifier = Modifier
-                            .clickable(onClick = onLyricsClick)
+                            .clickable(enabled = lyricsReady, onClick = onLyricsClick)
                             .size(24.dp)
                     )
 
