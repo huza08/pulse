@@ -339,7 +339,7 @@ fun NewLayoutContent(
                         .padding(horizontal = 48.dp).padding(top = 28.dp, bottom = 48.dp)
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.sparkles),
+                        painter = painterResource(R.drawable.lyrics),
                         contentDescription = null,
                         colorFilter = ColorFilter.tint(colorPalette.text),
                         modifier = Modifier
