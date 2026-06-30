@@ -324,7 +324,7 @@ fun Lyrics(
     }
 
     BoxWithConstraints(
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopStart,
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { onDismiss() })
@@ -401,13 +401,14 @@ fun Lyrics(
         AnimatedContent(
             targetState = showSynchronizedLyrics,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
+            contentAlignment = Alignment.TopStart,
             label = ""
         ) { synchronized ->
             val lazyListState = rememberLazyListState()
             if (synchronized) {
                 LaunchedEffect(synchronizedLyrics, density, animatedHeight) {
                     val currentSynchronizedLyrics = synchronizedLyrics ?: return@LaunchedEffect
-                    val centerOffset = with(density) { (-animatedHeight / 3).roundToPx() }
+                    val centerOffset = with(density) { (-animatedHeight / 12).roundToPx() }
 
                     lazyListState.animateScrollToItem(
                         index = currentSynchronizedLyrics.index + 1,
@@ -435,7 +436,7 @@ fun Lyrics(
                         .fillMaxWidth()
                 ) {
                     item(key = "header", contentType = 0) {
-                        Spacer(modifier = Modifier.height(maxHeight / 2 - 64.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                     itemsIndexed(
                         items = synchronizedLyrics.sentences.values.toImmutableList()
@@ -479,7 +480,7 @@ fun Lyrics(
                     .verticalFadingEdge()
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
-                    .padding(vertical = maxHeight / 4, horizontal = 48.dp)
+                    .padding(vertical = 64.dp, horizontal = 48.dp)
             )
         }
 
