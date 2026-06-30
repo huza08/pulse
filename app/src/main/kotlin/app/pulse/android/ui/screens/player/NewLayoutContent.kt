@@ -165,7 +165,7 @@ fun NewLayoutContent(
     }
 
     val gradientEndColor = remember(colorPalette) {
-        colorPalette.background0.copy(alpha = 0.8f)
+        colorPalette.background0.copy(alpha = 1f)
     }
 
 
