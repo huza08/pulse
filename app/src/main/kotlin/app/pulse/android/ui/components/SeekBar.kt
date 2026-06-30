@@ -238,7 +238,8 @@ private fun ClassicSeekBarBody(
     Duration(
         position = position,
         duration = duration,
-        show = showDuration
+        show = showDuration,
+        color = color
     )
 }
 
@@ -332,7 +333,8 @@ private fun WavySeekBarBody(
     Duration(
         position = position,
         duration = duration,
-        show = showDuration
+        show = showDuration,
+        color = color
     )
 }
 
@@ -437,14 +439,15 @@ private fun ContentDrawScope.drawPoi(
 private fun Duration(
     position: Long,
     duration: Long,
-    show: Boolean
+    show: Boolean,
+    color: Color
 ) = AnimatedVisibility(
     visible = show,
     enter = fadeIn() + expandVertically { -it },
     exit = fadeOut() + shrinkVertically { -it }
 ) {
-    val (colorPalette, typography) = LocalAppearance.current
-    val fadedText = colorPalette.text.copy(alpha = 0.8f)
+    val (_, typography) = LocalAppearance.current
+    val fadedText = color.copy(alpha = 0.8f)
 
     Column {
         Spacer(Modifier.height(8.dp))
