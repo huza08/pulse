@@ -222,6 +222,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.ktor)
 
+    implementation(libs.compose.cloudy)
+
     implementation(libs.palette)
     implementation(libs.monet)
     runtimeOnly(projects.core.materialCompat)

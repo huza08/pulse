@@ -46,7 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import com.skydoves.cloudy.cloudy
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
@@ -145,7 +145,7 @@ fun NewLayoutContent(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .let { if (isShowingLyrics) it.blur(32.dp) else it }
+                        .then(if (isShowingLyrics) Modifier.cloudy(radius = 64) else Modifier)
                 )
             }
 
