@@ -103,15 +103,76 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val UPDATE_DELAY = 50L
+
+internal suspend fun fetchLyricsParallel(
+    mediaId: String,
+    artist: String,
+    title: String,
+    album: String?,
+    duration: Long,
+    currentFixed: String?,
+    currentSynced: String?
+): Pair<String?, String?> = coroutineScope {
+    val fixedDef = async {
+        currentFixed ?: run {
+            listOf(
+                async { Innertube.lyrics(NextBody(videoId = mediaId))?.getOrNull() },
+                async {
+                    LrcLib.bestLyrics(
+                        artist = artist,
+                        title = title,
+                        duration = duration.milliseconds,
+                        album = album,
+                        synced = false
+                    )?.map { it?.text }?.getOrNull()
+                }
+            ).firstNotNullOfOrNull { it.await() }
+        }
+    }
+    val syncedDef = async {
+        currentSynced ?: run {
+            val altTitle = title.split("(")[0].trim()
+            listOfNotNull(
+                async {
+                    LrcLib.bestLyrics(
+                        artist = artist,
+                        title = title,
+                        duration = duration.milliseconds,
+                        album = album
+                    )?.map { it?.text }?.getOrNull()
+                },
+                if (altTitle != title) async {
+                    LrcLib.bestLyrics(
+                        artist = artist,
+                        title = altTitle,
+                        duration = duration.milliseconds,
+                        album = album
+                    )?.map { it?.text }?.getOrNull()
+                } else null,
+                async {
+                    KuGou.lyrics(
+                        artist = artist,
+                        title = title,
+                        duration = duration / 1000
+                    )?.map { it?.value }?.getOrNull()
+                }
+            ).firstNotNullOfOrNull { it.await() }
+        }
+    }
+    fixedDef.await() to syncedDef.await()
+}
 
 @Composable
 fun Lyrics(
@@ -169,6 +230,12 @@ fun Lyrics(
     }
 
     LaunchedEffect(mediaId, shouldShowSynchronizedLyrics) {
+        LyricsCache[mediaId]?.let { cached ->
+            lyrics = cached
+            error = (shouldShowSynchronizedLyrics && cached.synced.isNullOrBlank()) ||
+                (!shouldShowSynchronizedLyrics && cached.fixed.isNullOrBlank())
+        }
+
         runCatching {
             withContext(Dispatchers.IO) {
                 Database
@@ -203,32 +270,15 @@ fun Lyrics(
                             lyrics = null
                             error = false
 
-                            val fixed = currentLyrics?.fixed ?: Innertube
-                                .lyrics(NextBody(videoId = mediaId))
-                                ?.getOrNull()
-                                ?: LrcLib.bestLyrics(
-                                    artist = artist,
-                                    title = title,
-                                    duration = duration.milliseconds,
-                                    album = album,
-                                    synced = false
-                                )?.map { it?.text }?.getOrNull()
-
-                            val synced = currentLyrics?.synced ?: LrcLib.bestLyrics(
+                            val (fixed, synced) = fetchLyricsParallel(
+                                mediaId = mediaId,
                                 artist = artist,
                                 title = title,
-                                duration = duration.milliseconds,
-                                album = album
-                            )?.map { it?.text }?.getOrNull() ?: LrcLib.bestLyrics(
-                                artist = artist,
-                                title = title.split("(")[0].trim(),
-                                duration = duration.milliseconds,
-                                album = album
-                            )?.map { it?.text }?.getOrNull() ?: KuGou.lyrics(
-                                artist = artist,
-                                title = title,
-                                duration = duration / 1000
-                            )?.map { it?.value }?.getOrNull()
+                                album = album,
+                                duration = duration,
+                                currentFixed = currentLyrics?.fixed,
+                                currentSynced = currentLyrics?.synced
+                            )
 
                             Lyrics(
                                 songId = mediaId,
@@ -236,6 +286,8 @@ fun Lyrics(
                                 synced = synced.orEmpty()
                             ).also {
                                 ensureActive()
+
+                                LyricsCache[mediaId] = it
 
                                 transaction {
                                     runCatching {
@@ -486,7 +538,10 @@ fun Lyrics(
 
         if (text == null && !error) Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.shimmer()
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .shimmer()
         ) {
             repeat(4) {
                 TextPlaceholder(
