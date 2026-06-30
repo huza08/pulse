@@ -6,12 +6,23 @@
 
 <details>
   <summary><b>Click to view screenshots</b></summary>
+
+<div align="left">
   
-  <p align="center">
-    <img src="./assets/screenshots/1.png" width="30%" />
-    <img src="./assets/screenshots/2.png" width="30%" />
-    <img src="./assets/screenshots/3.png" width="30%" />
-  </p>
+**1.2.7**
+---
+<img src="./assets/screenshots/4.jpg" width="30%" /> 
+<img src="./assets/screenshots/5.jpg" width="30%" /> 
+<img src="./assets/screenshots/6.jpg" width="30%" />
+<br><br>
+
+**1.2.6**
+---
+<img src="./assets/screenshots/1.png" width="30%" /> 
+<img src="./assets/screenshots/2.png" width="30%" /> 
+<img src="./assets/screenshots/3.png" width="30%" />
+
+</div>
 
 </details>
 
@@ -63,4 +74,3 @@ Pulse is a maintained fork of [ViTune](https://github.com/bartoostveen/ViTune) a
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
 
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
-
