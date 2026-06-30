@@ -33,7 +33,7 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 26
+        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 27
         versionName = project.version.toString()
 
         multiDexEnabled = true
