@@ -13,6 +13,7 @@ detekt = "1.23.8"
 workmanager = "2.11.2"
 credentials = "1.5.0"
 coil = "3.4.0"
+cloudy = "0.6.1"
 firebase = "34.12.0"
 
 [plugins]
@@ -51,6 +52,8 @@ compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.
 
 coil_compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil_ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+
+compose_cloudy = { module = "com.github.skydoves:cloudy", version.ref = "cloudy" }
 
 room = { module = "androidx.room:room-ktx", version.ref = "room" }
 room_compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
