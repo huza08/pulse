@@ -37,8 +37,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.palette.graphics.Palette
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,19 +76,22 @@ import app.pulse.android.ui.components.SeekBar
 import app.pulse.android.utils.bold
 import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.forceSeekToPrevious
-import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
 import app.pulse.android.utils.shouldBePlaying
 import app.pulse.android.utils.rememberIsBuffering
 import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
-import app.pulse.core.ui.favoritesIcon
 import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
 import coil3.compose.AsyncImage
+import coil3.imageLoader
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.crossfade
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 @Composable
@@ -123,6 +128,48 @@ fun NewLayoutContent(
     }
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
+    var dominantArtworkColor by remember(mediaId) { mutableStateOf<Color?>(null) }
+
+    LaunchedEffect(mediaId, artworkUri) {
+        if (artworkUri == null) return@LaunchedEffect
+        val color = withContext(Dispatchers.Default) {
+            runCatching {
+                val request = ImageRequest.Builder(context.applicationContext)
+                    .data(artworkUri)
+                    .allowHardware(false)
+                    .build()
+                val result = context.applicationContext.imageLoader.execute(request)
+                result.image?.let { image ->
+                    val bitmap = image.toBitmap(image.width, image.height)
+                    val palette = Palette.from(bitmap).generate()
+                    palette.dominantSwatch?.rgb?.let { Color(it) }
+                }
+            }.getOrNull()
+        }
+        dominantArtworkColor = color
+    }
+
+    val titleTextColor = remember(dominantArtworkColor) {
+        dominantArtworkColor?.let { color ->
+            val luminance = 0.299f * color.red + 0.587f * color.green + 0.114f * color.blue
+            if (luminance > 0.5f) Color.Black else Color.White
+        } ?: colorPalette.text
+    }
+
+    val authorTextColor = remember(dominantArtworkColor) {
+        dominantArtworkColor?.let { color ->
+            val luminance = 0.299f * color.red + 0.587f * color.green + 0.114f * color.blue
+            val base = if (luminance > 0.5f) Color.Black else Color.White
+            base.copy(alpha = 0.6f)
+        } ?: colorPalette.textSecondary
+    }
+
+    val gradientEndColor = remember(colorPalette) {
+        colorPalette.background0.copy(alpha = 0.8f)
+    }
+
+
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -152,13 +199,14 @@ fun NewLayoutContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(if (isShowingLyrics) Modifier.cloudy(radius = 64) else Modifier)
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
                             0.25f to Color.Transparent,
                             0.45f to Color.Transparent,
-                            0.7f to colorPalette.background0,
-                            1f to colorPalette.background0
+                            0.7f to gradientEndColor,
+                            1f to gradientEndColor
                         )
                     )
             )
@@ -236,13 +284,13 @@ fun NewLayoutContent(
                         Column(modifier = Modifier.weight(1f)) {
                             BasicText(
                                 text = metadata?.title?.toString().orEmpty(),
-                                style = typography.s.bold,
+                                style = typography.s.bold.copy(color = titleTextColor),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             BasicText(
                                 text = metadata?.artist?.toString().orEmpty(),
-                                style = typography.xs.semiBold.secondary,
+                                style = typography.xs.semiBold.copy(color = authorTextColor),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -254,7 +302,7 @@ fun NewLayoutContent(
                             painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
                             else painterResource(R.drawable.heart),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                            colorFilter = ColorFilter.tint(colorPalette.accent),
                             modifier = Modifier
                                 .clickable {
                                     setLikedAt(
@@ -305,13 +353,13 @@ fun NewLayoutContent(
                         Column(modifier = Modifier.weight(1f)) {
                             BasicText(
                                 text = metadata?.title?.toString().orEmpty(),
-                                style = typography.l.bold,
+                                style = typography.l.bold.copy(color = titleTextColor),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             BasicText(
                                 text = metadata?.artist?.toString().orEmpty(),
-                                style = typography.s.semiBold.secondary,
+                                style = typography.s.semiBold.copy(color = authorTextColor),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -323,7 +371,7 @@ fun NewLayoutContent(
                             painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
                             else painterResource(R.drawable.heart),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(colorPalette.favoritesIcon),
+                            colorFilter = ColorFilter.tint(colorPalette.accent),
                             modifier = Modifier
                                 .clickable {
                                     setLikedAt(
@@ -342,6 +390,7 @@ fun NewLayoutContent(
                             position = position,
                             media = uiMedia,
                             alwaysShowDuration = true,
+                            color = colorPalette.accent,
                             style = PlayerPreferences.SeekBarStyle.Static,
                         )
                     }
@@ -359,7 +408,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.play_skip_back),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable { player.forceSeekToPrevious() }
                             .size(32.dp)
@@ -382,14 +431,14 @@ fun NewLayoutContent(
                         if (isBuffering && shouldBePlaying) {
                             app.pulse.android.ui.components.themed.CircularProgressIndicator(
                                 modifier = Modifier.size(40.dp),
-                                color = colorPalette.text
+                                color = colorPalette.accent
                             )
                         } else {
                             Image(
                                 painter = if (shouldBePlaying) painterResource(R.drawable.pause)
                                 else painterResource(R.drawable.play),
                                 contentDescription = null,
-                                colorFilter = ColorFilter.tint(colorPalette.text),
+                                colorFilter = ColorFilter.tint(colorPalette.accent),
                                 modifier = Modifier.size(40.dp)
                             )
                         }
@@ -400,7 +449,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.play_skip_forward),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable { player.forceSeekToNext() }
                             .size(32.dp)
@@ -416,6 +465,7 @@ fun NewLayoutContent(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+
             ) {
                 Spacer(modifier = Modifier.height(28.dp))
 
@@ -437,7 +487,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.lyrics),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(if (isShowingLyrics) colorPalette.accent else colorPalette.text),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable(onClick = onLyricsClick)
                             .size(24.dp)
@@ -446,7 +496,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.list),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable(onClick = onQueueClick)
                             .size(24.dp)
@@ -455,7 +505,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.ellipsis_horizontal),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.text),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable(onClick = onMenuLaunch)
                             .size(24.dp)
@@ -501,7 +551,7 @@ private fun NewLayoutVolumeSlider(
         Image(
             painter = painterResource(R.drawable.volume_muted),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.textDisabled),
+            colorFilter = ColorFilter.tint(colorPalette.accent.copy(alpha = 0.6f)),
             modifier = Modifier.size(16.dp)
         )
 
@@ -570,7 +620,7 @@ private fun NewLayoutVolumeSlider(
         Image(
             painter = painterResource(R.drawable.volume_up),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.textDisabled),
+            colorFilter = ColorFilter.tint(colorPalette.accent.copy(alpha = 0.6f)),
             modifier = Modifier.size(16.dp)
         )
 
