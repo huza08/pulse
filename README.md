@@ -42,6 +42,7 @@
 - Listen from your car using Android Auto
 - Open YouTube/YouTube Music links (`watch`, `playlist`, `channel`, etc.) with Pulse
 - Ridiculously lightweight APK
+- will add linux support soon
 
 ## Security
 
