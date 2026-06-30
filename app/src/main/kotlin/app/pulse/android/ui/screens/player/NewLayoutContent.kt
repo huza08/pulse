@@ -90,7 +90,11 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.toBitmap
+import app.pulse.android.Database
+import app.pulse.android.service.LOCAL_KEY_PREFIX
+import app.pulse.android.transaction
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
@@ -129,6 +133,45 @@ fun NewLayoutContent(
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
     var dominantArtworkColor by remember(mediaId) { mutableStateOf<Color?>(null) }
+
+    LaunchedEffect(mediaId) {
+        if (LyricsCache[mediaId] != null) return@LaunchedEffect
+        val existing = Database.lyrics(mediaId).first()
+        if (existing?.fixed != null && existing?.synced != null) {
+            LyricsCache[mediaId] = existing
+            return@LaunchedEffect
+        }
+
+        val meta = mediaItem?.mediaMetadata ?: return@LaunchedEffect
+        val artist = meta.artist?.toString().orEmpty()
+        val title = (meta.title?.toString().orEmpty()).let {
+            if (mediaId.startsWith(LOCAL_KEY_PREFIX)) it.substringBeforeLast('.').trim()
+            else it
+        }
+        val album = meta.albumTitle?.toString()
+
+        val (fixed, synced) = fetchLyricsParallel(
+            mediaId = mediaId,
+            artist = artist,
+            title = title,
+            album = album,
+            duration = duration,
+            currentFixed = null,
+            currentSynced = null
+        )
+
+        if (fixed != null || synced != null) {
+            val lyrics = app.pulse.android.models.Lyrics(
+                songId = mediaId,
+                fixed = fixed.orEmpty(),
+                synced = synced.orEmpty()
+            )
+            LyricsCache[mediaId] = lyrics
+            transaction {
+                runCatching { Database.upsert(lyrics) }
+            }
+        }
+    }
 
     LaunchedEffect(mediaId, artworkUri) {
         if (artworkUri == null) return@LaunchedEffect
