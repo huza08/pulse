@@ -432,7 +432,7 @@ fun Lyrics(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Top,
                     modifier = Modifier
-                        .verticalFadingEdge()
+                        .verticalFadingEdge(topSize = 10, bottomSize = 2)
                         .fillMaxWidth()
                 ) {
                     item(key = "header", contentType = 0) {
@@ -477,10 +477,10 @@ fun Lyrics(
                 text = lyrics?.fixed.orEmpty(),
                 style = typography.m.semiBold.color(colorPalette.text.copy(alpha = 0.8f)),
                 modifier = Modifier
-                    .verticalFadingEdge()
+                    .verticalFadingEdge(topSize = 4, bottomSize = 0)
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
-                    .padding(vertical = 64.dp, horizontal = 48.dp)
+                    .padding(vertical = 32.dp, horizontal = 48.dp)
             )
         }
 

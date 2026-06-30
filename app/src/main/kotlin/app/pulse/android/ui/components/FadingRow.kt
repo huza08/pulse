@@ -33,13 +33,13 @@ inline fun FadingRow(
         modifier = modifier
             .horizontalFadingEdge(
                 left = true,
-                middle = segments - 2,
+                leftSize = segments - 2,
                 right = false,
                 alpha = alphaLeft
             )
             .horizontalFadingEdge(
                 left = false,
-                middle = segments - 2,
+                rightSize = segments - 2,
                 right = true,
                 alpha = alphaRight
             )
