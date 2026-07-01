@@ -15,6 +15,7 @@ dependencies {
     implementation(projects.providers.github)
     implementation(projects.providers.sponsorblock)
     implementation(projects.providers.translate)
+    implementation("org.slf4j:slf4j-simple:2.0.17")
 }
 
 compose.desktop {
