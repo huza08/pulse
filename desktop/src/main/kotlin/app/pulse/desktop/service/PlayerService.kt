@@ -36,13 +36,13 @@ private fun log(msg: String) {
     println("[${LocalTime.now().format(logFmt)}] [PlayerService] $msg")
 }
 
-/** Return value from playViaStream to inform the caller what action to take. */
+/** return value from playViaStream to inform the caller what action to take. */
 private enum class StreamEnd {
-    /** Stream ended naturally at expected position → safe to advance to next. */
+    /** stream ended naturally at expected position → safe to advance to next. */
     COMPLETED,
-    /** Stream did not complete (cancelled/paused) → caller does nothing. */
+    /** stream did not complete (cancelled/paused) → caller does nothing. */
     INTERRUPTED,
-    /** Cache-hit stream ended naturally but position << duration → cache was incomplete. */
+    /** cache-hit stream ended naturally but position << duration → cache was incomplete. */
     INCOMPLETE_CACHE
 }
 
@@ -54,9 +54,6 @@ class PlayerService {
     private var playbackJob: Job? = null
     private var line: SourceDataLine? = null
     private var stream: AudioInputStream? = null
-
-    // Mutable shared fields: only set from UI thread (synchronously in startPipeline/stopAudio).
-    // Tee threads MUST capture local copies to avoid closing the wrong pipeline.
     private var decodeProcess: Process? = null
     private var ytDlpProcess: Process? = null
 
@@ -73,13 +70,13 @@ class PlayerService {
     companion object {
         private val cacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-cache")
 
-        /** Max cache size in bytes (500 MB). */
+        /** max cache size in bytes (500 MB). */
         private const val MAX_CACHE_BYTES = 500L * 1024 * 1024
 
-        /** Max age in milliseconds (24 hours). */
+        /** max age in milliseconds (24 hours). */
         private const val MAX_CACHE_AGE_MS = 24L * 60 * 60 * 1000
 
-        /** Run cache cleanup on JVM load. */
+        /** run cache cleanup on JVM load. */
         fun cleanCache() {
             val dir = cacheDir
             if (!dir.isDirectory) return
@@ -88,7 +85,6 @@ class PlayerService {
             val files = dir.listFiles()?.filter { it.isFile && !it.name.endsWith(".done") }?.toMutableList()
                 ?: return
 
-            // Phase 1: delete files older than 24h
             val expired = mutableListOf<File>()
             val kept = mutableListOf<File>()
             for (f in files) {
@@ -101,7 +97,6 @@ class PlayerService {
             }
             log("cache: deleted ${expired.size} expired files")
 
-            // Phase 2: if total size > 500 MB, delete oldest until under limit
             var totalBytes = kept.sumOf { it.length() }
             if (totalBytes <= MAX_CACHE_BYTES) return
 
@@ -336,18 +331,6 @@ class PlayerService {
             gain.value = db
         } catch (_: IllegalArgumentException) { }
     }
-
-    // -- Pipeline ---------------------------------------------------------------
-
-    /**
-     * Three-tier playback:
-     *
-     * 1. **Cached (full song):** ffmpeg -ss on cache file. Instant, no network.
-     * 2. **First play (startMs = 0):** yt-dlp downloads ENTIRE song to cache + pipes to
-     *    ffmpeg. .done marker created when playback completes naturally.
-     * 3. **Seek before cache ready:** yt-dlp --download-sections for partial download.
-     *    NO caching (avoids corrupting partial cache). Piped directly to ffmpeg.
-     */
     private fun startPipeline(videoId: String, playerResponse: PlayerResponse?, startMs: Long) {
         playbackJob?.cancel()
         stopAudio()
@@ -379,7 +362,6 @@ class PlayerService {
                 val cacheFile = File(cacheDir, videoId)
                 val cacheDone = File(cacheDir, "${videoId}.done")
 
-                // Tier 1: full cache exists — seek or play from cache
                 if (cacheDone.exists() && cacheFile.exists() && cacheFile.length() > 0) {
                     log("pipeline[$pipelineId] cache HIT")
                     val cmd = if (startMs > 0) {
@@ -413,7 +395,6 @@ class PlayerService {
                     return@launch
                 }
 
-                // Tier 2: first play — download FULL song to cache, pipe to ffmpeg
                 if (startMs == 0L) {
                     log("pipeline[$pipelineId] download FULL, tee to cache")
                     cacheDir.mkdirs()
@@ -431,8 +412,6 @@ class PlayerService {
                     val ffmpeg = ffPb.start()
                     decodeProcess = ffmpeg
 
-                    // Tee thread: FULL download → cache + ffmpeg stdin
-                    // Uses LOCAL refs to avoid closing wrong pipeline on seek
                     startTeeThread(ytDlp, ffmpeg, cacheFile, videoId, pipelineId, cache = true)
 
                     if (playViaStream(ffmpeg.inputStream, true) == StreamEnd.COMPLETED) {
@@ -441,7 +420,6 @@ class PlayerService {
                     return@launch
                 }
 
-                // Tier 3: seek on incomplete cache — download section only, NO caching
                 val startSec = startMs / 1000
                 val endSec = format?.approxDurationMs?.let { it / 1000 } ?: 99999L
                 log("pipeline[$pipelineId] download section ${startSec}-${endSec}s (no cache)")
@@ -462,7 +440,6 @@ class PlayerService {
                 ffPb.redirectError(ProcessBuilder.Redirect.INHERIT)
                 decodeProcess = ffPb.start()
 
-                // Pipe thread: section download → ffmpeg stdin only (no cache)
                 startTeeThread(ytDlpProcess!!, decodeProcess!!, null, videoId, pipelineId, cache = false)
 
                 if (playViaStream(decodeProcess!!.inputStream, false) == StreamEnd.COMPLETED) {
@@ -477,13 +454,6 @@ class PlayerService {
         }
     }
 
-    /**
-     * Tee thread: copies yt-dlp stdout → ffmpeg stdin (mandatory) and optionally
-     * → cache file (when cache=true).
-     *
-     * **Critical:** Uses LOCAL process references (not shared fields). This prevents
-     * the old tee thread from closing the NEW pipeline's stdin during a seek.
-     */
     private fun startTeeThread(
         ytDlp: Process,
         ffmpeg: Process,
@@ -514,16 +484,9 @@ class PlayerService {
                 runCatching { cacheOut?.close() }
             }
         }.apply { isDaemon = true }.start()
-        // .done marker NOT created here — moved to playViaStream where
-        // natural EOF is distinguishable from seek-interrupted termination.
+
     }
 
-    /**
-     * @return [StreamEnd.COMPLETED] if stream ended naturally at expected end position,
-     *         [StreamEnd.INTERRUPTED] if cancelled/paused,
-     *         [StreamEnd.INCOMPLETE_CACHE] if a cache-hit stream ended prematurely
-     *         (position << durationMs → cache was truncated).
-     */
     private suspend fun playViaStream(inputStream: java.io.InputStream, isFullDownload: Boolean): StreamEnd =
         withContext(Dispatchers.IO) {
         log("playViaStream start")
@@ -602,7 +565,7 @@ class PlayerService {
             }
         }
 
-        // If this was a full-song download that completed naturally, mark cache as done.
+        // if this was a full-song download that completed naturally, mark cache as done.
         if (completed && isFullDownload) {
             val cacheDone = File(cacheDir, "${currentVideoId}.done")
             if (cacheDone.parentFile.isDirectory) {

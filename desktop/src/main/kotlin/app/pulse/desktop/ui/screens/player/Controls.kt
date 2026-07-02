@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.pulse.desktop.service.LoopMode
 import app.pulse.desktop.service.PlayerService
 
 @Composable
@@ -53,12 +55,22 @@ fun Controls(
                 modifier = Modifier.width(48.dp)
             )
 
+            var isDragging by remember { mutableStateOf(false) }
+            var dragFraction by remember { mutableFloatStateOf(0f) }
+
+            val displayFraction = if (isDragging) dragFraction
+            else if (state.durationMs > 0) (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
+            else 0f
+
             Slider(
-                value = if (state.durationMs > 0) {
-                    (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
-                } else 0f,
+                value = displayFraction,
                 onValueChange = { fraction ->
-                    player.seek((fraction * state.durationMs).toLong())
+                    isDragging = true
+                    dragFraction = fraction
+                },
+                onValueChangeFinished = {
+                    isDragging = false
+                    player.seek((dragFraction * state.durationMs).toLong())
                 },
                 colors = SliderDefaults.colors(
                     thumbColor = accent,
@@ -86,14 +98,38 @@ fun Controls(
         ) {
             Spacer(Modifier.weight(1f))
 
-            // Prev
+            // Loop mode
+            val loopIcon = when (state.loopMode) {
+                LoopMode.NONE -> "🔁"
+                LoopMode.ONE -> "🔂"
+                LoopMode.ALL -> "🔁 A"
+            }
+            val loopAlpha = when (state.loopMode) {
+                LoopMode.NONE -> 0.4f
+                LoopMode.ONE, LoopMode.ALL -> 1f
+            }
+            ControlButton(
+                text = loopIcon,
+                onClick = { player.cycleLoopMode() },
+                size = 16,
+                alpha = loopAlpha
+            )
+
+            Spacer(Modifier.width(16.dp))
+
+            // Prev song
             ControlButton(
                 text = "⏮",
-                onClick = { player.stop() },
+                onClick = { if (state.hasPrevious) player.playPrevious() },
                 size = 20
             )
 
-            Spacer(Modifier.width(24.dp))
+            Spacer(Modifier.width(16.dp))
+
+            // Rewind 10s
+            ControlButton(text = "⏪", onClick = { player.skipBackward(10) }, size = 24)
+
+            Spacer(Modifier.width(20.dp))
 
             // Play/Pause
             ControlButton(
@@ -105,12 +141,17 @@ fun Controls(
                 isMain = true
             )
 
-            Spacer(Modifier.width(24.dp))
+            Spacer(Modifier.width(20.dp))
 
-            // Next
+            // Forward 10s
+            ControlButton(text = "⏩", onClick = { player.skipForward(10) }, size = 24)
+
+            Spacer(Modifier.width(16.dp))
+
+            // Next song
             ControlButton(
                 text = "⏭",
-                onClick = { player.stop() },
+                onClick = { if (state.hasNext) player.playNext() },
                 size = 20
             )
 
@@ -154,11 +195,11 @@ private fun ControlButton(
     text: String,
     onClick: () -> Unit,
     size: Int,
-    isMain: Boolean = false
+    isMain: Boolean = false,
+    alpha: Float = 1f
 ) {
     val btnSize = if (isMain) 56.dp else 40.dp
     val fontSize = if (isMain) 20.sp else 16.sp
-    val bg = if (isMain) Color(0xFF2a2a2a) else Color.Transparent
 
     IconButton(
         onClick = onClick,
@@ -166,7 +207,7 @@ private fun ControlButton(
     ) {
         Text(
             text = text,
-            color = Color(0xFFf2f0eb),
+            color = Color(0xFFf2f0eb).copy(alpha = alpha),
             fontSize = fontSize
         )
     }
