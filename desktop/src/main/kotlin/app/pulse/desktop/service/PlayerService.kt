@@ -533,8 +533,8 @@ class PlayerService {
                     ffmpeg.outputStream.use { output ->
                         val buf = ByteArray(8192)
                         while (true) {
-                            val n = input.read(buf)
-                            if (n == -1) break
+                            val n = runCatching { input.read(buf) }.getOrNull()
+                            if (n == null || n == -1) break
                             runCatching { output.write(buf, 0, n) }
                             runCatching { cacheOut?.write(buf, 0, n) }
                         }
@@ -572,6 +572,7 @@ class PlayerService {
         audioLine.open(decodedFormat)
         applyVolume()
         audioLine.start()
+        log("playViaStream audio ready")
 
         val decodedStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream)
         val buffer = ByteArray(4096)
