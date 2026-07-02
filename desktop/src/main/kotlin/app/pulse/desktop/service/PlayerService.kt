@@ -713,7 +713,7 @@ class PlayerService {
     }
 
     private fun advanceToNext() = advanceOrStop()
-        
+
     private fun maybeSaveQueue() {
         val s = _state.value
         if (s.queue.isEmpty()) return
@@ -744,7 +744,8 @@ class PlayerService {
                 queue = songs,
                 currentIndex = saved.currentIndex.coerceIn(0, songs.lastIndex),
                 loopMode = saved.loopMode,
-                volume = saved.volume
+                volume = saved.volume,
+                durationMs = saved.durationMs
             )
         }
 
