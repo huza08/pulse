@@ -118,14 +118,14 @@ fun MiniPlayer(
         // center controls + seekbar
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy((-8).dp, Alignment.CenterVertically),
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 0.dp)
             ) {
                 Icon(
                     painter = painterResource("/icons/shuffle.svg"),
@@ -200,7 +200,7 @@ fun MiniPlayer(
             // seekbar row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp)
+                modifier = Modifier.width(560.dp)
             ) {
                 Text(
                     text = formatDuration(state.currentPositionMs),
