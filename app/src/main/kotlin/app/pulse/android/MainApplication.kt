@@ -100,6 +100,7 @@ import app.pulse.android.ui.components.themed.LinearProgressIndicator
 import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import app.pulse.android.ui.components.themed.LocalNavigationState
 import app.pulse.android.ui.components.themed.LocalRadioAction
+import app.pulse.android.ui.components.themed.UpdateDialog
 import app.pulse.core.ui.utils.isLandscape
 
 import app.pulse.android.ui.screens.albumRoute
@@ -430,6 +431,19 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                         BottomSheetMenu()
                     }
                 }
+            }
+
+            val pendingVersion = DataPreferences.pendingUpdateVersion
+            val pendingUrl = DataPreferences.pendingUpdateUrl
+            if (pendingVersion.isNotEmpty() && pendingUrl.isNotEmpty()) {
+                UpdateDialog(
+                    version = pendingVersion,
+                    downloadUrl = pendingUrl,
+                    onDismiss = {
+                        DataPreferences.pendingUpdateVersion = ""
+                        DataPreferences.pendingUpdateUrl = ""
+                    }
+                )
             }
 
             vm.binder?.player.DisposableListener {
