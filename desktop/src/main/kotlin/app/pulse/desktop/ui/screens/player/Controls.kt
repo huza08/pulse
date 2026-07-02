@@ -23,7 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.LoopMode
@@ -99,17 +100,17 @@ fun Controls(
             Spacer(Modifier.weight(1f))
 
             // Loop mode
-            val loopIcon = when (state.loopMode) {
-                LoopMode.NONE -> AppIcons.Repeat
-                LoopMode.ONE -> AppIcons.Repeat
-                LoopMode.ALL -> AppIcons.Repeat
+            val loopPainter = when (state.loopMode) {
+                LoopMode.NONE -> painterResource("/icons/repeat.svg")
+                LoopMode.ONE -> painterResource("/icons/repeat_on.svg")
+                LoopMode.ALL -> painterResource("/icons/repeat.svg")
             }
             val loopAlpha = when (state.loopMode) {
                 LoopMode.NONE -> 0.4f
                 LoopMode.ONE, LoopMode.ALL -> 1f
             }
             MediaIconButton(
-                icon = loopIcon,
+                painter = loopPainter,
                 onClick = { player.cycleLoopMode() },
                 contentDescription = "Repeat",
                 tint = text.copy(alpha = loopAlpha),
@@ -120,29 +121,18 @@ fun Controls(
 
             // Prev song
             MediaIconButton(
-                icon = AppIcons.SkipBack,
+                painter = painterResource("/icons/play_skip_back.svg"),
                 onClick = { if (state.hasPrevious) player.playPrevious() },
                 contentDescription = "Previous",
                 tint = text.copy(alpha = if (state.hasPrevious) 1f else 0.35f),
                 size = 22
             )
 
-            Spacer(Modifier.width(16.dp))
-
-            // Rewind 10s
-            MediaIconButton(
-                icon = AppIcons.Rewind10,
-                onClick = { player.skipBackward(10) },
-                contentDescription = "Rewind 10s",
-                tint = text,
-                size = 22
-            )
-
-            Spacer(Modifier.width(20.dp))
+            Spacer(Modifier.width(44.dp))
 
             // Play/Pause
             MediaIconButton(
-                icon = if (state.isPlaying) AppIcons.Pause else AppIcons.Play,
+                painter = if (state.isPlaying) painterResource("/icons/pause.svg") else painterResource("/icons/play.svg"),
                 onClick = {
                     if (state.isPlaying) player.pause() else player.resume()
                 },
@@ -152,22 +142,11 @@ fun Controls(
                 isMain = true
             )
 
-            Spacer(Modifier.width(20.dp))
-
-            // Forward 10s
-            MediaIconButton(
-                icon = AppIcons.Forward10,
-                onClick = { player.skipForward(10) },
-                contentDescription = "Forward 10s",
-                tint = text,
-                size = 22
-            )
-
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(44.dp))
 
             // Next song
             MediaIconButton(
-                icon = AppIcons.SkipForward,
+                painter = painterResource("/icons/play_skip_forward.svg"),
                 onClick = { if (state.hasNext) player.playNext() },
                 contentDescription = "Next",
                 tint = text.copy(alpha = if (state.hasNext) 1f else 0.35f),
@@ -185,7 +164,7 @@ fun Controls(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                imageVector = AppIcons.VolumeUp,
+                painter = painterResource("/icons/volume_up.svg"),
                 contentDescription = "Volume",
                 tint = dim,
                 modifier = Modifier.size(14.dp)
@@ -212,7 +191,7 @@ fun Controls(
 
 @Composable
 private fun MediaIconButton(
-    icon: ImageVector,
+    painter: Painter,
     onClick: () -> Unit,
     contentDescription: String,
     tint: Color,
@@ -227,7 +206,7 @@ private fun MediaIconButton(
         modifier = Modifier.size(btnSize)
     ) {
         Icon(
-            imageVector = icon,
+            painter = painter,
             contentDescription = contentDescription,
             tint = tint,
             modifier = Modifier.size(iconSize)
