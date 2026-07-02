@@ -7,20 +7,44 @@ import app.pulse.providers.innertube.requests.player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
+import javax.sound.sampled.FloatControl
 import javax.sound.sampled.SourceDataLine
+import kotlin.math.log10
 import kotlin.math.roundToLong
+
+private val logFmt = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+
+private fun log(msg: String) {
+    println("[${LocalTime.now().format(logFmt)}] [PlayerService] $msg")
+}
+
+/** Return value from playViaStream to inform the caller what action to take. */
+private enum class StreamEnd {
+    /** Stream ended naturally at expected position → safe to advance to next. */
+    COMPLETED,
+    /** Stream did not complete (cancelled/paused) → caller does nothing. */
+    INTERRUPTED,
+    /** Cache-hit stream ended naturally but position << duration → cache was incomplete. */
+    INCOMPLETE_CACHE
+}
 
 class PlayerService {
     private val _state = MutableStateFlow(PlaybackState())
@@ -30,112 +54,480 @@ class PlayerService {
     private var playbackJob: Job? = null
     private var line: SourceDataLine? = null
     private var stream: AudioInputStream? = null
-    private var decodeProcess: Process? = null
 
+    // Mutable shared fields: only set from UI thread (synchronously in startPipeline/stopAudio).
+    // Tee threads MUST capture local copies to avoid closing the wrong pipeline.
+    private var decodeProcess: Process? = null
+    private var ytDlpProcess: Process? = null
+
+    @Volatile
     private var isPaused = false
     private var bytesPerMs = 0.0
+    @Volatile
+    private var seekBaseMs = 0L
+    private var currentVideoId: String? = null
+    private var currentPlayerResponse: PlayerResponse? = null
+    @Volatile
+    private var lastSeekMs = 0L
+
+    companion object {
+        private val cacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-cache")
+
+        /** Max cache size in bytes (500 MB). */
+        private const val MAX_CACHE_BYTES = 500L * 1024 * 1024
+
+        /** Max age in milliseconds (24 hours). */
+        private const val MAX_CACHE_AGE_MS = 24L * 60 * 60 * 1000
+
+        /** Run cache cleanup on JVM load. */
+        fun cleanCache() {
+            val dir = cacheDir
+            if (!dir.isDirectory) return
+
+            val now = System.currentTimeMillis()
+            val files = dir.listFiles()?.filter { it.isFile && !it.name.endsWith(".done") }?.toMutableList()
+                ?: return
+
+            // Phase 1: delete files older than 24h
+            val expired = mutableListOf<File>()
+            val kept = mutableListOf<File>()
+            for (f in files) {
+                if (now - f.lastModified() > MAX_CACHE_AGE_MS) expired.add(f)
+                else kept.add(f)
+            }
+            for (f in expired) {
+                File(dir, "${f.name}.done").delete()
+                f.delete()
+            }
+            log("cache: deleted ${expired.size} expired files")
+
+            // Phase 2: if total size > 500 MB, delete oldest until under limit
+            var totalBytes = kept.sumOf { it.length() }
+            if (totalBytes <= MAX_CACHE_BYTES) return
+
+            kept.sortBy { it.lastModified() }
+            val toDelete = mutableListOf<File>()
+            for (f in kept) {
+                if (totalBytes <= MAX_CACHE_BYTES) break
+                toDelete.add(f)
+                totalBytes -= f.length()
+            }
+            for (f in toDelete) {
+                File(dir, "${f.name}.done").delete()
+                f.delete()
+            }
+            log("cache: deleted ${toDelete.size} oldest files to stay under ${MAX_CACHE_BYTES / (1024*1024)} MB")
+        }
+    }
+
+    init {
+        cleanCache()
+    }
+
+    // -- Queue management (mirrors Android pattern) ----------------------------
 
     fun play(song: Innertube.SongItem) {
+        playFromQueue(listOf(song), index = 0)
+    }
+
+    fun playFromQueue(queue: List<Innertube.SongItem>, index: Int) {
+        if (queue.isEmpty()) return
+        val idx = index.coerceIn(0, queue.lastIndex)
+        _state.update { it.copy(queue = queue, currentIndex = idx) }
+        playInternal(queue[idx])
+    }
+
+    fun playNext() {
+        val s = _state.value
+        val nextIdx = when (s.loopMode) {
+            LoopMode.ONE -> s.currentIndex
+            LoopMode.ALL -> {
+                val n = s.currentIndex + 1
+                if (n >= s.queue.size) 0 else n
+            }
+            LoopMode.NONE -> s.currentIndex + 1
+        }
+        if (nextIdx !in s.queue.indices) {
+            if (s.currentSong != null) endSong() else stop()
+            return
+        }
+        _state.update { it.copy(currentIndex = nextIdx) }
+        playInternal(s.queue[nextIdx])
+    }
+
+    fun playPrevious() {
+        val s = _state.value
+        val prevIdx = when (s.loopMode) {
+            LoopMode.ONE -> s.currentIndex
+            LoopMode.ALL -> {
+                val p = s.currentIndex - 1
+                if (p < 0) s.queue.lastIndex else p
+            }
+            LoopMode.NONE -> (s.currentIndex - 1).coerceAtLeast(0)
+        }
+        _state.update { it.copy(currentIndex = prevIdx) }
+        playInternal(s.queue[prevIdx])
+    }
+
+    fun enqueue(song: Innertube.SongItem) {
+        _state.update { it.copy(queue = it.queue + song) }
+    }
+
+    fun addNext(song: Innertube.SongItem) {
+        _state.update { s ->
+            val idx = (s.currentIndex + 1).coerceIn(0, s.queue.size)
+            val q = s.queue.toMutableList().apply { add(idx, song) }
+            s.copy(queue = q)
+        }
+    }
+
+    fun setLoopMode(mode: LoopMode) {
+        _state.update { it.copy(loopMode = mode) }
+    }
+
+    fun cycleLoopMode() {
+        _state.update { s ->
+            val next = when (s.loopMode) {
+                LoopMode.NONE -> LoopMode.ONE
+                LoopMode.ONE -> LoopMode.ALL
+                LoopMode.ALL -> LoopMode.NONE
+            }
+            s.copy(loopMode = next)
+        }
+    }
+
+    // -- Playback control -------------------------------------------------------
+
+    private fun playInternal(song: Innertube.SongItem) {
         playbackJob?.cancel()
         stopAudio()
 
-        _state.update { PlaybackState(currentSong = song, isLoading = true) }
+        _state.update {
+            PlaybackState(
+                queue = it.queue,
+                currentIndex = it.currentIndex,
+                loopMode = it.loopMode,
+                currentSong = song,
+                volume = it.volume,
+                isLoading = true
+            )
+        }
+
+        currentVideoId = song.info?.endpoint?.videoId
+        if (currentVideoId == null) {
+            _state.update { it.copy(isLoading = false, error = "No video ID") }
+            return
+        }
+        log("play: ${song.info?.name} (id=$currentVideoId)")
 
         playbackJob = scope.launch {
             try {
-                val videoId = song.info?.endpoint?.videoId
-                    ?: throw Exception("No video ID for this song")
-
-                // Get PlayerResponse once — used for both duration and streaming URL
-                val response = Innertube.player(PlayerBody(videoId = videoId))
-                val playerResponse = response?.getOrNull()
-
-                // Innertube gives direct URLs for most videos (signatureCipher=null)
-                // Pipe through bundled ffmpeg → WAV → javax.sound
-                // Fall back to yt-dlp only when URL is ciphered
-                resolveAndPlay(videoId, playerResponse)
+                val response = Innertube.player(PlayerBody(videoId = currentVideoId!!))
+                currentPlayerResponse = response?.getOrNull()
+                startPipeline(currentVideoId!!, currentPlayerResponse, startMs = 0)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                log("play error: ${e.message}")
                 _state.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
     fun pause() {
+        if (!_state.value.isPlaying) return
         isPaused = true
+        runCatching { line?.stop() }
         _state.update { it.copy(isPlaying = false) }
+        log("pause")
     }
 
     fun resume() {
+        val s = _state.value
+        if (s.isPlaying) return
+        val song = s.currentSong ?: return
+
+        if (s.isEnded) {
+            log("resume from ended → restart")
+            play(song)
+            return
+        }
+
+        if (!isPaused) {
+            play(song)
+            return
+        }
+
         isPaused = false
+        runCatching { line?.start() }
         _state.update { it.copy(isPlaying = true) }
+        log("resume")
     }
 
     fun stop() {
         playbackJob?.cancel()
         playbackJob = null
         stopAudio()
-        _state.update { PlaybackState() }
+        _state.update {
+            PlaybackState(
+                queue = it.queue,
+                loopMode = it.loopMode,
+                volume = it.volume
+            )
+        }
+        log("stop")
     }
 
     fun seek(positionMs: Long) {
-        // ponytail: seeking not yet implemented for streamed playback
+        val vid = currentVideoId ?: return
+        val resp = currentPlayerResponse
+        val dur = _state.value.durationMs
+
         _state.update { it.copy(currentPositionMs = positionMs) }
+
+        if (dur > 0 && positionMs >= dur) {
+            log("seek $positionMs ≥ $dur → endSong")
+            advanceOrStop()
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        if (now - lastSeekMs < 500L) {
+            log("seek $positionMs debounced")
+            return
+        }
+        lastSeekMs = now
+
+        log("seek $positionMs")
+        startPipeline(vid, resp, startMs = positionMs)
+    }
+
+    fun skipForward(sec: Int = 10) {
+        val cur = _state.value.currentPositionMs
+        val dur = _state.value.durationMs
+        val maxSeek = (dur - 1000L).coerceAtLeast(0L)
+        val target = (cur + sec * 1000L).coerceIn(0L, maxSeek)
+        log("skipForward $sec → $target")
+        seek(target)
+    }
+
+    fun skipBackward(sec: Int = 10) {
+        val cur = _state.value.currentPositionMs
+        val target = (cur - sec * 1000L).coerceAtLeast(0L)
+        log("skipBackward $sec → $target")
+        seek(target)
     }
 
     fun setVolume(volume: Float) {
         _state.update { it.copy(volume = volume.coerceIn(0f, 1f)) }
+        applyVolume()
     }
 
-    private var ytDlpProcess: Process? = null
+    private fun applyVolume() {
+        val audioLine = line ?: return
+        if (!audioLine.isOpen) return
+        try {
+            val gain = audioLine.getControl(FloatControl.Type.MASTER_GAIN) as? FloatControl ?: return
+            val vol = _state.value.volume
+            val minDb = gain.minimum
+            val maxDb = gain.maximum
+            val db = if (vol <= 0f) minDb
+            else (20f * log10(vol)).coerceIn(minDb, maxDb)
+            gain.value = db
+        } catch (_: IllegalArgumentException) { }
+    }
 
-    private suspend fun resolveAndPlay(videoId: String, playerResponse: PlayerResponse?) {
-        val format = playerResponse?.streamingData?.highestQualityFormat
+    // -- Pipeline ---------------------------------------------------------------
 
-        format?.approxDurationMs?.let { dur ->
-            _state.update { it.copy(durationMs = dur) }
+    /**
+     * Three-tier playback:
+     *
+     * 1. **Cached (full song):** ffmpeg -ss on cache file. Instant, no network.
+     * 2. **First play (startMs = 0):** yt-dlp downloads ENTIRE song to cache + pipes to
+     *    ffmpeg. .done marker created when playback completes naturally.
+     * 3. **Seek before cache ready:** yt-dlp --download-sections for partial download.
+     *    NO caching (avoids corrupting partial cache). Piped directly to ffmpeg.
+     */
+    private fun startPipeline(videoId: String, playerResponse: PlayerResponse?, startMs: Long) {
+        playbackJob?.cancel()
+        stopAudio()
+
+        seekBaseMs = startMs
+
+        val dur = playerResponse?.streamingData?.highestQualityFormat?.approxDurationMs
+        if (dur != null && startMs >= dur) {
+            _state.update { it.copy(isLoading = false, currentPositionMs = dur, isPlaying = false) }
+            advanceOrStop()
+            return
         }
 
-        // yt-dlp handles YouTube CDN auth (cookies, n-param, session) reliably.
-        // Direct Innertube URLs fail with 403 because googlevideo CDN validates
-        // more than just User-Agent (cookies, n-param resolution, etc.).
-        val ytDlpBin = NativeBinaries.ytDlp()
-        val ffmpegBin = NativeBinaries.ffmpeg()
+        val pipelineId = System.identityHashCode(this).toString() + "-" + System.nanoTime()
+        log("pipeline[$pipelineId] start video=$videoId startMs=$startMs")
 
-        val url = "https://www.youtube.com/watch?v=$videoId"
-
-        // Step 1: yt-dlp downloads best audio to stdout
-        val ytDlpCmd = listOf(ytDlpBin, "-f", "bestaudio", "-o", "-", "-q", url)
-        val ytDlpPb = ProcessBuilder(ytDlpCmd)
-        ytDlpPb.redirectError(ProcessBuilder.Redirect.DISCARD) // suppress deno warnings etc.
-        val ytDlp = ytDlpPb.start()
-        ytDlpProcess = ytDlp
-
-        // Step 2: ffmpeg converts raw audio → PCM WAV on stdout
-        // yt-dlp's stdout → ffmpeg's stdin via pipe thread
-        val ffmpegCmd = listOf(ffmpegBin, "-loglevel", "error", "-i", "-", "-acodec", "pcm_s16le", "-f", "wav", "-")
-        val ffmpegPb = ProcessBuilder(ffmpegCmd)
-        ffmpegPb.redirectError(ProcessBuilder.Redirect.INHERIT)
-        val ffmpeg = ffmpegPb.start()
-        decodeProcess = ffmpeg
-
-        // Pipe yt-dlp stdout → ffmpeg stdin (daemon thread, auto-killed on exit)
-        Thread {
-            ytDlp.inputStream.use { input ->
-                ffmpeg.outputStream.use { output ->
-                    input.copyTo(output)
+        playbackJob = scope.launch {
+            try {
+                val format = playerResponse?.streamingData?.highestQualityFormat
+                format?.approxDurationMs?.let { d ->
+                    _state.update { it.copy(durationMs = d) }
+                    log("pipeline[$pipelineId] duration=${d}ms")
                 }
-            }
-            // Signal EOF to ffmpeg when yt-dlp finishes
-            runCatching { ffmpeg.outputStream.close() }
-        }.apply { isDaemon = true }.start()
 
-        playViaStream(ffmpeg.inputStream)
+                val ytDlpBin = NativeBinaries.ytDlp()
+                val ffmpegBin = NativeBinaries.ffmpeg()
+                val url = "https://www.youtube.com/watch?v=$videoId"
+
+                val cacheFile = File(cacheDir, videoId)
+                val cacheDone = File(cacheDir, "${videoId}.done")
+
+                // Tier 1: full cache exists — seek or play from cache
+                if (cacheDone.exists() && cacheFile.exists() && cacheFile.length() > 0) {
+                    log("pipeline[$pipelineId] cache HIT")
+                    val cmd = if (startMs > 0) {
+                        listOf(
+                            ffmpegBin, "-loglevel", "error",
+                            "-ss", (startMs / 1000f).toString(),
+                            "-i", cacheFile.absolutePath,
+                            "-acodec", "pcm_s16le", "-f", "wav", "-"
+                        )
+                    } else {
+                        listOf(
+                            ffmpegBin, "-loglevel", "error",
+                            "-i", cacheFile.absolutePath,
+                            "-acodec", "pcm_s16le", "-f", "wav", "-"
+                        )
+                    }
+                    val pb = ProcessBuilder(cmd)
+                    pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+                    decodeProcess = pb.start()
+                    when (playViaStream(decodeProcess!!.inputStream, false)) {
+                        StreamEnd.COMPLETED -> advanceToNext()
+                        StreamEnd.INCOMPLETE_CACHE -> {
+                            log("pipeline[$pipelineId] cache was INCOMPLETE, re-downloading")
+                            cacheDone.delete()
+                            cacheFile.delete()
+                            val song = _state.value.currentSong ?: return@launch
+                            playInternal(song)
+                        }
+                        StreamEnd.INTERRUPTED -> { /* seek/stop handled elsewhere */ }
+                    }
+                    return@launch
+                }
+
+                // Tier 2: first play — download FULL song to cache, pipe to ffmpeg
+                if (startMs == 0L) {
+                    log("pipeline[$pipelineId] download FULL, tee to cache")
+                    cacheDir.mkdirs()
+                    val ytPb = ProcessBuilder(ytDlpBin, "-f", "bestaudio", "-o", "-", "-q", url)
+                    ytPb.redirectError(ProcessBuilder.Redirect.DISCARD)
+                    val ytDlp = ytPb.start()
+                    ytDlpProcess = ytDlp
+
+                    val ffPb = ProcessBuilder(
+                        ffmpegBin, "-loglevel", "error",
+                        "-i", "-",
+                        "-acodec", "pcm_s16le", "-f", "wav", "-"
+                    )
+                    ffPb.redirectError(ProcessBuilder.Redirect.INHERIT)
+                    val ffmpeg = ffPb.start()
+                    decodeProcess = ffmpeg
+
+                    // Tee thread: FULL download → cache + ffmpeg stdin
+                    // Uses LOCAL refs to avoid closing wrong pipeline on seek
+                    startTeeThread(ytDlp, ffmpeg, cacheFile, videoId, pipelineId, cache = true)
+
+                    if (playViaStream(ffmpeg.inputStream, true) == StreamEnd.COMPLETED) {
+                        advanceToNext()
+                    }
+                    return@launch
+                }
+
+                // Tier 3: seek on incomplete cache — download section only, NO caching
+                val startSec = startMs / 1000
+                val endSec = format?.approxDurationMs?.let { it / 1000 } ?: 99999L
+                log("pipeline[$pipelineId] download section ${startSec}-${endSec}s (no cache)")
+
+                val ytPb = ProcessBuilder(
+                    ytDlpBin, "-f", "bestaudio", "-o", "-", "-q",
+                    "--download-sections", "*${startSec}-${endSec}",
+                    url
+                )
+                ytPb.redirectError(ProcessBuilder.Redirect.DISCARD)
+                ytDlpProcess = ytPb.start()
+
+                val ffPb = ProcessBuilder(
+                    ffmpegBin, "-loglevel", "error",
+                    "-i", "-",
+                    "-acodec", "pcm_s16le", "-f", "wav", "-"
+                )
+                ffPb.redirectError(ProcessBuilder.Redirect.INHERIT)
+                decodeProcess = ffPb.start()
+
+                // Pipe thread: section download → ffmpeg stdin only (no cache)
+                startTeeThread(ytDlpProcess!!, decodeProcess!!, null, videoId, pipelineId, cache = false)
+
+                if (playViaStream(decodeProcess!!.inputStream, false) == StreamEnd.COMPLETED) {
+                    advanceToNext()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log("pipeline[$pipelineId] error: ${e.message}")
+                _state.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
     }
 
-    private suspend fun playViaStream(inputStream: java.io.InputStream) = withContext(Dispatchers.IO) {
-        val audioStream = AudioSystem.getAudioInputStream(
-            BufferedInputStream(inputStream)
-        )
+    /**
+     * Tee thread: copies yt-dlp stdout → ffmpeg stdin (mandatory) and optionally
+     * → cache file (when cache=true).
+     *
+     * **Critical:** Uses LOCAL process references (not shared fields). This prevents
+     * the old tee thread from closing the NEW pipeline's stdin during a seek.
+     */
+    private fun startTeeThread(
+        ytDlp: Process,
+        ffmpeg: Process,
+        cacheFile: File?,
+        videoId: String,
+        pipelineId: String,
+        cache: Boolean
+    ) {
+        val localCacheFile = cacheFile  // capture local
+        Thread {
+            val cacheOut = if (cache && localCacheFile != null) {
+                runCatching { FileOutputStream(localCacheFile) }.getOrNull()
+            } else null
+
+            try {
+                ytDlp.inputStream.use { input ->
+                    ffmpeg.outputStream.use { output ->
+                        val buf = ByteArray(8192)
+                        while (true) {
+                            val n = input.read(buf)
+                            if (n == -1) break
+                            runCatching { output.write(buf, 0, n) }
+                            runCatching { cacheOut?.write(buf, 0, n) }
+                        }
+                    }
+                }
+            } finally {
+                runCatching { cacheOut?.close() }
+            }
+        }.apply { isDaemon = true }.start()
+        // .done marker NOT created here — moved to playViaStream where
+        // natural EOF is distinguishable from seek-interrupted termination.
+    }
+
+    /**
+     * @return [StreamEnd.COMPLETED] if stream ended naturally at expected end position,
+     *         [StreamEnd.INTERRUPTED] if cancelled/paused,
+     *         [StreamEnd.INCOMPLETE_CACHE] if a cache-hit stream ended prematurely
+     *         (position << durationMs → cache was truncated).
+     */
+    private suspend fun playViaStream(inputStream: java.io.InputStream, isFullDownload: Boolean): StreamEnd =
+        withContext(Dispatchers.IO) {
+        log("playViaStream start")
+        val audioStream = AudioSystem.getAudioInputStream(BufferedInputStream(inputStream))
         stream = audioStream
 
         val fmt = audioStream.format
@@ -148,42 +540,125 @@ class PlayerService {
             fmt.sampleRate,
             false
         )
-        bytesPerMs = (decodedFormat.sampleRate * decodedFormat.frameSize / 1000.0)
+        bytesPerMs = decodedFormat.sampleRate * decodedFormat.frameSize / 1000.0
 
         val lineInfo = DataLine.Info(SourceDataLine::class.java, decodedFormat)
         val audioLine = AudioSystem.getLine(lineInfo) as SourceDataLine
         line = audioLine
 
         audioLine.open(decodedFormat)
+        applyVolume()
         audioLine.start()
 
         val decodedStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream)
         val buffer = ByteArray(4096)
-        var bytesRead: Int
         var totalBytes = 0L
 
         _state.update { it.copy(isLoading = false, isPlaying = true) }
+        isPaused = false
 
-        while (decodedStream.read(buffer).also { bytesRead = it } != -1) {
-            if (!_state.value.isPlaying && isPaused) {
-                while (isPaused && playbackJob?.isActive == true) {
-                    delay(100)
-                }
-                if (playbackJob?.isActive != true) break
+        while (isActive) {
+            if (isPaused) {
+                delay(100)
+                continue
             }
+
+            val bytesRead = decodedStream.read(buffer)
+            if (bytesRead == -1) break
 
             audioLine.write(buffer, 0, bytesRead)
             totalBytes += bytesRead
 
             if (bytesPerMs > 0) {
-                _state.update { it.copy(currentPositionMs = (totalBytes / bytesPerMs).roundToLong()) }
+                _state.update {
+                    it.copy(currentPositionMs = seekBaseMs + (totalBytes / bytesPerMs).roundToLong())
+                }
             }
         }
 
-        audioLine.drain()
-        audioLine.close()
+        if (audioLine.isOpen) {
+            audioLine.drain()
+            audioLine.close()
+        }
         _state.update { it.copy(isPlaying = false) }
+
+        val completed = isActive && !isPaused
+        val finalPos = seekBaseMs + (totalBytes / bytesPerMs).roundToLong()
+        val dur = _state.value.durationMs
+
+        val result = when {
+            !completed -> {
+                val why = if (!isActive) "interrupted (cancelled)" else "paused"
+                log("playViaStream end: $why totalBytes=$totalBytes")
+                StreamEnd.INTERRUPTED
+            }
+            !isFullDownload && dur > 0 && finalPos < dur - 5000 -> {
+                log("playViaStream end: INCOMPLETE CACHE (pos=$finalPos < dur=$dur)")
+                StreamEnd.INCOMPLETE_CACHE
+            }
+            else -> {
+                log("playViaStream end: completed (natural EOF) totalBytes=$totalBytes")
+                StreamEnd.COMPLETED
+            }
+        }
+
+        // If this was a full-song download that completed naturally, mark cache as done.
+        if (completed && isFullDownload) {
+            val cacheDone = File(cacheDir, "${currentVideoId}.done")
+            if (cacheDone.parentFile.isDirectory) {
+                runCatching { cacheDone.createNewFile() }
+                log("cache DONE: $currentVideoId")
+            }
+        }
+
+        return@withContext result
     }
+
+    private fun endSong() {
+        playbackJob?.cancel()
+        playbackJob = null
+        stopAudio()
+        _state.update {
+            it.copy(
+                isPlaying = false,
+                isEnded = true,
+                isLoading = false,
+                currentPositionMs = it.durationMs
+            )
+        }
+        log("endSong")
+    }
+
+    private fun advanceOrStop() {
+        val s = _state.value
+        val nextAction = when (s.loopMode) {
+            LoopMode.NONE -> if (s.currentIndex + 1 < s.queue.size) "next-in-queue" else "endSong"
+            LoopMode.ONE -> "replay"
+            LoopMode.ALL -> "wrap-to-start"
+        }
+        log("advanceOrStop: action=$nextAction loopMode=${s.loopMode}")
+        when (s.loopMode) {
+            LoopMode.NONE -> {
+                val next = s.currentIndex + 1
+                if (next < s.queue.size) {
+                    _state.update { it.copy(currentIndex = next) }
+                    playInternal(s.queue[next])
+                } else {
+                    endSong()
+                }
+            }
+            LoopMode.ONE -> {
+                s.currentSong?.let { playInternal(it) }
+            }
+            LoopMode.ALL -> {
+                val next = (s.currentIndex + 1) % s.queue.size
+                _state.update { it.copy(currentIndex = next) }
+                playInternal(s.queue[next])
+            }
+        }
+    }
+
+    private fun advanceToNext() = advanceOrStop()
 
     private fun stopAudio() {
         runCatching { decodeProcess?.destroyForcibly() }
@@ -201,5 +676,6 @@ class PlayerService {
     fun dispose() {
         stop()
         scope.cancel()
+        log("dispose")
     }
 }
