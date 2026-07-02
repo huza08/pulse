@@ -55,15 +55,19 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
+    page: Innertube.DiscoverPage?,
+    onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
     onPlaySong: (Innertube.SongItem) -> Unit
 ) {
-    var page by remember { mutableStateOf<Result<Innertube.DiscoverPage>?>(null) }
     var query by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        page = Innertube.discoverPage()
+        if (page == null) {
+            val result = Innertube.discoverPage() ?: return@LaunchedEffect
+            onPageLoaded(result)
+        }
     }
 
     val bg = Color(0xFF0a0a0a)
@@ -137,7 +141,7 @@ fun HomeScreen(
                 Text("Search failed", color = dim, fontSize = 14.sp)
             }
         } else {
-            page?.getOrNull()?.let { p ->
+            page?.let { p ->
                 if (p.moods.isNotEmpty()) {
                     SectionTitle("Moods & Genres", text)
                     Spacer(Modifier.height(12.dp))

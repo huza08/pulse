@@ -197,6 +197,21 @@ class PlayerService {
 
 
     private fun playInternal(song: Innertube.SongItem) {
+        val videoId = song.info?.endpoint?.videoId
+        if (videoId == null) {
+            _state.update { it.copy(isLoading = false, error = "No video ID") }
+            return
+        }
+
+        // debounce: skip if already loading/playing same video
+        val s = _state.value
+        if (s.isLoading || s.isPlaying) {
+            if (s.currentSong?.info?.endpoint?.videoId == videoId) {
+                log("playInternal: debounced (already on $videoId)")
+                return
+            }
+        }
+
         playbackJob?.cancel()
         backgroundDownloadJob?.cancel()
         backgroundProcess?.destroyForcibly()
@@ -215,11 +230,7 @@ class PlayerService {
             )
         }
 
-        currentVideoId = song.info?.endpoint?.videoId
-        if (currentVideoId == null) {
-            _state.update { it.copy(isLoading = false, error = "No video ID") }
-            return
-        }
+        currentVideoId = videoId
         log("play: ${song.info?.name} (id=$currentVideoId)")
 
         playbackJob = scope.launch {
