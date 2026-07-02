@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
@@ -57,7 +60,9 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     page: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
-    onPlaySong: (Innertube.SongItem) -> Unit
+    onPlaySong: (Innertube.SongItem) -> Unit,
+    player: PlayerService? = null,
+    onOpenPlayer: () -> Unit = {}
 ) {
     var query by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
@@ -81,9 +86,13 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(bg)
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+        ) {
         Text(
             text = "Pulse",
             color = text,
@@ -251,6 +260,20 @@ fun HomeScreen(
                 NewReleasesSkeleton()
                 Spacer(Modifier.height(28.dp))
                 TrendingSkeleton()
+            }
+        }
+
+        }
+
+        // MiniPlayer pinned at bottom
+        player?.let { p ->
+            val ps by p.state.collectAsState()
+            if (ps.currentSong != null) {
+                MiniPlayer(
+                    player = p,
+                    onClick = onOpenPlayer,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                )
             }
         }
     }

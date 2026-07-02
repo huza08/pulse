@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.LoopMode
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.util.formatDuration
 
 @Composable
 fun Controls(
@@ -214,9 +215,4 @@ private fun MediaIconButton(
     }
 }
 
-private fun formatDuration(ms: Long): String {
-    val totalSec = ms / 1000
-    val min = totalSec / 60
-    val sec = totalSec % 60
-    return "%d:%02d".format(min, sec)
-}
+
