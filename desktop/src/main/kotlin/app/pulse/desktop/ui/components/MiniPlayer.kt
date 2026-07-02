@@ -133,7 +133,7 @@ fun MiniPlayer(
                     tint = dim,
                     modifier = Modifier.size(22.dp)
                 )
-                Spacer(Modifier.width(24.dp))
+                Spacer(Modifier.width(16.dp))
 
                 IconButton16(
                     painter = painterResource("/icons/play_skip_back.svg"),
@@ -142,7 +142,7 @@ fun MiniPlayer(
                     size = 32.dp,
                     onClick = { if (state.hasPrevious) player.playPrevious() }
                 )
-                Spacer(Modifier.width(20.dp))
+                Spacer(Modifier.width(8.dp))
 
                 Box(
                     modifier = Modifier
@@ -164,7 +164,7 @@ fun MiniPlayer(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                Spacer(Modifier.width(20.dp))
+                Spacer(Modifier.width(8.dp))
 
                 IconButton16(
                     painter = painterResource("/icons/play_skip_forward.svg"),
@@ -173,7 +173,7 @@ fun MiniPlayer(
                     size = 32.dp,
                     onClick = { if (state.hasNext) player.playNext() }
                 )
-                Spacer(Modifier.width(24.dp))
+                Spacer(Modifier.width(16.dp))
 
                 val repeatTint = when (state.loopMode) {
                     LoopMode.NONE -> dim.copy(alpha = 0.4f)
@@ -266,21 +266,21 @@ fun MiniPlayer(
             modifier = Modifier.widthIn(max = 320.dp)
         ) {
 
-            Spacer(Modifier.width(28.dp))
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource("/icons/lyrics.svg"),
                 contentDescription = "Lyrics",
                 tint = dim,
                 modifier = Modifier.size(26.dp)
             )
-            Spacer(Modifier.width(28.dp))
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource("/icons/list.svg"),
                 contentDescription = "Queue",
                 tint = dim,
                 modifier = Modifier.size(26.dp)
             )
-            Spacer(Modifier.width(28.dp))
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource(
                     if (state.volume <= 0f) "/icons/volume_muted.svg" else "/icons/volume_up.svg"
@@ -289,7 +289,7 @@ fun MiniPlayer(
                 tint = dim,
                 modifier = Modifier.size(26.dp)
             )
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(12.dp))
 
             val volInteractionSource = remember { MutableInteractionSource() }
             val isVolHovered by volInteractionSource.collectIsHoveredAsState()
@@ -329,7 +329,7 @@ fun MiniPlayer(
                 thumb = {},
                 modifier = Modifier.width(96.dp).height(32.dp)
             )
-
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource("/icons/expand.svg"),
                 contentDescription = "Fullscreen",
