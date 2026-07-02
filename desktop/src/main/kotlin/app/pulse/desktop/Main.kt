@@ -45,7 +45,6 @@ fun main() = application {
                 onPageLoaded = { homePage = it },
                 onPlaySong = { song ->
                     player.play(song)
-                    showPlayer = true
                 },
                 player = player,
                 onOpenPlayer = { showPlayer = true }
