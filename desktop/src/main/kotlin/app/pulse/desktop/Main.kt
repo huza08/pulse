@@ -46,7 +46,9 @@ fun main() = application {
                 onPlaySong = { song ->
                     player.play(song)
                     showPlayer = true
-                }
+                },
+                player = player,
+                onOpenPlayer = { showPlayer = true }
             )
 
             AnimatedVisibility(
