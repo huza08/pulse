@@ -121,6 +121,8 @@ class PlayerService {
 
     init {
         cleanCache()
+        QueueDatabase.init()
+        maybeRestoreQueue()
     }
 
     // -- Queue management (mirrors Android pattern) ----------------------------
@@ -133,6 +135,7 @@ class PlayerService {
         if (queue.isEmpty()) return
         val idx = index.coerceIn(0, queue.lastIndex)
         _state.update { it.copy(queue = queue, currentIndex = idx) }
+        maybeSaveQueue()
         playInternal(queue[idx])
     }
 
@@ -170,6 +173,7 @@ class PlayerService {
 
     fun enqueue(song: Innertube.SongItem) {
         _state.update { it.copy(queue = it.queue + song) }
+        maybeSaveQueue()
     }
 
     fun addNext(song: Innertube.SongItem) {
@@ -178,6 +182,7 @@ class PlayerService {
             val q = s.queue.toMutableList().apply { add(idx, song) }
             s.copy(queue = q)
         }
+        maybeSaveQueue()
     }
 
     fun setLoopMode(mode: LoopMode) {
@@ -196,7 +201,7 @@ class PlayerService {
     }
 
 
-    private fun playInternal(song: Innertube.SongItem) {
+    private fun playInternal(song: Innertube.SongItem, startMs: Long = 0L) {
         val videoId = song.info?.endpoint?.videoId
         if (videoId == null) {
             _state.update { it.copy(isLoading = false, error = "No video ID") }
@@ -237,7 +242,7 @@ class PlayerService {
             try {
                 val response = Innertube.player(PlayerBody(videoId = currentVideoId!!))
                 currentPlayerResponse = response?.getOrNull()
-                startPipeline(currentVideoId!!, currentPlayerResponse, startMs = 0)
+                startPipeline(currentVideoId!!, currentPlayerResponse, startMs = startMs)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -252,6 +257,7 @@ class PlayerService {
         isPaused = true
         runCatching { line?.stop() }
         _state.update { it.copy(isPlaying = false) }
+        maybeSaveQueue()
         log("pause")
     }
 
@@ -267,6 +273,11 @@ class PlayerService {
         }
 
         if (!isPaused) {
+            // Restored from DB — line never started, start pipeline without wiping queue
+            if (line == null) {
+                playInternal(song, startMs = s.currentPositionMs)
+                return
+            }
             play(song)
             return
         }
@@ -284,6 +295,7 @@ class PlayerService {
         backgroundProcess = null
         playbackJob = null
         stopAudio()
+        maybeSaveQueue()
         _state.update {
             PlaybackState(
                 queue = it.queue,
@@ -701,6 +713,54 @@ class PlayerService {
     }
 
     private fun advanceToNext() = advanceOrStop()
+        
+    private fun maybeSaveQueue() {
+        val s = _state.value
+        if (s.queue.isEmpty()) return
+        QueueDatabase.save(s)
+        log("queue saved (${s.queue.size} items, idx=${s.currentIndex}, pos=${s.currentPositionMs}ms)")
+    }
+
+    private fun maybeRestoreQueue() {
+        val saved = QueueDatabase.restore() ?: return
+        QueueDatabase.clear()
+
+        val songs = mutableListOf<Innertube.SongItem>()
+        saved.queue.forEach { entry ->
+            try {
+                val song = QueueDatabase.json.decodeFromString<Innertube.SongItem>(entry.songJson)
+                songs.add(song)
+            } catch (e: Exception) {
+                log("restore: failed to deserialize ${entry.videoId}: ${e.message}")
+            }
+        }
+
+        if (songs.isEmpty()) return
+
+        log("restore: ${songs.size} songs, index=${saved.currentIndex}, pos=${saved.positionMs}ms")
+
+        _state.update {
+            PlaybackState(
+                queue = songs,
+                currentIndex = saved.currentIndex.coerceIn(0, songs.lastIndex),
+                loopMode = saved.loopMode,
+                volume = saved.volume
+            )
+        }
+
+        // Restore song in paused state — user presses play to resume
+        val song = songs.getOrNull(saved.currentIndex) ?: return
+        _state.update {
+            it.copy(
+                currentSong = song,
+                currentPositionMs = saved.positionMs,
+                isPlaying = false,
+                isEnded = false,
+                isLoading = false
+            )
+        }
+        log("restore: song='${song.info?.name}' paused at ${saved.positionMs}ms")
+    }
 
     private fun stopAudio() {
         runCatching { decodeProcess?.destroyForcibly() }
@@ -716,9 +776,11 @@ class PlayerService {
     }
 
     fun dispose() {
+        maybeSaveQueue()
         stop()
         backgroundDownloadJob?.cancel()
         scope.cancel()
+        QueueDatabase.close()
         log("dispose")
     }
 }
