@@ -51,7 +51,9 @@ import app.pulse.providers.innertube.utils.from
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onPlaySong: (Innertube.SongItem) -> Unit
+) {
     var page by remember { mutableStateOf<Result<Innertube.DiscoverPage>?>(null) }
     var query by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
@@ -126,7 +128,7 @@ fun HomeScreen() {
         if (searchResults != null) {
             searchResults?.getOrNull()?.let { itemsPage ->
                 itemsPage?.items?.forEach { song ->
-                    SongCard(song = song, surface = surface, text = text, dim = dim)
+                    SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
                 }
             } ?: searchResults?.exceptionOrNull()?.let {
                 Text("Search failed", color = dim, fontSize = 14.sp)
@@ -232,7 +234,7 @@ fun HomeScreen() {
                     SectionTitle("Trending", text)
                     Spacer(Modifier.height(12.dp))
                     p.trending.songs.take(15).forEach { song ->
-                        SongCard(song = song, surface = surface, text = text, dim = dim)
+                        SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
                     }
                 }
             } ?: run {

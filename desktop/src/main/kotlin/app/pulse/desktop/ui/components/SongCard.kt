@@ -28,7 +28,8 @@ fun SongCard(
     song: Innertube.SongItem,
     surface: Color,
     text: Color,
-    dim: Color
+    dim: Color,
+    onClick: () -> Unit = {}
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -36,7 +37,7 @@ fun SongCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 6.dp)
-            .clickable { }
+            .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
