@@ -437,7 +437,6 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
             val pendingUrl = DataPreferences.pendingUpdateUrl
             if (pendingVersion.isNotEmpty() && pendingUrl.isNotEmpty()) {
                 UpdateDialog(
-                    version = pendingVersion,
                     downloadUrl = pendingUrl,
                     onDismiss = {
                         DataPreferences.pendingUpdateVersion = ""
