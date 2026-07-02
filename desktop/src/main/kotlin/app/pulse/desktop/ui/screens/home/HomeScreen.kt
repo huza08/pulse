@@ -41,8 +41,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
+import app.pulse.desktop.ui.components.NewReleasesSkeleton
 import app.pulse.desktop.ui.components.SongCard
+import app.pulse.desktop.ui.components.TrendingSkeleton
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.SearchBody
 import app.pulse.providers.innertube.requests.discoverPage
@@ -238,7 +241,12 @@ fun HomeScreen(
                     }
                 }
             } ?: run {
-                Text("Loading...", color = dim, fontSize = 14.sp)
+                // Shimmer skeletons while page loads
+                MoodsSkeleton()
+                Spacer(Modifier.height(28.dp))
+                NewReleasesSkeleton()
+                Spacer(Modifier.height(28.dp))
+                TrendingSkeleton()
             }
         }
     }
