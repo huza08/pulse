@@ -68,6 +68,8 @@ class PlayerService {
     private var currentPlayerResponse: PlayerResponse? = null
     @Volatile
     private var lastSeekMs = 0L
+    @Volatile
+    private var currentPipelineGen = 0L
 
     companion object {
         private val cacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-cache")
@@ -200,6 +202,7 @@ class PlayerService {
         backgroundProcess?.destroyForcibly()
         backgroundProcess = null
         stopAudio()
+        currentPipelineGen++
 
         _state.update {
             PlaybackState(
@@ -343,6 +346,7 @@ class PlayerService {
         stopAudio()
 
         seekBaseMs = startMs
+        val myGen = ++currentPipelineGen
 
         val dur = playerResponse?.streamingData?.highestQualityFormat?.approxDurationMs
         if (dur != null && startMs >= dur) {
@@ -468,8 +472,11 @@ class PlayerService {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                log("pipeline[$pipelineId] error: ${e.message}")
-                _state.update { it.copy(isLoading = false, error = e.message) }
+                // only report error if we're still active pipeline
+                if (myGen == currentPipelineGen) {
+                    log("pipeline[$pipelineId] error: ${e.message}")
+                    _state.update { it.copy(isLoading = false, error = e.message) }
+                }
             }
         }
     }
