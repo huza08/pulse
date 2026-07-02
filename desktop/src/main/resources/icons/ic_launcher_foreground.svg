@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --><svg xmlns:android="http://schemas.android.com/apk/res/android" height="108" width="108" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(16.83158, 16.83158) scale(0.69473684, 0.69473684)">
+        <g clip-path="url(#_clippath_0)">
+            <path d="M25.75,82V53.88H53.88L25.75,82ZM53.88,82V53.88H82L53.88,82ZM25.75,53.88V25.75H53.88C53.88,25.75 53.88,13.56 53.88,27.84C53.88,42.12 42.12,53.88 27.84,53.88C13.56,53.88 25.75,53.88 25.75,53.88ZM53.88,53.88V25.75H82L53.88,53.88Z" fill="#ffffff"/>
+        </g>
+    </g>
+    <defs id="svg-definitions">
+        <clipPath id="_clippath_0">
+            <path d="M25.75,25.75h56.25v56.25h-56.25z"/>
+        </clipPath>
+    </defs>
+</svg>
