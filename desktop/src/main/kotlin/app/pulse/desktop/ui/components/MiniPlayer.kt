@@ -327,7 +327,7 @@ fun MiniPlayer(
                                 .clip(CircleShape)
                                 .background(Color(0xFF2a2a2a))
                         )
-                        // active 
+                        // active
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(sliderState.value)
