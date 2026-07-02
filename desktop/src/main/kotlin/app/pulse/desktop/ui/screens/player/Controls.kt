@@ -6,10 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -24,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.LoopMode
@@ -100,43 +100,54 @@ fun Controls(
 
             // Loop mode
             val loopIcon = when (state.loopMode) {
-                LoopMode.NONE -> "🔁"
-                LoopMode.ONE -> "🔂"
-                LoopMode.ALL -> "🔁 A"
+                LoopMode.NONE -> AppIcons.Repeat
+                LoopMode.ONE -> AppIcons.Repeat
+                LoopMode.ALL -> AppIcons.Repeat
             }
             val loopAlpha = when (state.loopMode) {
                 LoopMode.NONE -> 0.4f
                 LoopMode.ONE, LoopMode.ALL -> 1f
             }
-            ControlButton(
-                text = loopIcon,
+            MediaIconButton(
+                icon = loopIcon,
                 onClick = { player.cycleLoopMode() },
-                size = 16,
-                alpha = loopAlpha
+                contentDescription = "Repeat",
+                tint = text.copy(alpha = loopAlpha),
+                size = 18
             )
 
             Spacer(Modifier.width(16.dp))
 
             // Prev song
-            ControlButton(
-                text = "⏮",
+            MediaIconButton(
+                icon = AppIcons.SkipBack,
                 onClick = { if (state.hasPrevious) player.playPrevious() },
-                size = 20
+                contentDescription = "Previous",
+                tint = text.copy(alpha = if (state.hasPrevious) 1f else 0.35f),
+                size = 22
             )
 
             Spacer(Modifier.width(16.dp))
 
             // Rewind 10s
-            ControlButton(text = "⏪", onClick = { player.skipBackward(10) }, size = 24)
+            MediaIconButton(
+                icon = AppIcons.Rewind10,
+                onClick = { player.skipBackward(10) },
+                contentDescription = "Rewind 10s",
+                tint = text,
+                size = 22
+            )
 
             Spacer(Modifier.width(20.dp))
 
             // Play/Pause
-            ControlButton(
-                text = if (state.isPlaying) "⏸" else "▶",
+            MediaIconButton(
+                icon = if (state.isPlaying) AppIcons.Pause else AppIcons.Play,
                 onClick = {
                     if (state.isPlaying) player.pause() else player.resume()
                 },
+                contentDescription = if (state.isPlaying) "Pause" else "Play",
+                tint = text,
                 size = 32,
                 isMain = true
             )
@@ -144,15 +155,23 @@ fun Controls(
             Spacer(Modifier.width(20.dp))
 
             // Forward 10s
-            ControlButton(text = "⏩", onClick = { player.skipForward(10) }, size = 24)
+            MediaIconButton(
+                icon = AppIcons.Forward10,
+                onClick = { player.skipForward(10) },
+                contentDescription = "Forward 10s",
+                tint = text,
+                size = 22
+            )
 
             Spacer(Modifier.width(16.dp))
 
             // Next song
-            ControlButton(
-                text = "⏭",
+            MediaIconButton(
+                icon = AppIcons.SkipForward,
                 onClick = { if (state.hasNext) player.playNext() },
-                size = 20
+                contentDescription = "Next",
+                tint = text.copy(alpha = if (state.hasNext) 1f else 0.35f),
+                size = 22
             )
 
             Spacer(Modifier.weight(1f))
@@ -165,10 +184,11 @@ fun Controls(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = "🔊",
-                color = dim,
-                fontSize = 11.sp
+            Icon(
+                imageVector = AppIcons.VolumeUp,
+                contentDescription = "Volume",
+                tint = dim,
+                modifier = Modifier.size(14.dp)
             )
             Spacer(Modifier.width(8.dp))
 
@@ -191,24 +211,26 @@ fun Controls(
 }
 
 @Composable
-private fun ControlButton(
-    text: String,
+private fun MediaIconButton(
+    icon: ImageVector,
     onClick: () -> Unit,
+    contentDescription: String,
+    tint: Color,
     size: Int,
-    isMain: Boolean = false,
-    alpha: Float = 1f
+    isMain: Boolean = false
 ) {
     val btnSize = if (isMain) 56.dp else 40.dp
-    val fontSize = if (isMain) 20.sp else 16.sp
+    val iconSize = (if (isMain) 28 else size).dp
 
     IconButton(
         onClick = onClick,
         modifier = Modifier.size(btnSize)
     ) {
-        Text(
-            text = text,
-            color = Color(0xFFf2f0eb).copy(alpha = alpha),
-            fontSize = fontSize
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(iconSize)
         )
     }
 }
