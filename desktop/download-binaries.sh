@@ -2,7 +2,6 @@
 # Downloads static yt-dlp + ffmpeg binaries for bundling with Pulse Desktop.
 # Supports Linux, macOS (arm64 + x86_64), and Windows.
 # Places binaries in OS-specific subdirs: native/{linux,macos,windows}/
-# Mirrors Android's approach of bundling native binaries.
 #
 # Usage: bash download-binaries.sh
 set -euo pipefail
@@ -32,7 +31,7 @@ if [ "$OS" = "unknown" ]; then
   exit 1
 fi
 
-# Place in OS-specific subdirectory for multi-platform builds
+# place in OS-specific subdir
 NATIVE_DIR="src/main/resources/native/$OS"
 mkdir -p "$NATIVE_DIR"
 
@@ -69,19 +68,20 @@ download_macos() {
   echo "    OK: $(du -h "$NATIVE_DIR/yt-dlp" | cut -f1)"
 
   # macOS: use static builds from well-known sources
-  # Intel: evermeet.cx (reliable, long-standing source)
-  # ARM: osxexperts.net (static Apple Silicon builds)
+  # not tested yet
+  # Intel: evermeet.cx
+  # ARM: osxexperts.net
   echo "==> Downloading ffmpeg (macOS $ARCH)..."
   local FFMPEG_FILE=$(mktemp)
-
+ilds)
   if [ "$ARCH" = "arm64" ]; then
-    # osxexperts — static arm64 ffmpeg build
+    # arm
     curl -fsSL "https://www.osxexperts.net/ffmpeg8arm64.zip" -o "$FFMPEG_FILE"
     unzip -o "$FFMPEG_FILE" -d "/tmp/ffmpeg-macos/" >/dev/null 2>&1
     cp "/tmp/ffmpeg-macos/ffmpeg" "$NATIVE_DIR/ffmpeg"
     rm -rf "/tmp/ffmpeg-macos"
   else
-    # evermeet.cx — static Intel ffmpeg build (daily build, always latest)
+    # intel
     curl -fsSL "https://evermeet.cx/ffmpeg/get/zip" -o "$FFMPEG_FILE"
     unzip -o "$FFMPEG_FILE" -d "/tmp/ffmpeg-macos/" >/dev/null 2>&1
     cp "/tmp/ffmpeg-macos/ffmpeg" "$NATIVE_DIR/ffmpeg"
