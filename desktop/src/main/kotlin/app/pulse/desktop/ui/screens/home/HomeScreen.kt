@@ -82,16 +82,16 @@ fun HomeScreen(
     val fieldBg = Color(0xFF1a1a1a)
     val fieldBorder = Color(0xFF2a2a2a)
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bg)
     ) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+                .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 100.dp)
         ) {
         Text(
             text = "Pulse",
@@ -265,14 +265,16 @@ fun HomeScreen(
 
         }
 
-        // MiniPlayer pinned at bottom
+        // MiniPlayer
         player?.let { p ->
             val ps by p.state.collectAsState()
             if (ps.currentSong != null) {
                 MiniPlayer(
                     player = p,
                     onClick = onOpenPlayer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
