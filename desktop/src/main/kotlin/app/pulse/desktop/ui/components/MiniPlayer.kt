@@ -47,6 +47,7 @@ private val pillShape = RoundedCornerShape(32.dp)
 fun MiniPlayer(
     player: PlayerService,
     onClick: () -> Unit,
+    onOpenPlayer: () -> Unit = onClick,
     modifier: Modifier = Modifier
 ) {
     val state by player.state.collectAsState()
@@ -61,7 +62,7 @@ fun MiniPlayer(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(68.dp)
             .shadow(12.dp, pillShape, ambientColor = Color.Black.copy(alpha = 0.4f), spotColor = Color.Black.copy(alpha = 0.4f))
             .background(bg, pillShape)
             .clickable(
@@ -71,26 +72,27 @@ fun MiniPlayer(
             )
             .padding(horizontal = 14.dp)
     ) {
+        // left track info
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.widthIn(max = 200.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(44.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color(0xFF141414))
             ) {
                 song.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(100), modifier = Modifier.size(40.dp))
+                    NetworkImage(url = thumb.size(100), modifier = Modifier.size(44.dp))
                 }
             }
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 Text(
                     text = song.info?.name ?: "Untitled",
                     color = text,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -99,7 +101,7 @@ fun MiniPlayer(
                     Text(
                         text = author.name ?: "",
                         color = dim,
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -107,6 +109,7 @@ fun MiniPlayer(
             }
         }
 
+        // center controls + seekbar
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -122,22 +125,22 @@ fun MiniPlayer(
                     painter = painterResource("/icons/shuffle.svg"),
                     contentDescription = "Shuffle",
                     tint = dim,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(18.dp)
                 )
-                Spacer(Modifier.width(14.dp))
+                Spacer(Modifier.width(16.dp))
 
                 IconButton16(
                     painter = painterResource("/icons/play_skip_back.svg"),
                     desc = "Previous",
                     tint = text,
-                    size = 18.dp,
+                    size = 20.dp,
                     onClick = { if (state.hasPrevious) player.playPrevious() }
                 )
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(12.dp))
 
                 Box(
                     modifier = Modifier
-                        .size(30.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
                         .background(text)
                         .clickable(
@@ -154,19 +157,19 @@ fun MiniPlayer(
                         ),
                         contentDescription = if (state.isPlaying) "Pause" else "Play",
                         tint = Color(0xFF0a0a0a),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(12.dp))
 
                 IconButton16(
                     painter = painterResource("/icons/play_skip_forward.svg"),
                     desc = "Next",
                     tint = text,
-                    size = 18.dp,
+                    size = 20.dp,
                     onClick = { if (state.hasNext) player.playNext() }
                 )
-                Spacer(Modifier.width(14.dp))
+                Spacer(Modifier.width(16.dp))
 
                 val repeatTint = when (state.loopMode) {
                     LoopMode.NONE -> dim.copy(alpha = 0.4f)
@@ -181,7 +184,7 @@ fun MiniPlayer(
                     contentDescription = "Repeat",
                     tint = repeatTint,
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(18.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -190,6 +193,7 @@ fun MiniPlayer(
                 )
             }
 
+            // seekbar row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp)
@@ -197,8 +201,8 @@ fun MiniPlayer(
                 Text(
                     text = formatDuration(state.currentPositionMs),
                     color = dim,
-                    fontSize = 10.sp,
-                    modifier = Modifier.width(32.dp)
+                    fontSize = 11.sp,
+                    modifier = Modifier.width(34.dp)
                 )
                 val progress = if (state.durationMs > 0)
                     (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
@@ -210,43 +214,58 @@ fun MiniPlayer(
                         activeTrackColor = accent,
                         inactiveTrackColor = Color(0xFF2a2a2a)
                     ),
-                    modifier = Modifier.weight(1f).height(14.dp)
+                    modifier = Modifier.weight(1f).height(4.dp)
                 )
                 Text(
                     text = formatDuration(state.durationMs),
                     color = dim,
-                    fontSize = 10.sp,
-                    modifier = Modifier.width(32.dp)
+                    fontSize = 11.sp,
+                    modifier = Modifier.width(34.dp)
                 )
             }
         }
 
+        // right volume
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.widthIn(max = 180.dp)
+            modifier = Modifier.widthIn(max = 200.dp)
         ) {
+            Icon(
+                painter = painterResource("/icons/expand.svg"),
+                contentDescription = "Fullscreen",
+                tint = text,
+                modifier = Modifier
+                    .size(18.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onOpenPlayer
+                    )
+            )
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource("/icons/lyrics.svg"),
                 contentDescription = "Lyrics",
                 tint = dim,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource("/icons/list.svg"),
                 contentDescription = "Queue",
                 tint = dim,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(14.dp))
             Icon(
                 painter = painterResource(
                     if (state.volume <= 0f) "/icons/volume_muted.svg" else "/icons/volume_up.svg"
                 ),
                 contentDescription = "Volume",
                 tint = dim,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
+            Spacer(Modifier.width(6.dp))
             Slider(
                 value = state.volume,
                 onValueChange = { player.setVolume(it) },
@@ -255,7 +274,7 @@ fun MiniPlayer(
                     activeTrackColor = dim,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.width(55.dp).height(14.dp)
+                modifier = Modifier.width(65.dp).height(4.dp)
             )
         }
     }
