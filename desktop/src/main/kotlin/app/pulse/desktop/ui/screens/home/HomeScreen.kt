@@ -271,7 +271,8 @@ fun HomeScreen(
             if (ps.currentSong != null) {
                 MiniPlayer(
                     player = p,
-                    onClick = onOpenPlayer,
+                    onClick = {},
+                    onOpenPlayer = onOpenPlayer,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
