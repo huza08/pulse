@@ -35,6 +35,7 @@ object QueueDatabase {
         val queue: List<SongEntry>,
         val currentIndex: Int,
         val positionMs: Long,
+        val durationMs: Long,
         val loopMode: LoopMode,
         val volume: Float
     )
@@ -129,6 +130,10 @@ object QueueDatabase {
         metaStmt.setString(2, state.volume.toString())
         metaStmt.addBatch()
 
+        metaStmt.setString(1, "duration_ms")
+        metaStmt.setString(2, state.durationMs.toString())
+        metaStmt.addBatch()
+
         metaStmt.executeBatch()
         metaStmt.close()
     }
@@ -138,7 +143,7 @@ object QueueDatabase {
         val conn = connection ?: return null
 
         val queueRs = conn.createStatement().executeQuery(
-            "SELECT video_id, song_json, queue_index, position_ms FROM player_queue ORDER BY queue_index ASC"
+            "SELECT video_id, song_json, queue_index, is_current, position_ms FROM player_queue ORDER BY queue_index ASC"
         )
 
         val entries = mutableListOf<SongEntry>()
@@ -148,7 +153,7 @@ object QueueDatabase {
             val videoId = queueRs.getString("video_id")
             val songJson = queueRs.getString("song_json")
             val pos = queueRs.getLong("position_ms")
-            if (queueRs.getInt("queue_index") >= 0) {
+            if (queueRs.getInt("is_current") == 1) {
                 currentPositionMs = pos
             }
             entries.add(SongEntry(videoId = videoId, songJson = songJson))
@@ -168,11 +173,13 @@ object QueueDatabase {
         val currentIndex = metaMap["current_index"]?.toIntOrNull() ?: 0
         val loopMode = metaMap["loop_mode"]?.let { runCatching { LoopMode.valueOf(it) }.getOrNull() } ?: LoopMode.NONE
         val volume = metaMap["volume"]?.toFloatOrNull() ?: 1f
+        val durationMs = metaMap["duration_ms"]?.toLongOrNull() ?: 0L
 
         return SavedQueue(
             queue = entries,
             currentIndex = currentIndex.coerceIn(0, entries.lastIndex),
             positionMs = currentPositionMs,
+            durationMs = durationMs,
             loopMode = loopMode,
             volume = volume
         )

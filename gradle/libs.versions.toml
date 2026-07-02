@@ -35,6 +35,8 @@ splashscreen = { module = "androidx.core:core-splashscreen", version = "1.0.1" }
 
 
 kotlin_coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
+kotlinx_serialization_json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.8.1" }
+sqlite_jdbc = { module = "org.xerial:sqlite-jdbc", version = "3.49.1.0" }
 kotlin_datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1" }
 kotlin_immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.4.0" }
 

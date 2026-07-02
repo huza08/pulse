@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     id("org.jetbrains.compose") version "1.11.1"
     alias(libs.plugins.kotlin.compose)
 }
@@ -16,6 +17,9 @@ dependencies {
     implementation(projects.providers.sponsorblock)
     implementation(projects.providers.translate)
     implementation("org.slf4j:slf4j-simple:2.0.17")
+
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.sqlite.jdbc)
 }
 
 // Cross-platform native binary download task (works on Linux/macOS/Windows)
