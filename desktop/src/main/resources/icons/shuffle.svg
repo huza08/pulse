@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:android="http://schemas.android.com/apk/res/android" height="512" width="512" xmlns="http://www.w3.org/2000/svg">
+    <path d="M400,304l48,48l-48,48" fill="#000000" fill-opacity="0.0" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+    <path d="M400,112l48,48l-48,48" fill="#000000" fill-opacity="0.0" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+    <path d="M64,352h85.19a80,80 0,0 0,66.56 -35.62L256,256" fill="#000000" fill-opacity="0.0" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+    <path d="M64,160h85.19a80,80 0,0 1,66.56 35.62l80.5,120.76A80,80 0,0 0,362.81 352H416" fill="#000000" fill-opacity="0.0" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+    <path d="M416,160H362.81a80,80 0,0 0,-66.56 35.62L288,208" fill="#000000" fill-opacity="0.0" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+</svg>

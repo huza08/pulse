@@ -7,7 +7,6 @@ plugins {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
-    implementation(compose.materialIconsExtended)
 
     implementation(projects.providers.innertube)
     implementation(projects.providers.kugou)
