@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -93,20 +96,20 @@ fun PlayerScreen(
 
         val song = state.currentSong!!
 
-        // Main content: centered thumbnail + info + controls
+        // main
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .weight(1f)
         ) {
-            // Thumbnail
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = surface),
                 modifier = Modifier
-                    .fillMaxWidth(0.5f)
+                    .fillMaxHeight(0.6f)
+                    .sizeIn(maxWidth = 400.dp, maxHeight = 400.dp)
                     .aspectRatio(1f)
             ) {
                 Box(
@@ -135,7 +138,9 @@ fun PlayerScreen(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(0.7f)
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .widthIn(max = 420.dp)
             )
 
             Spacer(Modifier.height(6.dp))
@@ -159,7 +164,9 @@ fun PlayerScreen(
                 accent = accent,
                 text = text,
                 dim = dim,
-                modifier = Modifier.fillMaxWidth(0.6f)
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .widthIn(max = 500.dp)
             )
         }
 

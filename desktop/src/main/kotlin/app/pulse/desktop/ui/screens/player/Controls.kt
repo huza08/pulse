@@ -79,7 +79,7 @@ fun Controls(
                     activeTrackColor = accent,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).height(4.dp)
             )
 
             Text(
@@ -184,7 +184,7 @@ fun Controls(
                     activeTrackColor = dim,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).height(4.dp)
             )
         }
     }
