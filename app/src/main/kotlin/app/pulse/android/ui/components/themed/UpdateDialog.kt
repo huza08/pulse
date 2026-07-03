@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -76,7 +77,7 @@ fun UpdateDialog(
                 .padding(14.dp),
         ) {
             Column(
-                modifier = Modifier.height(145.dp),
+                modifier = Modifier.height(150.dp),
             ) {
                 TitleSection(
                     state = state,
@@ -101,29 +102,35 @@ fun UpdateDialog(
                     }
 
                     DialogState.Downloading -> {
-                        Spacer(Modifier.height(4.dp))
-                        BasicText(
-                            text = stringResource(R.string.downloading),
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            style = typography.xs.medium.copy(
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp,
-                            ),
-                        )
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            BasicText(
+                                text = stringResource(R.string.downloading),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                style = typography.xs.medium.copy(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
 
                     DialogState.Downloaded -> {
-                        Spacer(Modifier.height(4.dp))
-                        BasicText(
-                            text = stringResource(R.string.install_update),
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            style = typography.xs.medium.copy(
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp,
-                            ),
-                        )
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            BasicText(
+                                text = stringResource(R.string.install_update),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                style = typography.xs.medium.copy(
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
 
                     DialogState.Error -> {
@@ -278,7 +285,7 @@ private fun AppleDialogProgressButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(54.dp)
+            .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
             .background(Color(0xFF007AFF)),
     ) {
@@ -325,7 +332,7 @@ private fun AppleDialogButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(54.dp)
+            .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
             .background(containerColor)
             .clickable { onClick() },
