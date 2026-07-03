@@ -62,7 +62,7 @@ fun UpdateDialog(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val (_, typography) = LocalAppearance.current
+    val (palette, typography) = LocalAppearance.current
 
     var state by remember { mutableStateOf(DialogState.Prompt) }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -73,7 +73,7 @@ fun UpdateDialog(
             modifier = Modifier
                 .width(320.dp)
                 .clip(RoundedCornerShape(40.dp))
-                .background(Color(0xFF1C1C1E))
+                .background(palette.background1)
                 .padding(14.dp),
         ) {
             Column(
@@ -81,6 +81,7 @@ fun UpdateDialog(
             ) {
                 TitleSection(
                     state = state,
+                    palette = palette,
                     typography = typography,
                 )
 
@@ -92,7 +93,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.update_available_description),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.xs.medium.copy(
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    color = palette.textSecondary,
                                     fontSize = 12.sp,
                                     lineHeight = 16.sp,
                                 ),
@@ -108,7 +109,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.downloading),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.xs.medium.copy(
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    color = palette.textSecondary,
                                     fontSize = 12.sp,
                                     lineHeight = 16.sp,
                                 ),
@@ -124,7 +125,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.install_update),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.xs.medium.copy(
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    color = palette.textSecondary,
                                     fontSize = 12.sp,
                                     lineHeight = 16.sp,
                                 ),
@@ -140,7 +141,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.error_message),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.s.copy(
-                                    color = Color.White,
+                                    color = palette.text,
                                     fontWeight = FontWeight.Bold,
                                 ),
                             )
@@ -158,12 +159,14 @@ fun UpdateDialog(
                         ) {
                             AppleDialogButton(
                                 text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
+                                containerColor = palette.background2,
+                                contentColor = palette.text,
                                 modifier = Modifier.weight(1f),
                             ) { onDismiss() }
                             AppleDialogButton(
                                 text = stringResource(R.string.update),
-                                containerColor = Color(0xFF007AFF),
+                                containerColor = palette.accent,
+                                contentColor = palette.onAccent,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 state = DialogState.Downloading
@@ -186,12 +189,14 @@ fun UpdateDialog(
                         ) {
                             AppleDialogButton(
                                 text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
+                                containerColor = palette.background2,
+                                contentColor = palette.text,
                                 modifier = Modifier.weight(1f),
                                 enabled = false,
                             ) { }
                             AppleDialogProgressButton(
                                 progress = progress,
+                                palette = palette,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -200,7 +205,8 @@ fun UpdateDialog(
                     DialogState.Downloaded -> {
                         AppleDialogButton(
                             text = stringResource(R.string.installing_update),
-                            containerColor = Color(0xFF007AFF),
+                            containerColor = palette.accent,
+                            contentColor = palette.onAccent,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             apkFile?.let { file ->
@@ -222,7 +228,8 @@ fun UpdateDialog(
                     DialogState.Error -> {
                         AppleDialogButton(
                             text = stringResource(R.string.cancel),
-                            containerColor = Color(0xFF3A3A3C),
+                            containerColor = palette.background2,
+                            contentColor = palette.text,
                             modifier = Modifier.fillMaxWidth(),
                         ) { onDismiss() }
                     }
@@ -235,6 +242,7 @@ fun UpdateDialog(
 @Composable
 private fun TitleSection(
     state: DialogState,
+    palette: app.pulse.core.ui.ColorPalette,
     typography: app.pulse.core.ui.Typography,
 ) {
     when (state) {
@@ -243,7 +251,7 @@ private fun TitleSection(
                 text = stringResource(R.string.update_ready),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                 style = typography.s.copy(
-                    color = Color.White,
+                    color = palette.text,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 ),
@@ -255,7 +263,7 @@ private fun TitleSection(
                 text = stringResource(R.string.update_available),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                 style = typography.s.copy(
-                    color = Color.White,
+                    color = palette.text,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 ),
@@ -267,6 +275,7 @@ private fun TitleSection(
 @Composable
 private fun AppleDialogProgressButton(
     progress: Float,
+    palette: app.pulse.core.ui.ColorPalette,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -274,7 +283,7 @@ private fun AppleDialogProgressButton(
         modifier = modifier
             .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
-            .background(Color(0xFF007AFF)),
+            .background(palette.accent),
     ) {
         Box(modifier = Modifier.size(28.dp)) {
             Canvas(modifier = Modifier.size(28.dp)) {
@@ -285,7 +294,7 @@ private fun AppleDialogProgressButton(
 
                 // Track
                 drawArc(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = palette.onAccent.copy(alpha = 0.2f),
                     startAngle = 0f,
                     sweepAngle = 360f,
                     useCenter = false,
@@ -296,7 +305,7 @@ private fun AppleDialogProgressButton(
 
                 // Progress
                 drawArc(
-                    color = Color.White,
+                    color = palette.onAccent,
                     startAngle = -90f,
                     sweepAngle = 360f * progress,
                     useCenter = false,
@@ -313,6 +322,7 @@ private fun AppleDialogProgressButton(
 private fun AppleDialogButton(
     text: String,
     containerColor: Color,
+    contentColor: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -328,7 +338,7 @@ private fun AppleDialogButton(
         BasicText(
             text = text,
             style = LocalAppearance.current.typography.s.copy(
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
+                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
             ),
