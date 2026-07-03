@@ -21,7 +21,7 @@ android {
     val appId = "com.elza.pulse"
 
     namespace = "app.pulse.android"
-    compileSdk = 36
+    compileSdk = 37
 
     val abis = listOf("arm64-v8a", "x86_64")
     val cmakeVersion = "4.1.2"
@@ -33,7 +33,7 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 27
+        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 28
         versionName = project.version.toString()
 
         multiDexEnabled = true
