@@ -103,7 +103,9 @@ jobs:
 
       - name: Hash APK
         if: steps.check_commits.outputs.run_build == 'true'
-        run: echo "SHA256=$(sha256sum ${{ env.APK_FINAL_PATH }} | cut -d ' ' -f 1)" >> $GITHUB_ENV
+        run: |
+          echo "$(sha256sum ${{ env.APK_FINAL_PATH }} | cut -d ' ' -f 1)" > app/build/outputs/apk/nightly/checksums-nightly.txt
+          echo "SHA256=$(cat app/build/outputs/apk/nightly/checksums-nightly.txt)" >> $GITHUB_ENV
 
       - name: Import GPG key
         if: steps.check_commits.outputs.run_build == 'true'
@@ -129,7 +131,7 @@ jobs:
             SHA-256: ${{ env.SHA256 }}
             GPG: ${{ env.APK_FINAL_PATH }}.asc signed
             Message: ${{ steps.check_commits.outputs.commit_msg }}
-          document: "${{ env.APK_FINAL_PATH }},${{ env.APK_FINAL_PATH }}.asc"
+          document: "${{ env.APK_FINAL_PATH }},${{ env.APK_FINAL_PATH }}.asc,app/build/outputs/apk/nightly/checksums-nightly.txt"
 
       - name: Update Nightly Tag
         if: steps.check_commits.outputs.run_build == 'true' && success()

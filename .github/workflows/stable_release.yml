@@ -83,7 +83,9 @@ jobs:
           echo "APK_FINAL_PATH=app/build/outputs/apk/release/pulse-stable-v${{ env.VERSION }}.apk" >> $GITHUB_ENV
 
       - name: Hash APK
-        run: echo "SHA256=$(sha256sum ${{ env.APK_FINAL_PATH }} | cut -d ' ' -f 1)" >> $GITHUB_ENV
+        run: |
+          echo "$(sha256sum ${{ env.APK_FINAL_PATH }} | cut -d ' ' -f 1)" > app/build/outputs/apk/release/checksums.txt
+          echo "SHA256=$(cat app/build/outputs/apk/release/checksums.txt)" >> $GITHUB_ENV
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -123,6 +125,7 @@ jobs:
           files: |
             ${{ env.APK_FINAL_PATH }}
             ${{ env.APK_FINAL_PATH }}.asc
+            app/build/outputs/apk/release/checksums.txt
           body: |
             Official Stable Release of Pulse v${{ env.VERSION }}.
 
