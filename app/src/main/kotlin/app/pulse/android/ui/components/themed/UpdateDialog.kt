@@ -346,6 +346,33 @@ private fun AppleDialogButton(
     }
 }
 
+private fun File.calculateSha256(): String {
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    inputStream().use { input ->
+        val buffer = ByteArray(8192)
+        var bytesRead: Int
+        while (input.read(buffer).also { bytesRead = it } != -1) {
+            digest.update(buffer, 0, bytesRead)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+}
+
+private suspend fun fetchChecksum(apkUrl: String): String? = withContext(Dispatchers.IO) {
+    runCatching {
+        val checksumUrl = if (apkUrl.contains("nightly")) {
+            apkUrl.substringBeforeLast("/") + "/checksums-nightly.txt"
+        } else {
+            apkUrl.substringBeforeLast("/") + "/checksums.txt"
+        }
+        val connection = URL(checksumUrl).openConnection().apply {
+            connectTimeout = 5000
+            readTimeout = 5000
+        }
+        connection.getInputStream().bufferedReader().readText().trim()
+    }.getOrNull()
+}
+
 private suspend fun downloadApk(
     context: android.content.Context,
     urlString: String,
@@ -374,6 +401,17 @@ private suspend fun downloadApk(
 
         output.close()
         input.close()
+
+        // Verification step
+        val expectedHash = fetchChecksum(urlString)
+        if (expectedHash != null) {
+            val actualHash = file.calculateSha256()
+            if (actualHash != expectedHash) {
+                file.delete()
+                throw IllegalStateException("Verification failed: Hash mismatch")
+            }
+        }
+
         file
     }
 }
