@@ -188,7 +188,8 @@ fun UpdateDialog(
                                 text = stringResource(R.string.later),
                                 containerColor = Color(0xFF3A3A3C),
                                 modifier = Modifier.weight(1f),
-                            ) { onDismiss() }
+                                enabled = false,
+                            ) { }
                             AppleDialogProgressButton(
                                 progress = progress,
                                 modifier = Modifier.weight(1f),
@@ -197,38 +198,24 @@ fun UpdateDialog(
                     }
 
                     DialogState.Downloaded -> {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        AppleDialogButton(
+                            text = stringResource(R.string.installing_update),
+                            containerColor = Color(0xFF007AFF),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            AppleDialogButton(
-                                text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                apkFile?.delete()
-                                apkFile = null
-                                onDismiss()
-                            }
-                            AppleDialogButton(
-                                text = stringResource(R.string.installing_update),
-                                containerColor = Color(0xFF007AFF),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                apkFile?.let { file ->
-                                    val uri = FileProvider.getUriForFile(
-                                        context,
-                                        "${context.packageName}.provider",
-                                        file
-                                    )
-                                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                                        setDataAndType(uri, "application/vnd.android.package-archive")
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                    }
-                                    context.startActivity(intent)
+                            apkFile?.let { file ->
+                                val uri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    file
+                                )
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(uri, "application/vnd.android.package-archive")
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                                 }
-                                onDismiss()
+                                context.startActivity(intent)
                             }
+                            onDismiss()
                         }
                     }
 
@@ -327,6 +314,7 @@ private fun AppleDialogButton(
     text: String,
     containerColor: Color,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Box(
@@ -334,13 +322,13 @@ private fun AppleDialogButton(
         modifier = modifier
             .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
-            .background(containerColor)
-            .clickable { onClick() },
+            .background(if (enabled) containerColor else containerColor.copy(alpha = 0.5f))
+            .clickable(enabled = enabled) { onClick() },
     ) {
         BasicText(
             text = text,
             style = LocalAppearance.current.typography.s.copy(
-                color = Color.White,
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
             ),
