@@ -40,6 +40,7 @@ import app.pulse.android.DatabaseInitializer.From10To11Migration
 import app.pulse.android.DatabaseInitializer.From14To15Migration
 import app.pulse.android.DatabaseInitializer.From22To23Migration
 import app.pulse.android.DatabaseInitializer.From23To24Migration
+import app.pulse.android.DatabaseInitializer.From31To32Migration
 import app.pulse.android.DatabaseInitializer.From8To9Migration
 import app.pulse.android.models.Album
 import app.pulse.android.models.Artist
@@ -89,7 +90,8 @@ object DatabaseDependency {
             From10To11Migration(),
             From14To15Migration(),
             From22To23Migration(),
-            From23To24Migration()
+            From23To24Migration(),
+            From31To32Migration()
         )
         .build()
 
@@ -827,7 +829,7 @@ interface DatabaseAccessor {
         PipedSession::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 31,
+    version = 32,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -867,6 +869,28 @@ abstract class DatabaseInitializer protected constructor() : RoomDatabase() {
 
     @RenameColumn.Entries(RenameColumn("Song", "albumInfoId", "albumId"))
     class From7To8Migration : AutoMigrationSpec
+
+    class From31To32Migration : Migration(31, 32) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS Format")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `Format` (
+                    `songId` TEXT NOT NULL,
+                    `itag` INTEGER,
+                    `mimeType` TEXT,
+                    `bitrate` INTEGER,
+                    `contentLength` INTEGER,
+                    `lastModified` INTEGER,
+                    `loudnessDb` REAL,
+                    `url` TEXT,
+                    PRIMARY KEY(`songId`),
+                    FOREIGN KEY(`songId`) REFERENCES `Song`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+        }
+    }
 
     class From8To9Migration : Migration(8, 9) {
         override fun migrate(db: SupportSQLiteDatabase) {
