@@ -50,56 +50,45 @@ fun RouteHandler(
     )
 }
 
-interface Router {
-    operator fun Route0.invoke()
-    operator fun <P0> Route1<P0>.invoke(p0: P0)
-    operator fun <P0, P1> Route2<P0, P1>.invoke(p0: P0, p1: P1)
-    operator fun <P0, P1, P2> Route3<P0, P1, P2>.invoke(p0: P0, p1: P1, p2: P2)
-    operator fun <P0, P1, P2, P3> Route4<P0, P1, P2, P3>.invoke(p0: P0, p1: P1, p2: P2, p3: P3)
-
-    val pop: () -> Unit
-    val push: (Route?) -> Unit
-}
-
 @Stable
-class RootRouter : Router {
+class RootRouter {
     private inline fun route(block: RouteHandlerScope.() -> Unit?) = current?.block() ?: Unit
 
     var current: RouteHandlerScope? by mutableStateOf(null)
 
-    override val pop = {
+    val pop = {
         route {
             pop()
         }
     }
 
-    override val push = { route: Route? ->
+    val push = { route: Route? ->
         route {
             replace(route)
         }
     }
 
-    override operator fun Route0.invoke() = push(this)
+    operator fun Route0.invoke() = push(this)
 
-    override operator fun <P0> Route1<P0>.invoke(p0: P0) = route {
+    operator fun <P0> Route1<P0>.invoke(p0: P0) = route {
         args[0] = p0
         push(this@invoke)
     }
 
-    override operator fun <P0, P1> Route2<P0, P1>.invoke(p0: P0, p1: P1) = route {
+    operator fun <P0, P1> Route2<P0, P1>.invoke(p0: P0, p1: P1) = route {
         args[0] = p0
         args[1] = p1
         push(this@invoke)
     }
 
-    override operator fun <P0, P1, P2> Route3<P0, P1, P2>.invoke(p0: P0, p1: P1, p2: P2) = route {
+    operator fun <P0, P1, P2> Route3<P0, P1, P2>.invoke(p0: P0, p1: P1, p2: P2) = route {
         args[0] = p0
         args[1] = p1
         args[2] = p2
         push(this@invoke)
     }
 
-    override operator fun <P0, P1, P2, P3> Route4<P0, P1, P2, P3>.invoke(
+    operator fun <P0, P1, P2, P3> Route4<P0, P1, P2, P3>.invoke(
         p0: P0,
         p1: P1,
         p2: P2,
