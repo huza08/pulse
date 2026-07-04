@@ -137,7 +137,7 @@ fun QuickPicks(
                     }
             }
             seedId = seedId ?: "J7p4bzqLvCw"
-            if (relatedPageResult == null || trending?.id != song?.id) relatedPageResult =
+            if (relatedPageResult == null || (trending != null && trending?.id != song?.id)) relatedPageResult =
                 Innertube.relatedPage(
                     body = NextBody(videoId = seedId)
                 )
@@ -149,13 +149,25 @@ fun QuickPicks(
                 Database
                     .trending()
                     .distinctUntilChanged()
-                    .collect { handleSong(it.firstOrNull()) }
+                    .collect {
+                        runCatching { handleSong(it.firstOrNull()) }
+                            .onFailure {
+                                if (it is kotlinx.coroutines.CancellationException) throw it
+                                android.util.Log.w("QuickPicks", "handleSong", it)
+                            }
+                    }
 
             DataPreferences.QuickPicksSource.LastInteraction ->
                 Database
                     .events()
                     .distinctUntilChanged()
-                    .collect { handleSong(it.firstOrNull()?.song) }
+                    .collect {
+                        runCatching { handleSong(it.firstOrNull()?.song) }
+                            .onFailure {
+                                if (it is kotlinx.coroutines.CancellationException) throw it
+                                android.util.Log.w("QuickPicks", "handleSong", it)
+                            }
+                    }
         }
     }
 
