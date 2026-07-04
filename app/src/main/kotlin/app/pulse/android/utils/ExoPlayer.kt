@@ -189,6 +189,6 @@ val Context.defaultDataSource
         this,
         DefaultHttpDataSource.Factory().setConnectTimeoutMs(16000)
             .setReadTimeoutMs(8000)
-            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:136.0) Gecko/20100101 Firefox/136.0")
+            .setUserAgent("Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6720.107 Mobile Safari/537.36")
             .setDefaultRequestProperties(mapOf("Referer" to "https://www.youtube.com"))
     )

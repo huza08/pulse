@@ -857,7 +857,7 @@ interface DatabaseAccessor {
         AutoMigration(from = 27, to = 28),
         AutoMigration(from = 28, to = 29),
         AutoMigration(from = 29, to = 30),
-        AutoMigration(from = 30, to = 31)
+        AutoMigration(from = 30, to = 31, spec = DatabaseInitializer.From30To31Migration::class),
     ]
 )
 @TypeConverters(Converters::class)
@@ -869,6 +869,12 @@ abstract class DatabaseInitializer protected constructor() : RoomDatabase() {
 
     @RenameColumn.Entries(RenameColumn("Song", "albumInfoId", "albumId"))
     class From7To8Migration : AutoMigrationSpec
+
+    @DeleteColumn.Entries(
+        DeleteColumn("Format", "clientName"),
+        DeleteColumn("Format", "userAgent")
+    )
+    class From30To31Migration : AutoMigrationSpec
 
     class From31To32Migration : Migration(31, 32) {
         override fun migrate(db: SupportSQLiteDatabase) {
