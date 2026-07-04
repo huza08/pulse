@@ -543,6 +543,28 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             return
         }
 
+        if (
+            error.findCause<InvalidResponseCodeException>()?.responseCode == 403
+        ) {
+            val mediaId = player.currentMediaItem?.mediaId
+            if (mediaId != null) {
+                val hadUrl = runBlocking(Dispatchers.IO) {
+                    val format = Database.formatSync(mediaId)
+                    format?.url?.let {
+                        Database.insert(format.copy(url = null))
+                        true
+                    } ?: false
+                }
+                if (hadUrl) {
+                    uriCache.clear()
+                    player.pause()
+                    player.prepare()
+                    player.play()
+                }
+            }
+            return
+        }
+
         if (!PlayerPreferences.skipOnError || !player.hasNextMediaItem()) return
 
         val prev = player.currentMediaItem ?: return
