@@ -10,6 +10,7 @@ import androidx.credentials.PasswordCredential
 import androidx.credentials.exceptions.CreateCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import android.os.CancellationSignal
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -76,7 +77,7 @@ suspend fun CredentialManager.upsert(
             id = username,
             password = password
         ),
-        cancellationSignal = cont.asCancellationSignal,
+        cancellationSignal = CancellationSignal().also { it.setOnCancelListener { cont.cancel() } },
         executor = executor,
         callback = callback<_, _, CreateCredentialCancellationException>(cont)
     )
@@ -86,7 +87,7 @@ suspend fun CredentialManager.get(context: Context) = wrapper { cont ->
     getCredentialAsync(
         context = context,
         request = GetCredentialRequest(listOf(GetPasswordOption())),
-        cancellationSignal = cont.asCancellationSignal,
+        cancellationSignal = CancellationSignal().also { it.setOnCancelListener { cont.cancel() } },
         executor = executor,
         callback = callback<_, _, GetCredentialCancellationException>(cont)
     )
