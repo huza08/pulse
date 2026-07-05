@@ -221,6 +221,14 @@ fun NewLayoutContent(
                     )
             )
 
+            if (isShowingLyrics) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorPalette.background0.copy(alpha = 0.5f))
+                )
+            }
+
         }
 
         Box(
