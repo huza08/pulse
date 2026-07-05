@@ -90,8 +90,7 @@ fun HomeScreen() {
                                     p2 = null,
                                     p3 = it.channel?.name == "YouTube Music"
                                 )
-                            },
-                            onSearchClick = onSearchClick
+                            }
                         )
 
                         1 -> HomeDiscovery(
