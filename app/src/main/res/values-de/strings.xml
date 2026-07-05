@@ -295,8 +295,6 @@
     <string name="last_interaction">Basierend auf dem letzten Lied</string>
     <string name="trending">Trend</string>
     <string name="quick_picks_source">Startseite - Datenquelle</string>
-    <string name="quick_picks_cache">Startseitendaten speichern</string>
-    <string name="quick_picks_cache_description">Speichert die Startseitendaten für Offlinezugriff</string>
     <string name="player_layout">Player-Layout</string>
     <string name="classic_player_layout_name">Klassisch</string>
     <string name="new_player_layout_name">Modern (neu)</string>

@@ -299,8 +299,6 @@
     <string name="last_interaction">最近播放</string>
     <string name="trending">趋势</string>
     <string name="quick_picks_source">快速选择源</string>
-    <string name="quick_picks_cache">缓存快速选择数据</string>
-    <string name="quick_picks_cache_description">将快速选择数据保存到磁盘，以便离线访问</string>
     <string name="player_layout">播放器布局</string>
     <string name="classic_player_layout_name">经典</string>
     <string name="new_player_layout_name">现代 (新)</string>
