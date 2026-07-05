@@ -103,9 +103,6 @@ fun QuickPicks(
     var relatedPageResult by persist<Result<Innertube.RelatedPage?>?>(tag = "home/relatedPageResult")
 
     LaunchedEffect(DataPreferences.quickPicksSource) {
-        relatedPageResult = null
-        trending = null
-
         suspend fun handleSong(song: Song?) {
             var seedId = song?.id
             if (seedId == null && trending == null) {
