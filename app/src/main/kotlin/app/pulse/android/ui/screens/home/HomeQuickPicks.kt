@@ -80,9 +80,9 @@ import app.pulse.core.ui.utils.isLandscape
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.NavigationEndpoint
 import app.pulse.providers.innertube.models.bodies.NextBody
-import app.pulse.providers.innertube.requests.discoverPage
 import app.pulse.providers.innertube.requests.relatedPage
-import kotlinx.coroutines.flow.distinctUntilChanged
+import app.pulse.providers.innertube.requests.trendingCharts
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Route
@@ -115,10 +115,8 @@ fun QuickPicks(
         suspend fun handleSong(song: Song?) {
             var seedId = song?.id
             if (seedId == null && trending == null) {
-                Innertube.discoverPage()
+                Innertube.trendingCharts()
                     ?.getOrNull()
-                    ?.trending
-                    ?.songs
                     ?.firstOrNull()
                     ?.let { fallback ->
                         seedId = fallback.key
@@ -142,7 +140,6 @@ fun QuickPicks(
             DataPreferences.QuickPicksSource.Trending ->
                 Database
                     .trending()
-                    .distinctUntilChanged()
                     .collect {
                         runCatching { handleSong(it.firstOrNull()) }
                             .onFailure {
@@ -154,7 +151,6 @@ fun QuickPicks(
             DataPreferences.QuickPicksSource.LastInteraction ->
                 Database
                     .events()
-                    .distinctUntilChanged()
                     .collect {
                         runCatching { handleSong(it.firstOrNull()?.song) }
                             .onFailure {
