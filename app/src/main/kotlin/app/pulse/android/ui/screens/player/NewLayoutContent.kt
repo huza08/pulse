@@ -221,7 +221,11 @@ fun NewLayoutContent(
                     )
             )
 
-            if (isShowingLyrics) {
+            AnimatedVisibility(
+                visible = isShowingLyrics,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
