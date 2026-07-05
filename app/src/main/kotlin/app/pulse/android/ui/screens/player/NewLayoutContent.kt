@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.palette.graphics.Palette
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -85,17 +84,12 @@ import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
 import coil3.compose.AsyncImage
-import coil3.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
 import coil3.request.crossfade
-import coil3.toBitmap
 import app.pulse.android.Database
 import app.pulse.android.service.LOCAL_KEY_PREFIX
 import app.pulse.android.transaction
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 @Composable
@@ -131,7 +125,6 @@ fun NewLayoutContent(
     }
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
-    var dominantArtworkColor by remember(mediaId) { mutableStateOf<Color?>(null) }
     var lyricsReady by remember(mediaId) { mutableStateOf(LyricsCache[mediaId] != null) }
 
     LaunchedEffect(mediaId) {
@@ -178,39 +171,9 @@ fun NewLayoutContent(
         }
     }
 
-    LaunchedEffect(mediaId, artworkUri) {
-        if (artworkUri == null) return@LaunchedEffect
-        val color = withContext(Dispatchers.Default) {
-            runCatching {
-                val request = ImageRequest.Builder(context.applicationContext)
-                    .data(artworkUri)
-                    .allowHardware(false)
-                    .build()
-                val result = context.applicationContext.imageLoader.execute(request)
-                result.image?.let { image ->
-                    val bitmap = image.toBitmap(image.width, image.height)
-                    val palette = Palette.from(bitmap).generate()
-                    palette.dominantSwatch?.rgb?.let { Color(it) }
-                }
-            }.getOrNull()
-        }
-        dominantArtworkColor = color
-    }
-
-    val titleTextColor = remember(dominantArtworkColor) {
-        dominantArtworkColor?.let { color ->
-            val luminance = 0.299f * color.red + 0.587f * color.green + 0.114f * color.blue
-            if (luminance > 0.5f) Color.Black else Color.White
-        } ?: colorPalette.text
-    }
-
-    val authorTextColor = remember(dominantArtworkColor) {
-        dominantArtworkColor?.let { color ->
-            val luminance = 0.299f * color.red + 0.587f * color.green + 0.114f * color.blue
-            val base = if (luminance > 0.5f) Color.Black else Color.White
-            base.copy(alpha = 0.6f)
-        } ?: colorPalette.textSecondary
-    }
+    // ponytail: theme colors over artwork luminance detection
+    val titleTextColor = colorPalette.text
+    val authorTextColor = colorPalette.textSecondary
 
     val gradientEndColor = remember(colorPalette) {
         colorPalette.background0.copy(alpha = 0.95f)
