@@ -102,12 +102,6 @@ fun QuickPicks(
 
     var relatedPageResult by persist<Result<Innertube.RelatedPage?>?>(tag = "home/relatedPageResult")
 
-    LaunchedEffect(relatedPageResult, DataPreferences.shouldCacheQuickPicks) {
-        if (DataPreferences.shouldCacheQuickPicks)
-            relatedPageResult?.getOrNull()?.let { DataPreferences.cachedQuickPicks = it }
-        else DataPreferences.cachedQuickPicks = Innertube.RelatedPage()
-    }
-
     LaunchedEffect(DataPreferences.quickPicksSource) {
         relatedPageResult = null
         trending = null

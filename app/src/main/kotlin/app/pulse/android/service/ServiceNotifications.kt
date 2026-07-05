@@ -23,11 +23,23 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.random.Random
 import kotlin.reflect.KProperty
 
-abstract class NotificationChannels {
+inline fun <ThisRef, Return> readOnlyProvider(
+    crossinline provide: (
+        thisRef: ThisRef,
+        property: KProperty<*>
+    ) -> (thisRef: ThisRef, property: KProperty<*>) -> Return
+) = PropertyDelegateProvider<ThisRef, ReadOnlyProperty<ThisRef, Return>> { thisRef, property ->
+    val provider = provide(thisRef, property)
+    ReadOnlyProperty { innerThisRef, innerProperty -> provider(innerThisRef, innerProperty) }
+}
+
+object ServiceNotifications {
     private val handler = Handler(Looper.getMainLooper())
+    private val mutableChannels = mutableListOf<Channel>()
+    private val index = AtomicInteger(1001)
 
     @OptIn(UnstableApi::class)
-    inner class Channel internal constructor(
+    class Channel internal constructor(
         val id: String,
         @param:StringRes
         val description: Int,
@@ -93,9 +105,6 @@ abstract class NotificationChannels {
         }
     }
 
-    private val mutableChannels = mutableListOf<Channel>()
-    private val index = AtomicInteger(1001)
-
     private fun randomNotificationId(): Int {
         var random = Random.nextInt().absoluteValue
         while (random in 1001..2001) {
@@ -117,7 +126,7 @@ abstract class NotificationChannels {
         importance: @Importance Int,
         singleNotification: Boolean,
         options: NotificationChannelCompat.Builder.() -> NotificationChannelCompat.Builder = { this }
-    ) = readOnlyProvider<NotificationChannels, Channel> { _, property ->
+    ) = readOnlyProvider<ServiceNotifications, Channel> { _, property ->
         val channel = Channel(
             id = "${name?.lowercase() ?: property.name.lowercase()}_channel_id",
             description = description,
@@ -130,19 +139,7 @@ abstract class NotificationChannels {
         mutableChannels += channel
         { _, _ -> channel }
     }
-}
 
-inline fun <ThisRef, Return> readOnlyProvider(
-    crossinline provide: (
-        thisRef: ThisRef,
-        property: KProperty<*>
-    ) -> (thisRef: ThisRef, property: KProperty<*>) -> Return
-) = PropertyDelegateProvider<ThisRef, ReadOnlyProperty<ThisRef, Return>> { thisRef, property ->
-    val provider = provide(thisRef, property)
-    ReadOnlyProperty { innerThisRef, innerProperty -> provider(innerThisRef, innerProperty) }
-}
-
-object ServiceNotifications : NotificationChannels() {
     val default by channel(
         description = R.string.now_playing,
         importance = NotificationManagerCompat.IMPORTANCE_LOW,
