@@ -9,7 +9,6 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -31,9 +30,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +48,6 @@ import app.pulse.android.query
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.TextPlaceholder
 import app.pulse.android.ui.items.AlbumItem
@@ -67,6 +63,7 @@ import app.pulse.android.ui.screens.settingsRoute
 import app.pulse.android.ui.components.themed.HeaderCircleIconButton
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.utils.asMediaItem
+import androidx.media3.common.MediaItem
 import app.pulse.android.utils.center
 import app.pulse.android.utils.forcePlay
 import app.pulse.android.utils.playingSong
@@ -82,6 +79,7 @@ import app.pulse.providers.innertube.models.NavigationEndpoint
 import app.pulse.providers.innertube.models.bodies.NextBody
 import app.pulse.providers.innertube.requests.relatedPage
 import app.pulse.providers.innertube.requests.trendingCharts
+import kotlinx.coroutines.flow.map
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -91,7 +89,6 @@ fun QuickPicks(
     onAlbumClick: (Innertube.AlbumItem) -> Unit,
     onArtistClick: (Innertube.ArtistItem) -> Unit,
     onPlaylistClick: (Innertube.PlaylistItem) -> Unit,
-    onSearchClick: () -> Unit
 ) {
     val (colorPalette, typography) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
@@ -127,28 +124,16 @@ fun QuickPicks(
             if (song != null) trending = song
         }
 
-        when (DataPreferences.quickPicksSource) {
-            DataPreferences.QuickPicksSource.Trending ->
-                Database
-                    .trending()
-                    .collect {
-                        runCatching { handleSong(it.firstOrNull()) }
-                            .onFailure {
-                                if (it is kotlinx.coroutines.CancellationException) throw it
-                                android.util.Log.w("QuickPicks", "handleSong", it)
-                            }
-                    }
-
-            DataPreferences.QuickPicksSource.LastInteraction ->
-                Database
-                    .events()
-                    .collect {
-                        runCatching { handleSong(it.firstOrNull()?.song) }
-                            .onFailure {
-                                if (it is kotlinx.coroutines.CancellationException) throw it
-                                android.util.Log.w("QuickPicks", "handleSong", it)
-                            }
-                    }
+        val sourceFlow = when (DataPreferences.quickPicksSource) {
+            DataPreferences.QuickPicksSource.Trending -> Database.trending().map { it.firstOrNull() }
+            DataPreferences.QuickPicksSource.LastInteraction -> Database.events().map { it.firstOrNull()?.song }
+        }
+        sourceFlow.collect {
+            runCatching { handleSong(it) }
+                .onFailure {
+                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    android.util.Log.w("QuickPicks", "handleSong", it)
+                }
         }
     }
 
@@ -201,6 +186,13 @@ fun QuickPicks(
                 Spacer(modifier = Modifier.height(96.dp))
 
             relatedPageResult?.getOrNull()?.let { related ->
+                // ponytail: shared click handler extracted to avoid duplication
+                fun playSong(mediaItem: MediaItem) {
+                    binder?.stopRadio()
+                    binder?.player?.forcePlay(mediaItem)
+                    binder?.setupRadio(NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId))
+                }
+
                 LazyHorizontalGrid(
                     state = quickPicksLazyGridState,
                     rows = GridCells.Fixed(4),
@@ -221,21 +213,12 @@ fun QuickPicks(
                                                     onDismiss = menuState::hide,
                                                     mediaItem = song.asMediaItem,
                                                     onRemoveFromQuickPicks = {
-                                                        query {
-                                                            Database.clearEventsFor(song.id)
-                                                        }
+                                                        query { Database.clearEventsFor(song.id) }
                                                     }
                                                 )
                                             }
                                         },
-                                        onClick = {
-                                            val mediaItem = song.asMediaItem
-                                            binder?.stopRadio()
-                                            binder?.player?.forcePlay(mediaItem)
-                                            binder?.setupRadio(
-                                                NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                                            )
-                                        }
+                                        onClick = { playSong(song.asMediaItem) }
                                     )
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null)
                                     .width(itemInHorizontalGridWidth),
@@ -273,14 +256,7 @@ fun QuickPicks(
                                             )
                                         }
                                     },
-                                    onClick = {
-                                        val mediaItem = song.asMediaItem
-                                        binder?.stopRadio()
-                                        binder?.player?.forcePlay(mediaItem)
-                                        binder?.setupRadio(
-                                            NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                                        )
-                                    }
+                                    onClick = { playSong(song.asMediaItem) }
                                 )
                                 .animateItem(fadeInSpec = null, fadeOutSpec = null)
                                 .width(itemInHorizontalGridWidth),
@@ -358,7 +334,6 @@ fun QuickPicks(
                     }
                 }
 
-                Unit
             } ?: relatedPageResult?.exceptionOrNull()?.let {
                 BasicText(
                     text = stringResource(R.string.error_message),
