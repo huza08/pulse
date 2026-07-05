@@ -24,8 +24,6 @@ object DataPreferences : GlobalPreferencesHolder() {
     var topListPeriod by topListPeriodProperty
     var quickPicksSource by enum(QuickPicksSource.Trending)
     var versionCheckPeriod by enum(VersionCheckPeriod.Daily)
-    var shouldCacheQuickPicks by boolean(true)
-    var cachedQuickPicks by json(Innertube.RelatedPage())
     var autoSyncPlaylists by boolean(true)
     var pendingUpdateVersion by string("")
     var pendingUpdateUrl by string("")

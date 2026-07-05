@@ -195,13 +195,6 @@ fun OtherSettings() {
                             onValueSelect = { DataPreferences.quickPicksSource = it },
                             valueText = { it.displayName() }
                         )
-
-                        SwitchSettingsEntry(
-                            title = stringResource(R.string.quick_picks_cache),
-                            text = stringResource(R.string.quick_picks_cache_description),
-                            isChecked = DataPreferences.shouldCacheQuickPicks,
-                            onCheckedChange = { DataPreferences.shouldCacheQuickPicks = it }
-                        )
                     }
                     SettingsGroup(title = stringResource(R.string.dynamic_thumbnails)) {
                         var selectingThumbnailSize by remember { mutableStateOf(false) }
