@@ -103,7 +103,7 @@ fun FloatingSearchButton(
         Image(
             painter = painterResource(R.drawable.search),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.text),
+            colorFilter = ColorFilter.tint(colorPalette.accent),
             modifier = Modifier.size(iconSize)
         )
     }
@@ -213,7 +213,7 @@ fun RadioCircleButton(
         Image(
             painter = painterResource(R.drawable.radio),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.text),
+            colorFilter = ColorFilter.tint(colorPalette.accent),
             modifier = Modifier.size(iconSize)
         )
     }
