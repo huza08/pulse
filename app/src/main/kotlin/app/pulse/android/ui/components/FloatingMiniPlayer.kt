@@ -229,7 +229,7 @@ fun MorphingMiniPlayer(
                                     androidx.compose.foundation.Image(
                                         painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
                                         contentDescription = null,
-                                        colorFilter = ColorFilter.tint(colorPalette.text),
+                                        colorFilter = ColorFilter.tint(colorPalette.accent),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
