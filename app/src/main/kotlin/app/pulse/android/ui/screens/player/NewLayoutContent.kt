@@ -324,7 +324,7 @@ fun NewLayoutContent(
                             painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
                             else painterResource(R.drawable.heart),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(colorPalette.accent),
+                            colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
                                 .clickable {
                                     setLikedAt(
@@ -393,7 +393,7 @@ fun NewLayoutContent(
                             painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
                             else painterResource(R.drawable.heart),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(colorPalette.accent),
+                            colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
                                 .clickable {
                                     setLikedAt(
