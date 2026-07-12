@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +62,7 @@ fun UpdateDialog(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val (_, typography) = LocalAppearance.current
+    val (palette, typography) = LocalAppearance.current
 
     var state by remember { mutableStateOf(DialogState.Prompt) }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -72,14 +73,15 @@ fun UpdateDialog(
             modifier = Modifier
                 .width(320.dp)
                 .clip(RoundedCornerShape(40.dp))
-                .background(Color(0xFF1C1C1E))
+                .background(palette.background1)
                 .padding(14.dp),
         ) {
             Column(
-                modifier = Modifier.height(145.dp),
+                modifier = Modifier.height(150.dp),
             ) {
                 TitleSection(
                     state = state,
+                    palette = palette,
                     typography = typography,
                 )
 
@@ -91,7 +93,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.update_available_description),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.xs.medium.copy(
-                                    color = Color.White.copy(alpha = 0.7f),
+                                    color = palette.textSecondary,
                                     fontSize = 12.sp,
                                     lineHeight = 16.sp,
                                 ),
@@ -101,29 +103,35 @@ fun UpdateDialog(
                     }
 
                     DialogState.Downloading -> {
-                        Spacer(Modifier.height(4.dp))
-                        BasicText(
-                            text = stringResource(R.string.downloading),
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            style = typography.xs.medium.copy(
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp,
-                            ),
-                        )
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            BasicText(
+                                text = stringResource(R.string.downloading),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                style = typography.xs.medium.copy(
+                                    color = palette.textSecondary,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
 
                     DialogState.Downloaded -> {
-                        Spacer(Modifier.height(4.dp))
-                        BasicText(
-                            text = stringResource(R.string.install_update),
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            style = typography.xs.medium.copy(
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp,
-                            ),
-                        )
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            BasicText(
+                                text = stringResource(R.string.install_update),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                style = typography.xs.medium.copy(
+                                    color = palette.textSecondary,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
 
                     DialogState.Error -> {
@@ -133,7 +141,7 @@ fun UpdateDialog(
                                 text = stringResource(R.string.error_message),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = typography.s.copy(
-                                    color = Color.White,
+                                    color = palette.text,
                                     fontWeight = FontWeight.Bold,
                                 ),
                             )
@@ -151,12 +159,14 @@ fun UpdateDialog(
                         ) {
                             AppleDialogButton(
                                 text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
+                                containerColor = palette.background2,
+                                contentColor = palette.text,
                                 modifier = Modifier.weight(1f),
                             ) { onDismiss() }
                             AppleDialogButton(
                                 text = stringResource(R.string.update),
-                                containerColor = Color(0xFF007AFF),
+                                containerColor = palette.accent,
+                                contentColor = palette.onAccent,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 state = DialogState.Downloading
@@ -179,56 +189,47 @@ fun UpdateDialog(
                         ) {
                             AppleDialogButton(
                                 text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
+                                containerColor = palette.background2,
+                                contentColor = palette.text,
                                 modifier = Modifier.weight(1f),
-                            ) { onDismiss() }
+                                enabled = false,
+                            ) { }
                             AppleDialogProgressButton(
                                 progress = progress,
+                                palette = palette,
                                 modifier = Modifier.weight(1f),
                             )
                         }
                     }
 
                     DialogState.Downloaded -> {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        AppleDialogButton(
+                            text = stringResource(R.string.installing_update),
+                            containerColor = palette.accent,
+                            contentColor = palette.onAccent,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            AppleDialogButton(
-                                text = stringResource(R.string.later),
-                                containerColor = Color(0xFF3A3A3C),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                apkFile?.delete()
-                                apkFile = null
-                                onDismiss()
-                            }
-                            AppleDialogButton(
-                                text = stringResource(R.string.installing_update),
-                                containerColor = Color(0xFF007AFF),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                apkFile?.let { file ->
-                                    val uri = FileProvider.getUriForFile(
-                                        context,
-                                        "${context.packageName}.provider",
-                                        file
-                                    )
-                                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                                        setDataAndType(uri, "application/vnd.android.package-archive")
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                    }
-                                    context.startActivity(intent)
+                            apkFile?.let { file ->
+                                val uri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    file
+                                )
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(uri, "application/vnd.android.package-archive")
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                                 }
-                                onDismiss()
+                                context.startActivity(intent)
                             }
+                            onDismiss()
                         }
                     }
 
                     DialogState.Error -> {
                         AppleDialogButton(
                             text = stringResource(R.string.cancel),
-                            containerColor = Color(0xFF3A3A3C),
+                            containerColor = palette.background2,
+                            contentColor = palette.text,
                             modifier = Modifier.fillMaxWidth(),
                         ) { onDismiss() }
                     }
@@ -241,6 +242,7 @@ fun UpdateDialog(
 @Composable
 private fun TitleSection(
     state: DialogState,
+    palette: app.pulse.core.ui.ColorPalette,
     typography: app.pulse.core.ui.Typography,
 ) {
     when (state) {
@@ -249,7 +251,7 @@ private fun TitleSection(
                 text = stringResource(R.string.update_ready),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                 style = typography.s.copy(
-                    color = Color.White,
+                    color = palette.text,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 ),
@@ -261,7 +263,7 @@ private fun TitleSection(
                 text = stringResource(R.string.update_available),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                 style = typography.s.copy(
-                    color = Color.White,
+                    color = palette.text,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 ),
@@ -273,14 +275,15 @@ private fun TitleSection(
 @Composable
 private fun AppleDialogProgressButton(
     progress: Float,
+    palette: app.pulse.core.ui.ColorPalette,
     modifier: Modifier = Modifier,
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(54.dp)
+            .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
-            .background(Color(0xFF007AFF)),
+            .background(palette.accent),
     ) {
         Box(modifier = Modifier.size(28.dp)) {
             Canvas(modifier = Modifier.size(28.dp)) {
@@ -291,7 +294,7 @@ private fun AppleDialogProgressButton(
 
                 // Track
                 drawArc(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = palette.onAccent.copy(alpha = 0.2f),
                     startAngle = 0f,
                     sweepAngle = 360f,
                     useCenter = false,
@@ -302,7 +305,7 @@ private fun AppleDialogProgressButton(
 
                 // Progress
                 drawArc(
-                    color = Color.White,
+                    color = palette.onAccent,
                     startAngle = -90f,
                     sweepAngle = 360f * progress,
                     useCenter = false,
@@ -319,26 +322,55 @@ private fun AppleDialogProgressButton(
 private fun AppleDialogButton(
     text: String,
     containerColor: Color,
+    contentColor: Color,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(54.dp)
+            .requiredHeight(54.dp)
             .clip(RoundedCornerShape(27.dp))
-            .background(containerColor)
-            .clickable { onClick() },
+            .background(if (enabled) containerColor else containerColor.copy(alpha = 0.5f))
+            .clickable(enabled = enabled) { onClick() },
     ) {
         BasicText(
             text = text,
             style = LocalAppearance.current.typography.s.copy(
-                color = Color.White,
+                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
             ),
         )
     }
+}
+
+private fun File.calculateSha256(): String {
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    inputStream().use { input ->
+        val buffer = ByteArray(8192)
+        var bytesRead: Int
+        while (input.read(buffer).also { bytesRead = it } != -1) {
+            digest.update(buffer, 0, bytesRead)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+}
+
+private suspend fun fetchChecksum(apkUrl: String): String? = withContext(Dispatchers.IO) {
+    runCatching {
+        val checksumUrl = if (apkUrl.contains("nightly")) {
+            apkUrl.substringBeforeLast("/") + "/checksums-nightly.txt"
+        } else {
+            apkUrl.substringBeforeLast("/") + "/checksums.txt"
+        }
+        val connection = URL(checksumUrl).openConnection().apply {
+            connectTimeout = 5000
+            readTimeout = 5000
+        }
+        connection.getInputStream().bufferedReader().readText().trim()
+    }.getOrNull()
 }
 
 private suspend fun downloadApk(
@@ -369,6 +401,17 @@ private suspend fun downloadApk(
 
         output.close()
         input.close()
+
+        // Verification step
+        val expectedHash = fetchChecksum(urlString)
+        if (expectedHash != null) {
+            val actualHash = file.calculateSha256()
+            if (actualHash != expectedHash) {
+                file.delete()
+                throw IllegalStateException("Verification failed: Hash mismatch")
+            }
+        }
+
         file
     }
 }

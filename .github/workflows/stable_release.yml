@@ -82,6 +82,23 @@ jobs:
           mv "$APK_PATH" "app/build/outputs/apk/release/pulse-stable-v${{ env.VERSION }}.apk"
           echo "APK_FINAL_PATH=app/build/outputs/apk/release/pulse-stable-v${{ env.VERSION }}.apk" >> $GITHUB_ENV
 
+      - name: Hash APK
+        run: |
+          echo "$(sha256sum ${{ env.APK_FINAL_PATH }} | cut -d ' ' -f 1)" > app/build/outputs/apk/release/checksums.txt
+          echo "SHA256=$(cat app/build/outputs/apk/release/checksums.txt)" >> $GITHUB_ENV
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
+          passphrase: ${{ secrets.GPG_SIGNING_PASSPHRASE }}
+
+      - name: Sign APK
+        run: gpg --detach-sign --armor "${{ env.APK_FINAL_PATH }}"
+
+      - name: Get APK basename
+        run: echo "APK_BASENAME=$(basename ${{ env.APK_FINAL_PATH }})" >> $GITHUB_ENV
+
       - name: Upload to Telegram
         uses: appleboy/telegram-action@master
         with:
@@ -91,10 +108,12 @@ jobs:
             Pulse: New Stable Release v${{ env.VERSION }}
 
             Branch: ${{ github.ref_name }}
+            SHA-256: ${{ env.SHA256 }}
+            GPG: `${{ env.APK_FINAL_PATH }}.asc` signed
 
             Changelog:
             ${{ steps.vars.outputs.truncated_changelog }}
-          document: "${{ env.APK_FINAL_PATH }}"
+          document: "${{ env.APK_FINAL_PATH }},${{ env.APK_FINAL_PATH }}.asc"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -105,8 +124,13 @@ jobs:
           prerelease: false
           files: |
             ${{ env.APK_FINAL_PATH }}
+            ${{ env.APK_FINAL_PATH }}.asc
+            app/build/outputs/apk/release/checksums.txt
           body: |
             Official Stable Release of Pulse v${{ env.VERSION }}.
+
+            SHA-256: `${{ env.SHA256 }}`
+            GPG Signature: [`${{ env.APK_BASENAME }}.asc`](https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.APK_BASENAME }}.asc)
 
             Changelog:
             ${{ steps.vars.outputs.full_changelog }}

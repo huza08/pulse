@@ -46,7 +46,6 @@ class ReorderingState(
     private var overscrolled = 0
 
     internal var indexesToAnimate = mutableStateMapOf<Int, Animatable<Int, AnimationVector1D>>()
-    private var animatablesPool: AnimatablesPool<Int, AnimationVector1D>? = null
 
     val isDragging: Boolean
         get() = draggingIndex != -1
@@ -69,10 +68,7 @@ class ReorderingState(
             upperBound = (lastIndex - index) * draggingItemSize
         )
 
-        animatablesPool = AnimatablesPool(
-            initialValue = 0,
-            typeConverter = Int.VectorConverter
-        )
+
     }
 
     @Suppress("CyclomaticComplexMethod")
@@ -101,7 +97,7 @@ class ReorderingState(
 
                     coroutineScope.launch {
                         val animatable = indexesToAnimate.getOrPut(indexToAnimate) {
-                            animatablesPool?.acquire() ?: return@launch
+                            Animatable(initialValue = 0, typeConverter = Int.VectorConverter)
                         }
 
                         if (draggingIndex < reachedIndex) {
@@ -113,7 +109,6 @@ class ReorderingState(
                         }
 
                         indexesToAnimate.remove(indexToAnimate)
-                        animatablesPool?.release(animatable)
                     }
                 }
             }
@@ -128,7 +123,7 @@ class ReorderingState(
 
                     coroutineScope.launch {
                         val animatable = indexesToAnimate.getOrPut(indexToAnimate) {
-                            animatablesPool?.acquire() ?: return@launch
+                            Animatable(initialValue = 0, typeConverter = Int.VectorConverter)
                         }
 
                         if (draggingIndex > reachedIndex) {
@@ -139,7 +134,6 @@ class ReorderingState(
                             animatable.animateTo(0)
                         }
                         indexesToAnimate.remove(indexToAnimate)
-                        animatablesPool?.release(animatable)
                     }
                 }
             }
@@ -172,8 +166,6 @@ class ReorderingState(
                 draggingItemSize = 0
                 offset.snapTo(0)
             }
-
-            animatablesPool = null
         }
     }
 
