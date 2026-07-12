@@ -73,7 +73,6 @@ download_macos() {
   # ARM: osxexperts.net
   echo "==> Downloading ffmpeg (macOS $ARCH)..."
   local FFMPEG_FILE=$(mktemp)
-ilds)
   if [ "$ARCH" = "arm64" ]; then
     # arm
     curl -fsSL "https://www.osxexperts.net/ffmpeg8arm64.zip" -o "$FFMPEG_FILE"
