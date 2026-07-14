@@ -9,6 +9,11 @@ android {
     defaultConfig {
         minSdk = 21
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
 }
 
 dependencies {
@@ -22,6 +27,7 @@ kotlin {
     // jvmToolchain(libs.versions.jvm.get().toInt())
 
     compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         freeCompilerArgs.addAll(
             "-Xcontext-parameters"
         )

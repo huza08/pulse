@@ -23,4 +23,8 @@ dependencies {
 
 kotlin {
     // jvmToolchain(libs.versions.jvm.get().toInt())
+
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
 }

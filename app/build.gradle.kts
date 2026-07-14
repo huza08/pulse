@@ -109,6 +109,8 @@ android {
     }
 
     compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
         isCoreLibraryDesugaringEnabled = true
     }
 
@@ -178,6 +180,7 @@ kotlin {
 
     compilerOptions {
         languageVersion.set(KotlinVersion.KOTLIN_2_5)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
 
         freeCompilerArgs.addAll(
             "-Xcontext-parameters",

@@ -5,11 +5,18 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
 
     implementation(projects.providers.innertube)
+    implementation(projects.core.data)
     implementation(projects.providers.kugou)
     implementation(projects.providers.lrclib)
     implementation(projects.providers.piped)
@@ -43,12 +50,12 @@ tasks.register("downloadNativeBinaries") {
 
 tasks.register("ensureWindowsScript") {
     doLast {
-        val nativeDir = file("src/main/resources/native/windows")
+        val nativeDir = file("../core/data/src/jvmMain/resources/native/windows")
         val batFile = file("download-binaries.bat")
         if (!batFile.exists()) {
             batFile.writeText("""@echo off
 setlocal
-set NATIVE_DIR=src\main\resources\native\windows
+set NATIVE_DIR=..\core\data\src\jvmMain\resources\native\windows
 if not exist "%NATIVE_DIR%" mkdir "%NATIVE_DIR%"
 
 echo ==^> Downloading yt-dlp.exe for Windows...

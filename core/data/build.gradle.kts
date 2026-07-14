@@ -1,18 +1,42 @@
 plugins {
-    alias(libs.plugins.android.library)
-}
-
-android {
-    namespace = "app.pulse.core.data"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 21
-    }
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.multiplatform.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
-    // jvmToolchain(libs.versions.jvm.get().toInt())
+    androidLibrary {
+        namespace = "app.pulse.core.data"
+        compileSdk = 36
+        minSdk = 21
+
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+    jvm {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlin.coroutines)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(projects.providers.innertube)
+            api(libs.kotlin.datetime)
+        }
+        androidMain.dependencies {
+            implementation(libs.core.ktx)
+            implementation(libs.exoplayer)
+            implementation(libs.media3.session)
+            implementation(libs.room)
+        }
+        jvmMain.dependencies {
+            implementation(libs.sqlite.jdbc)
+        }
+    }
 
     compilerOptions {
         freeCompilerArgs.addAll(
@@ -24,10 +48,6 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.core.ktx)
-
-    api(libs.kotlin.datetime)
-
     detektPlugins(libs.detekt.compose)
     detektPlugins(libs.detekt.formatting)
 }
