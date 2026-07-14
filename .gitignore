@@ -52,3 +52,4 @@ errors.txt
 src/main/resources/native/linux/ffmpeg
 src/main/resources/native/linux/yt-dlp
 core/data/src/jvmMain/resources/native/linux/ffmpeg
+core/data/src/jvmMain/resources/native/linux/ffmpeg
