@@ -59,7 +59,7 @@ import app.pulse.android.utils.smoothScrollToTop
 import app.pulse.compose.routing.RouteHandler
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.surface
-import app.pulse.core.ui.utils.ActivityIntentBundleAccessor
+import app.pulse.core.data.utils.ActivityIntentBundleAccessor
 import kotlinx.coroutines.delay
 import kotlin.time.ExperimentalTime
 

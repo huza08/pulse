@@ -55,7 +55,8 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.toEntity
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.query
@@ -261,7 +262,7 @@ fun HomeSongs(
                                 keyboardController?.hide()
                                 binder?.stopRadio()
                                 binder?.player?.forcePlayAtIndex(
-                                    items.map(Song::asMediaItem),
+                                    items.map { it.asMediaItem },
                                     items.indexOf(song)
                                 )
                             }
@@ -276,7 +277,7 @@ fun HomeSongs(
                                     hidingSong = song.id
                                 else {
                                     if (!song.isLocal) binder?.cache?.removeResource(song.id)
-                                    transaction { Database.delete(song) }
+                                    transaction { Database.delete(song.toEntity()) }
                                 }
                                 animationJob.join()
                             } else it
@@ -337,7 +338,7 @@ fun HideSongDialog(
             query {
                 runCatching {
                     if (!song.isLocal) binder?.cache?.removeResource(song.id)
-                    Database.delete(song)
+                    Database.delete(song.toEntity())
                 }
             }
         },

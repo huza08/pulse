@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import app.pulse.android.Database
 import app.pulse.android.R
 import app.pulse.android.models.Album
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.models.SongAlbumMap
 import app.pulse.android.query
 import app.pulse.android.transaction

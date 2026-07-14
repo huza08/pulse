@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.ui.components.themed.TextPlaceholder
 import app.pulse.android.utils.medium
@@ -37,7 +37,7 @@ import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.shimmer
 import app.pulse.core.ui.utils.px
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.Innertube
 import coil3.compose.AsyncImage
 

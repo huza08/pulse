@@ -139,9 +139,9 @@ import app.pulse.core.ui.amoled
 import app.pulse.core.ui.appearance
 import app.pulse.core.ui.rippleConfiguration
 import app.pulse.core.ui.shimmerTheme
-import app.pulse.core.ui.utils.activityIntentBundle
+import app.pulse.core.data.utils.activityIntentBundle
 import app.pulse.core.ui.utils.isAtLeastAndroid12
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.BrowseBody
 import app.pulse.providers.innertube.requests.playlistPage

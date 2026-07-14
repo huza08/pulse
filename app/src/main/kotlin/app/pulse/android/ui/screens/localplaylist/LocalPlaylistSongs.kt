@@ -36,7 +36,7 @@ import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.models.Playlist
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.models.SongPlaylistMap
 import app.pulse.android.preferences.DataPreferences
 import app.pulse.android.query

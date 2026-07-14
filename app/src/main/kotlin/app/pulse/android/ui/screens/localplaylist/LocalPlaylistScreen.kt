@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import app.pulse.android.Database
 import app.pulse.android.R
 import app.pulse.android.models.Playlist
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.ui.components.themed.Scaffold
 import app.pulse.android.ui.components.themed.adaptiveThumbnailContent
 import app.pulse.android.ui.screens.GlobalRoutes

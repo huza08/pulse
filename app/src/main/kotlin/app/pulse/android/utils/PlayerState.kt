@@ -25,7 +25,7 @@ import androidx.media3.common.Timeline
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.service.PlayerService
-import app.pulse.core.ui.utils.EqualizerIntentBundleAccessor
+import app.pulse.core.data.utils.EqualizerIntentBundleAccessor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay

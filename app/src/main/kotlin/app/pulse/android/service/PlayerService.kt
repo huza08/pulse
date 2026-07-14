@@ -71,7 +71,7 @@ import app.pulse.android.R
 import app.pulse.android.models.Event
 import app.pulse.android.models.Format
 import app.pulse.android.models.QueuedMediaItem
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.models.SongWithContentLength
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.preferences.DataPreferences
@@ -109,14 +109,14 @@ import app.pulse.compose.preferences.SharedPreferencesProperty
 import app.pulse.core.data.enums.ExoPlayerDiskCacheSize
 import app.pulse.core.data.utils.UriCache
 import androidx.media3.exoplayer.DefaultLoadControl
-import app.pulse.core.ui.utils.EqualizerIntentBundleAccessor
+import app.pulse.core.data.utils.EqualizerIntentBundleAccessor
 import app.pulse.core.ui.utils.isAtLeastAndroid10
 import app.pulse.core.ui.utils.isAtLeastAndroid12
 import app.pulse.core.ui.utils.isAtLeastAndroid13
 import app.pulse.core.ui.utils.isAtLeastAndroid6
 import app.pulse.core.ui.utils.isAtLeastAndroid8
 import app.pulse.core.ui.utils.isAtLeastAndroid9
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import app.pulse.core.ui.utils.streamVolumeFlow
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.NavigationEndpoint
@@ -331,6 +331,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     )
                 )
             }
+
+        app.pulse.core.data.di.setExoPlayer(player)
 
         updateRepeatMode()
         maybeRestorePlayerQueue()

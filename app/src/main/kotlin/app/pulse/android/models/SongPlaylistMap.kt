@@ -4,13 +4,14 @@ import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import app.pulse.core.data.models.SongEntity
 
 @Immutable
 @Entity(
     primaryKeys = ["songId", "playlistId"],
     foreignKeys = [
         ForeignKey(
-            entity = Song::class,
+            entity = SongEntity::class,
             parentColumns = ["id"],
             childColumns = ["songId"],
             onDelete = ForeignKey.CASCADE

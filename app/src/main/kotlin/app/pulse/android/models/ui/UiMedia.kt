@@ -1,7 +1,7 @@
 package app.pulse.android.models.ui
 
 import androidx.media3.common.MediaItem
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 
 data class UiMedia(
     val id: String,

@@ -57,7 +57,8 @@ import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.models.Info
 import app.pulse.android.models.Playlist
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.SongEntity
 import app.pulse.android.models.SongPlaylistMap
 import app.pulse.android.query
 import app.pulse.android.service.PrecacheService
@@ -84,7 +85,7 @@ import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.favoritesIcon
 import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.models.NavigationEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -433,7 +434,7 @@ fun MediaItemMenu(
                                     ) != 0
                                 ) return@query
 
-                                Database.insert(mediaItem, Song::toggleLike)
+                                Database.insert(mediaItem, SongEntity::toggleLike)
                             }
                         },
                         modifier = Modifier

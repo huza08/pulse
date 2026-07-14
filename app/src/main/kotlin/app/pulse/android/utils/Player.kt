@@ -6,7 +6,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import app.pulse.android.preferences.AppearancePreferences
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import kotlin.time.Duration
 
 val Player.currentWindow: Timeline.Window?

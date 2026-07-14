@@ -103,7 +103,7 @@ import app.pulse.core.ui.collapsedPlayerProgressBar
 import app.pulse.core.ui.utils.isLandscape
 import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
-import app.pulse.core.ui.utils.songBundle
+import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.models.NavigationEndpoint
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged

@@ -23,7 +23,7 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
@@ -87,7 +87,7 @@ fun ArtistLocalSongs(
                                 text = stringResource(R.string.enqueue),
                                 enabled = !songs.isNullOrEmpty(),
                                 onClick = {
-                                    binder?.player?.enqueue(songs!!.map(Song::asMediaItem))
+                                    binder?.player?.enqueue(songs!!.map { it.asMediaItem })
                                 }
                             )
                         }
@@ -114,7 +114,7 @@ fun ArtistLocalSongs(
                                 onClick = {
                                     binder?.stopRadio()
                                     binder?.player?.forcePlayAtIndex(
-                                        items = songs.map(Song::asMediaItem),
+                                        items = songs.map { it.asMediaItem },
                                         index = index
                                     )
                                 }

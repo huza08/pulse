@@ -26,7 +26,7 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.Header
@@ -78,7 +78,7 @@ fun LocalSongSearch(
 
             items(
                 items = items,
-                key = Song::id
+                key = { it.id }
             ) { song ->
                 SongItem(
                     modifier = Modifier

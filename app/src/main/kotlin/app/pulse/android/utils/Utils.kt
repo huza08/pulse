@@ -14,11 +14,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.service.LOCAL_KEY_PREFIX
 import app.pulse.android.service.isLocal
-import app.pulse.core.ui.utils.SongBundleAccessor
+import app.pulse.core.data.utils.SongBundleAccessor
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.ContinuationBody
 import app.pulse.providers.innertube.requests.playlistPage
@@ -135,6 +135,8 @@ val Song.asMediaItem: MediaItem
         )
         .setCustomCacheKey(id)
         .build()
+
+fun Song.toggleLike() = copy(likedAt = if (likedAt == null) System.currentTimeMillis() else null)
 
 val Duration.formatted
     @Composable get() = toComponents { hours, minutes, _, _ ->

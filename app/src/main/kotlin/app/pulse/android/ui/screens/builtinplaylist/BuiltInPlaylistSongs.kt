@@ -26,7 +26,8 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.toSong
 import app.pulse.android.preferences.DataPreferences
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
@@ -87,7 +88,7 @@ fun BuiltInPlaylistSongs(
                         sortOrder = sortOrder
                     )
                     .map { songs ->
-                        songs.filter { binder?.isCached(it) ?: false }.map { it.song }
+                        songs.filter { binder?.isCached(it) ?: false }.map { it.song.toSong() }
                     }
 
             BuiltInPlaylist.Top -> combine(
@@ -108,7 +109,7 @@ fun BuiltInPlaylistSongs(
             }
 
             BuiltInPlaylist.History -> Database.history()
-        }.collect { songs = it.toImmutableList() }
+        }.collect { list -> songs = list.toImmutableList() }
     }
 
     val lazyListState = rememberLazyListState()
@@ -146,14 +147,14 @@ fun BuiltInPlaylistSongs(
                         text = stringResource(R.string.enqueue),
                         enabled = songs.isNotEmpty(),
                         onClick = {
-                            binder?.player?.enqueue(songs.map(Song::asMediaItem))
+                            binder?.player?.enqueue(songs.map { it.asMediaItem })
                         }
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     if (builtInPlaylist != BuiltInPlaylist.Offline) PlaylistDownloadIcon(
-                        songs = songs.map(Song::asMediaItem).toImmutableList()
+                        songs = songs.map { it.asMediaItem }.toImmutableList()
                     )
 
                     if (builtInPlaylist.sortable) HeaderSongSortBy(
@@ -214,7 +215,7 @@ fun BuiltInPlaylistSongs(
                             onClick = {
                                 binder?.stopRadio()
                                 binder?.player?.forcePlayAtIndex(
-                                    items = songs.map(Song::asMediaItem),
+                                    items = songs.map { it.asMediaItem },
                                     index = index
                                 )
                             }

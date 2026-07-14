@@ -16,8 +16,8 @@ import app.pulse.android.Database
 import app.pulse.android.R
 import app.pulse.android.models.Album
 import app.pulse.android.models.PlaylistPreview
-import app.pulse.android.models.Song
-import app.pulse.android.models.SongWithContentLength
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.toSong
 import app.pulse.android.preferences.DataPreferences
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.utils.asMediaItem
@@ -294,7 +294,7 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                             .songsWithContentLength()
                             .first()
                             .filter { binder.isCached(it) }
-                            .map(SongWithContentLength::song)
+                            .map { it.song.toSong() }
                             .shuffled()
 
                     MediaId.TOP -> {
@@ -329,6 +329,7 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                             ?.let(Database::playlistWithSongs)
                             ?.first()
                             ?.songs
+                            ?.map { it.toSong() }
                             ?.shuffled()
 
                     MediaId.ALBUMS ->
@@ -338,7 +339,7 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                             ?.first()
 
                     else -> emptyList()
-                }?.map(Song::asMediaItem) ?: return@launch
+                }?.map { it.asMediaItem } ?: return@launch
 
                 withContext(Dispatchers.Main) {
                     binder.player.forcePlayAtIndex(

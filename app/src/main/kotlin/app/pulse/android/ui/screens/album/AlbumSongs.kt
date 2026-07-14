@@ -19,7 +19,7 @@ import androidx.compose.ui.res.stringResource
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
@@ -84,13 +84,13 @@ fun AlbumSongs(
                                 text = stringResource(R.string.enqueue),
                                 enabled = songs.isNotEmpty(),
                                 onClick = {
-                                    binder?.player?.enqueue(songs.map(Song::asMediaItem))
+                                    binder?.player?.enqueue(songs.map { it.asMediaItem })
                                 }
                             )
                         },
                         {
                             PlaylistDownloadIcon(
-                                songs = songs.map(Song::asMediaItem).toImmutableList()
+                                songs = songs.map { it.asMediaItem }.toImmutableList()
                             )
                         }
                     )
@@ -120,7 +120,7 @@ fun AlbumSongs(
                         onClick = {
                             binder?.stopRadio()
                             binder?.player?.forcePlayAtIndex(
-                                items = songs.map(Song::asMediaItem),
+                                items = songs.map { it.asMediaItem },
                                 index = index
                             )
                         }

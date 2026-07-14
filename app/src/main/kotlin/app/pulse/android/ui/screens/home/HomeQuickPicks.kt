@@ -42,7 +42,8 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
-import app.pulse.android.models.Song
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.toSong
 import app.pulse.android.preferences.DataPreferences
 import app.pulse.android.query
 import app.pulse.android.ui.components.LocalMenuState
@@ -79,6 +80,7 @@ import app.pulse.providers.innertube.models.NavigationEndpoint
 import app.pulse.providers.innertube.models.bodies.NextBody
 import app.pulse.providers.innertube.requests.relatedPage
 import app.pulse.providers.innertube.requests.trendingCharts
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 
@@ -126,8 +128,8 @@ fun QuickPicks(
 
         val sourceFlow = when (DataPreferences.quickPicksSource) {
             DataPreferences.QuickPicksSource.Trending -> Database.trending().map { it.firstOrNull() }
-            DataPreferences.QuickPicksSource.LastInteraction -> Database.events().map { it.firstOrNull()?.song }
-        }
+            DataPreferences.QuickPicksSource.LastInteraction -> Database.events().map { it.firstOrNull()?.song?.toSong() }
+        }.distinctUntilChanged { old, new -> old?.id == new?.id }
         sourceFlow.collect {
             runCatching { handleSong(it) }
                 .onFailure {
