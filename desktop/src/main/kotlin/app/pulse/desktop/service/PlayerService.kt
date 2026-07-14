@@ -1,5 +1,9 @@
 package app.pulse.desktop.service
 
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.LoopMode
+import app.pulse.core.data.repository.QueueDatabase
+import app.pulse.core.data.utils.NativeBinaries
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.PlayerResponse
 import app.pulse.providers.innertube.models.bodies.PlayerBody
@@ -127,11 +131,11 @@ class PlayerService {
 
     // -- Queue management (mirrors Android pattern) ----------------------------
 
-    fun play(song: Innertube.SongItem) {
+    fun play(song: Song) {
         playFromQueue(listOf(song), index = 0)
     }
 
-    fun playFromQueue(queue: List<Innertube.SongItem>, index: Int) {
+    fun playFromQueue(queue: List<Song>, index: Int) {
         if (queue.isEmpty()) return
         val idx = index.coerceIn(0, queue.lastIndex)
         _state.update { it.copy(queue = queue, currentIndex = idx) }
@@ -171,12 +175,12 @@ class PlayerService {
         playInternal(s.queue[prevIdx])
     }
 
-    fun enqueue(song: Innertube.SongItem) {
+    fun enqueue(song: Song) {
         _state.update { it.copy(queue = it.queue + song) }
         maybeSaveQueue()
     }
 
-    fun addNext(song: Innertube.SongItem) {
+    fun addNext(song: Song) {
         _state.update { s ->
             val idx = (s.currentIndex + 1).coerceIn(0, s.queue.size)
             val q = s.queue.toMutableList().apply { add(idx, song) }
@@ -201,8 +205,8 @@ class PlayerService {
     }
 
 
-    private fun playInternal(song: Innertube.SongItem, startMs: Long = 0L) {
-        val videoId = song.info?.endpoint?.videoId
+    private fun playInternal(song: Song, startMs: Long = 0L) {
+        val videoId = song.id
         if (videoId == null) {
             _state.update { it.copy(isLoading = false, error = "No video ID") }
             return
@@ -211,7 +215,7 @@ class PlayerService {
         // debounce: skip if already loading/playing same video
         val s = _state.value
         if (s.isLoading || s.isPlaying) {
-            if (s.currentSong?.info?.endpoint?.videoId == videoId) {
+            if (s.currentSong?.id == videoId) {
                 log("playInternal: debounced (already on $videoId)")
                 return
             }
@@ -236,7 +240,7 @@ class PlayerService {
         }
 
         currentVideoId = videoId
-        log("play: ${song.info?.name} (id=$currentVideoId)")
+        log("play: ${song.title} (id=$currentVideoId)")
 
         playbackJob = scope.launch {
             try {
@@ -717,7 +721,16 @@ class PlayerService {
     private fun maybeSaveQueue() {
         val s = _state.value
         if (s.queue.isEmpty()) return
-        QueueDatabase.save(s)
+        QueueDatabase.save(
+            app.pulse.core.data.models.PlaybackState(
+                queue = s.queue,
+                currentIndex = s.currentIndex,
+                loopMode = s.loopMode,
+                volume = s.volume,
+                currentPositionMs = s.currentPositionMs,
+                durationMs = s.durationMs
+            )
+        )
         log("queue saved (${s.queue.size} items, idx=${s.currentIndex}, pos=${s.currentPositionMs}ms)")
     }
 
@@ -725,10 +738,10 @@ class PlayerService {
         val saved = QueueDatabase.restore() ?: return
         QueueDatabase.clear()
 
-        val songs = mutableListOf<Innertube.SongItem>()
+        val songs = mutableListOf<Song>()
         saved.queue.forEach { entry ->
             try {
-                val song = QueueDatabase.json.decodeFromString<Innertube.SongItem>(entry.songJson)
+                val song = QueueDatabase.json.decodeFromString<Song>(entry.songJson)
                 songs.add(song)
             } catch (e: Exception) {
                 log("restore: failed to deserialize ${entry.videoId}: ${e.message}")
@@ -760,7 +773,7 @@ class PlayerService {
                 isLoading = false
             )
         }
-        log("restore: song='${song.info?.name}' paused at ${saved.positionMs}ms")
+        log("restore: song='${song.title}' paused at ${saved.positionMs}ms")
     }
 
     private fun stopAudio() {

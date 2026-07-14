@@ -21,11 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.pulse.providers.innertube.Innertube
+import app.pulse.core.data.models.Song
 
 @Composable
 fun SongCard(
-    song: Innertube.SongItem,
+    song: Song,
     surface: Color,
     text: Color,
     dim: Color,
@@ -43,9 +43,9 @@ fun SongCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
-            song.thumbnail?.let { thumb ->
+            song.thumbnailUrl?.let { thumb ->
                 NetworkImage(
-                    url = thumb.size(64),
+                    url = thumb,
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(6.dp))
@@ -54,16 +54,16 @@ fun SongCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = song.info?.name ?: "Untitled",
+                    text = song.title,
                     color = text,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                song.authors?.firstOrNull()?.let { author ->
+                song.artistsText?.let { author ->
                     Text(
-                        text = author.name ?: "",
+                        text = author,
                         color = dim,
                         fontSize = 11.sp,
                         maxLines = 1,

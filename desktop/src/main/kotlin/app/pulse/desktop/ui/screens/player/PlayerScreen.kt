@@ -116,9 +116,9 @@ fun PlayerScreen(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    song.thumbnail?.let { thumb ->
+                    song.thumbnailUrl?.let { thumb ->
                         NetworkImage(
-                            url = thumb.size(400),
+                            url = thumb,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(16.dp))
@@ -131,7 +131,7 @@ fun PlayerScreen(
 
             // Song title
             Text(
-                text = song.info?.name ?: "Untitled",
+                text = song.title,
                 color = text,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -146,9 +146,9 @@ fun PlayerScreen(
             Spacer(Modifier.height(6.dp))
 
             // Artist
-            song.authors?.firstOrNull()?.let { author ->
+            song.artistsText?.let { author ->
                 Text(
-                    text = author.name ?: "",
+                    text = author,
                     color = dim,
                     fontSize = 14.sp,
                     maxLines = 1,

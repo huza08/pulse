@@ -1,16 +1,11 @@
 package app.pulse.desktop.service
 
-import app.pulse.providers.innertube.Innertube
-
-enum class LoopMode {
-    NONE,   // stop at queue end
-    ONE,    // repeat current track
-    ALL     // repeat entire queue
-}
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.models.LoopMode
 
 data class PlaybackState(
-    val currentSong: Innertube.SongItem? = null,
-    val queue: List<Innertube.SongItem> = emptyList(),
+    val currentSong: Song? = null,
+    val queue: List<Song> = emptyList(),
     val currentIndex: Int = -1,
     val loopMode: LoopMode = LoopMode.NONE,
     val isPlaying: Boolean = false,

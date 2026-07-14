@@ -42,6 +42,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.pulse.core.data.models.Song
+import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.components.MoodsSkeleton
@@ -60,7 +62,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     page: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
-    onPlaySong: (Innertube.SongItem) -> Unit,
+    onPlaySong: (Song) -> Unit,
     player: PlayerService? = null,
     onOpenPlayer: () -> Unit = {}
 ) {
@@ -143,7 +145,8 @@ fun HomeScreen(
 
         if (searchResults != null) {
             searchResults?.getOrNull()?.let { itemsPage ->
-                itemsPage?.items?.forEach { song ->
+                itemsPage?.items?.forEach { songItem ->
+                    val song = songItem.toSong()
                     SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
                 }
             } ?: searchResults?.exceptionOrNull()?.let {
@@ -249,7 +252,8 @@ fun HomeScreen(
                 if (p.trending.songs.isNotEmpty()) {
                     SectionTitle("Trending", text)
                     Spacer(Modifier.height(12.dp))
-                    p.trending.songs.take(15).forEach { song ->
+                    p.trending.songs.take(15).forEach { songItem ->
+                        val song = songItem.toSong()
                         SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
                     }
                 }

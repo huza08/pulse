@@ -42,9 +42,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.pulse.desktop.service.LoopMode
+import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.util.formatDuration
+import app.pulse.core.data.utils.formatDuration
 
 private val pillShape = RoundedCornerShape(55.dp)
 
@@ -89,23 +89,23 @@ fun MiniPlayer(
                     .clip(CircleShape)
                     .background(Color(0xFF141414))
             ) {
-                song.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(200), modifier = Modifier.size(80.dp))
+                song.thumbnailUrl?.let { thumb ->
+                    NetworkImage(url = thumb, modifier = Modifier.size(80.dp))
                 }
             }
             Spacer(Modifier.width(20.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 Text(
-                    text = song.info?.name ?: "Untitled",
+                    text = song.title,
                     color = text,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                song.authors?.firstOrNull()?.let { author ->
+                song.artistsText?.let { author ->
                     Text(
-                        text = author.name ?: "",
+                        text = author,
                         color = dim,
                         fontSize = 14.sp,
                         maxLines = 1,

@@ -27,9 +27,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.pulse.desktop.service.LoopMode
+import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.util.formatDuration
+import app.pulse.core.data.utils.formatDuration
 
 @Composable
 fun Controls(

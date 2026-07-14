@@ -32,7 +32,7 @@ if [ "$OS" = "unknown" ]; then
 fi
 
 # place in OS-specific subdir
-NATIVE_DIR="src/main/resources/native/$OS"
+NATIVE_DIR="../core/data/src/jvmMain/resources/native/$OS"
 mkdir -p "$NATIVE_DIR"
 
 echo "==> Detected: $OS ($ARCH)"
