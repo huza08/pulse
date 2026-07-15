@@ -125,9 +125,9 @@ fun Controls(
             // Prev song
             MediaIconButton(
                 painter = painterResource("/icons/play_skip_back.svg"),
-                onClick = { if (state.hasPrevious) player.playPrevious() },
+                onClick = { player.playPrevious() },
                 contentDescription = "Previous",
-                tint = text.copy(alpha = if (state.hasPrevious) 1f else 0.35f),
+                tint = text,
                 size = 22
             )
 
@@ -163,9 +163,9 @@ fun Controls(
             // Next song
             MediaIconButton(
                 painter = painterResource("/icons/play_skip_forward.svg"),
-                onClick = { if (state.hasNext) player.playNext() },
+                onClick = { player.playNext() },
                 contentDescription = "Next",
-                tint = text.copy(alpha = if (state.hasNext) 1f else 0.35f),
+                tint = text,
                 size = 22
             )
 

@@ -4,9 +4,12 @@ import app.pulse.core.data.models.Song
 import app.pulse.core.data.models.LoopMode
 import app.pulse.core.data.repository.QueueDatabase
 import app.pulse.core.data.utils.NativeBinaries
+import app.pulse.core.data.utils.toSong
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.PlayerResponse
+import app.pulse.providers.innertube.models.bodies.NextBody
 import app.pulse.providers.innertube.models.bodies.PlayerBody
+import app.pulse.providers.innertube.requests.nextPage
 import app.pulse.providers.innertube.requests.player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +77,8 @@ class PlayerService {
     private var lastSeekMs = 0L
     @Volatile
     private var currentPipelineGen = 0L
+
+    private var radioJob: Job? = null
 
     companion object {
         private val cacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-cache")
@@ -189,6 +194,50 @@ class PlayerService {
         maybeSaveQueue()
     }
 
+    fun shuffleQueue() {
+        _state.update { s ->
+            if (s.queue.size <= 1) return@update s
+            val current = s.queue[s.currentIndex]
+            val rest = s.queue.toMutableList().apply { removeAt(s.currentIndex) }.shuffled()
+            s.copy(queue = listOf(current) + rest, currentIndex = 0)
+        }
+        maybeSaveQueue()
+        log("shuffle: queue shuffled, ${_state.value.queue.size} items")
+    }
+
+    fun setupRadio(videoId: String) {
+        radioJob?.cancel()
+        maybeProcessRadio(videoId)
+    }
+
+    fun stopRadio() {
+        radioJob?.cancel()
+        radioJob = null
+    }
+
+    private fun maybeProcessRadio(videoId: String? = null) {
+        val s = _state.value
+        val remaining = s.queue.size - s.currentIndex - 1
+        if (remaining > 2) return
+
+        radioJob?.cancel()
+        radioJob = scope.launch {
+            val vid = videoId ?: currentVideoId ?: return@launch
+            log("radio: fetching related songs for $vid")
+            val response = Innertube.nextPage(NextBody(videoId = vid))
+            val page = response?.getOrNull() ?: return@launch
+            val songs = page.itemsPage?.items?.map { it.toSong() } ?: return@launch
+            if (songs.isEmpty()) return@launch
+            _state.update { s ->
+                val existingIds = s.queue.mapNotNull { it.id }.toSet()
+                val newSongs = songs.filter { it.id !in existingIds }
+                s.copy(queue = s.queue + newSongs)
+            }
+            val added = _state.value.queue.size - s.queue.size
+            log("radio: added $added new songs to queue (${songs.size} fetched, ${songs.size - added} dupes)")
+        }
+    }
+
     fun setLoopMode(mode: LoopMode) {
         _state.update { it.copy(loopMode = mode) }
     }
@@ -243,6 +292,8 @@ class PlayerService {
 
         currentVideoId = videoId
         log("play: ${song.title} (id=$currentVideoId)")
+
+        maybeProcessRadio(videoId)
 
         playbackJob = scope.launch {
             try {

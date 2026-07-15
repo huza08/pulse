@@ -102,7 +102,7 @@ object QueueDatabase {
         if (queue.isEmpty()) return@synchronized
 
         conn.prepareStatement(
-            "INSERT INTO player_queue (video_id, song_json, queue_index, is_current, position_ms) VALUES (?, ?, ?, ?, ?)"
+            "INSERT OR IGNORE INTO player_queue (video_id, song_json, queue_index, is_current, position_ms) VALUES (?, ?, ?, ?, ?)"
         ).use { stmt ->
             val currentVideoId = queue.getOrNull(state.currentIndex)?.id
 

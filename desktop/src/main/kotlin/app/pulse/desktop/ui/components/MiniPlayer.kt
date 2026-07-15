@@ -139,7 +139,7 @@ fun MiniPlayer(
                     desc = "Previous",
                     tint = text,
                     size = 32.dp,
-                    onClick = { if (state.hasPrevious) player.playPrevious() }
+                    onClick = { player.playPrevious() }
                 )
                 Spacer(Modifier.width(8.dp))
 
@@ -180,7 +180,7 @@ fun MiniPlayer(
                     desc = "Next",
                     tint = text,
                     size = 32.dp,
-                    onClick = { if (state.hasNext) player.playNext() }
+                    onClick = { player.playNext() }
                 )
                 Spacer(Modifier.width(16.dp))
 
