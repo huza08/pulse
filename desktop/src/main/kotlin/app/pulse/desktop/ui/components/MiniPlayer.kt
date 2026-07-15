@@ -30,7 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -225,11 +228,24 @@ fun MiniPlayer(
                 val seekHeight by animateDpAsState(if (isSeekActive) 12.dp else 6.dp)
                 val seekWidthScale by animateFloatAsState(if (isSeekActive) 1.02f else 1f)
 
-                val progress = if (state.durationMs > 0)
-                    (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
+                var isDragging by remember { mutableStateOf(false) }
+                var dragFraction by remember { mutableFloatStateOf(0f) }
+
+                val displayFraction = if (isDragging) dragFraction
+                else if (state.durationMs > 0)
+                    (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
+                else 0f
+
                 Slider(
-                    value = progress,
-                    onValueChange = { player.seek((it * state.durationMs).toLong()) },
+                    value = displayFraction,
+                    onValueChange = { fraction ->
+                        isDragging = true
+                        dragFraction = fraction
+                    },
+                    onValueChangeFinished = {
+                        isDragging = false
+                        player.seek((dragFraction * state.durationMs).toLong())
+                    },
                     interactionSource = seekInteractionSource,
                     track = { sliderState ->
                         SliderTrack(
