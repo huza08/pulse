@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package app.pulse.desktop.ui.screens.player
 
 import androidx.compose.foundation.layout.Arrangement

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package app.pulse.desktop.ui.components
 
 import androidx.compose.animation.core.animateDpAsState
