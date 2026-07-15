@@ -1,6 +1,7 @@
 package app.pulse.desktop.ui.screens.player
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -132,16 +134,29 @@ fun Controls(
             Spacer(Modifier.width(44.dp))
 
             // Play/Pause
-            MediaIconButton(
-                painter = if (state.isPlaying) painterResource("/icons/pause.svg") else painterResource("/icons/play.svg"),
-                onClick = {
-                    if (state.isPlaying) player.pause() else player.resume()
-                },
-                contentDescription = if (state.isPlaying) "Pause" else "Play",
-                tint = text,
-                size = 32,
-                isMain = true
-            )
+            if (state.isLoading) {
+                Box(
+                    modifier = Modifier.size(56.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = text,
+                        strokeWidth = 3.dp
+                    )
+                }
+            } else {
+                MediaIconButton(
+                    painter = if (state.isPlaying) painterResource("/icons/pause.svg") else painterResource("/icons/play.svg"),
+                    onClick = {
+                        if (state.isPlaying) player.pause() else player.resume()
+                    },
+                    contentDescription = if (state.isPlaying) "Pause" else "Play",
+                    tint = text,
+                    size = 32,
+                    isMain = true
+                )
+            }
 
             Spacer(Modifier.width(44.dp))
 

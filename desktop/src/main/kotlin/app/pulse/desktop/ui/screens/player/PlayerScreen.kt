@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +49,6 @@ fun PlayerScreen(
     val surface = Color(0xFF141414)
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
-    val accent = Color(0xFFf2f0eb)
 
     Column(
         modifier = modifier
@@ -161,7 +161,7 @@ fun PlayerScreen(
             // Controls (seek bar, play/pause, volume)
             Controls(
                 player = player,
-                accent = accent,
+                accent = text,
                 text = text,
                 dim = dim,
                 modifier = Modifier
@@ -170,16 +170,16 @@ fun PlayerScreen(
             )
         }
 
-        // Loading / error overlay
+        // Loading overlay
         if (state.isLoading) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "Loading...",
-                    color = dim,
-                    fontSize = 14.sp
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = text,
+                    strokeWidth = 4.dp
                 )
             }
         }

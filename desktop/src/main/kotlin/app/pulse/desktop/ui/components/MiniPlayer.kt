@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
@@ -46,8 +47,6 @@ import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
 import app.pulse.core.data.utils.formatDuration
 
-private val pillShape = RoundedCornerShape(55.dp)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiniPlayer(
@@ -69,8 +68,8 @@ fun MiniPlayer(
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
-            .shadow(12.dp, pillShape)
-            .background(bg, pillShape)
+            .shadow(12.dp, RoundedCornerShape(55.dp))
+            .background(bg, RoundedCornerShape(55.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -151,18 +150,28 @@ fun MiniPlayer(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            if (state.isPlaying) player.pause() else player.resume()
+                            if (!state.isLoading) {
+                                if (state.isPlaying) player.pause() else player.resume()
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(
-                            if (state.isPlaying) "/icons/pause.svg" else "/icons/play.svg"
-                        ),
-                        contentDescription = if (state.isPlaying) "Pause" else "Play",
-                        tint = Color(0xFFFFFFFF),
-                        modifier = Modifier.size(32.dp)
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = accent,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(
+                                if (state.isPlaying) "/icons/pause.svg" else "/icons/play.svg"
+                            ),
+                            contentDescription = if (state.isPlaying) "Pause" else "Play",
+                            tint = Color(0xFFFFFFFF),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
                 Spacer(Modifier.width(8.dp))
 
@@ -175,18 +184,18 @@ fun MiniPlayer(
                 )
                 Spacer(Modifier.width(16.dp))
 
-                val repeatTint = when (state.loopMode) {
-                    LoopMode.NONE -> dim.copy(alpha = 0.4f)
-                    LoopMode.ONE, LoopMode.ALL -> accent
-                }
-                val repeatIcon = when (state.loopMode) {
-                    LoopMode.ONE -> "/icons/repeat_on.svg"
-                    else -> "/icons/repeat.svg"
-                }
                 Icon(
-                    painter = painterResource(repeatIcon),
+                    painter = painterResource(
+                        when (state.loopMode) {
+                            LoopMode.ONE -> "/icons/repeat_on.svg"
+                            else -> "/icons/repeat.svg"
+                        }
+                    ),
                     contentDescription = "Repeat",
-                    tint = repeatTint,
+                    tint = when (state.loopMode) {
+                        LoopMode.NONE -> dim.copy(alpha = 0.4f)
+                        LoopMode.ONE, LoopMode.ALL -> accent
+                    },
                     modifier = Modifier
                         .size(20.dp)
                         .clickable(
