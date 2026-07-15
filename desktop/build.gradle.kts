@@ -65,10 +65,10 @@ echo     OK
 echo ==^> Downloading ffmpeg.exe for Windows...
 echo This may take a moment (large download)...
 set FFMPEG_ZIP=%TEMP%\ffmpeg-static.zip
-curl -fsSL https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-n7.1-latest-win64-gpl-7.1.zip -o "%FFMPEG_ZIP%"
+curl -fsSL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -o "%FFMPEG_ZIP%"
 tar -xf "%FFMPEG_ZIP%" -C "%TEMP%" >nul 2>&1
-copy /Y "%TEMP%\ffmpeg-n7.1-latest-win64-gpl-7.1\bin\ffmpeg.exe" "%NATIVE_DIR%\ffmpeg.exe" >nul
-rmdir /S /Q "%TEMP%\ffmpeg-n7.1-latest-win64-gpl-7.1" 2>nul
+copy /Y "%TEMP%\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe" "%NATIVE_DIR%\ffmpeg.exe" >nul
+rmdir /S /Q "%TEMP%\ffmpeg-master-latest-win64-gpl" 2>nul
 del "%FFMPEG_ZIP%" 2>nul
 echo     OK
 

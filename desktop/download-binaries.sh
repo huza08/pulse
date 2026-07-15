@@ -31,8 +31,9 @@ if [ "$OS" = "unknown" ]; then
   exit 1
 fi
 
-# place in OS-specific subdir
-NATIVE_DIR="../core/data/src/jvmMain/resources/native/$OS"
+# place in shared core module resources
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NATIVE_DIR="$SCRIPT_DIR/../core/data/src/jvmMain/resources/native/$OS"
 mkdir -p "$NATIVE_DIR"
 
 echo "==> Detected: $OS ($ARCH)"
@@ -48,12 +49,12 @@ download_linux() {
   echo "==> Downloading ffmpeg (Linux x86_64)..."
   local FFMPEG_TAR="/tmp/ffmpeg-static.tar.xz"
   curl -fsSL \
-    "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz" \
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz" \
     -o "$FFMPEG_TAR"
   tar -xf "$FFMPEG_TAR" -C /tmp/
-  cp "/tmp/ffmpeg-n7.1-latest-linux64-gpl-7.1/bin/ffmpeg" "$NATIVE_DIR/ffmpeg"
+  cp "/tmp/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg" "$NATIVE_DIR/ffmpeg"
   chmod +x "$NATIVE_DIR/ffmpeg"
-  rm -rf "$FFMPEG_TAR" "/tmp/ffmpeg-n7.1-latest-linux64-gpl-7.1"
+  rm -rf "$FFMPEG_TAR" "/tmp/ffmpeg-master-latest-linux64-gpl"
   echo "    OK: $(du -h "$NATIVE_DIR/ffmpeg" | cut -f1)"
 }
 
@@ -101,11 +102,11 @@ download_windows() {
   echo "==> Downloading ffmpeg.exe (Windows)..."
   local FFMPEG_ZIP="/tmp/ffmpeg-static.zip"
   curl -fsSL \
-    "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-n7.1-latest-win64-gpl-7.1.zip" \
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" \
     -o "$FFMPEG_ZIP"
   unzip -o "$FFMPEG_ZIP" -d "/tmp/" >/dev/null 2>&1
-  cp "/tmp/ffmpeg-n7.1-latest-win64-gpl-7.1/bin/ffmpeg.exe" "$NATIVE_DIR/ffmpeg.exe"
-  rm -rf "$FFMPEG_ZIP" "/tmp/ffmpeg-n7.1-latest-win64-gpl-7.1"
+  cp "/tmp/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe" "$NATIVE_DIR/ffmpeg.exe"
+  rm -rf "$FFMPEG_ZIP" "/tmp/ffmpeg-master-latest-win64-gpl"
   echo "    OK: $(du -h "$NATIVE_DIR/ffmpeg.exe" | cut -f1)"
 }
 
