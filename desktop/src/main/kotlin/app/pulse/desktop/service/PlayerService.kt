@@ -147,15 +147,10 @@ class PlayerService {
         val s = _state.value
         val nextIdx = when (s.loopMode) {
             LoopMode.ONE -> s.currentIndex
-            LoopMode.ALL -> {
+            else -> {
                 val n = s.currentIndex + 1
                 if (n >= s.queue.size) 0 else n
             }
-            LoopMode.NONE -> s.currentIndex + 1
-        }
-        if (nextIdx !in s.queue.indices) {
-            if (s.currentSong != null) endSong() else stop()
-            return
         }
         _state.update { it.copy(currentIndex = nextIdx) }
         playInternal(s.queue[nextIdx])
@@ -163,6 +158,11 @@ class PlayerService {
 
     fun playPrevious() {
         val s = _state.value
+        // seek to start if past threshold, else go to previous track
+        if (s.currentPositionMs > 3000L && s.currentSong != null) {
+            seek(0L)
+            return
+        }
         val prevIdx = when (s.loopMode) {
             LoopMode.ONE -> s.currentIndex
             LoopMode.ALL -> {
