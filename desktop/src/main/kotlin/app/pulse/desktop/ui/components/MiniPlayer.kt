@@ -232,30 +232,12 @@ fun MiniPlayer(
                     onValueChange = { player.seek((it * state.durationMs).toLong()) },
                     interactionSource = seekInteractionSource,
                     track = { sliderState ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(seekWidthScale)
-                                .height(seekHeight),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Inactive track
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(seekHeight)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF2a2a2a))
-                            )
-                            // Active track
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(sliderState.value)
-                                    .height(seekHeight)
-                                    .clip(CircleShape)
-                                    .background(accent)
-                                    .align(Alignment.CenterStart)
-                            )
-                        }
+                        SliderTrack(
+                            fraction = sliderState.value,
+                            height = seekHeight,
+                            activeColor = accent,
+                            widthScale = seekWidthScale
+                        )
                     },
                     thumb = {},
                     modifier = Modifier.weight(1f).height(32.dp)
@@ -312,28 +294,11 @@ fun MiniPlayer(
                 onValueChange = { player.setVolume(it) },
                 interactionSource = volInteractionSource,
                 track = { sliderState ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(volHeight),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // inactive
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(volHeight)
-                                .clip(CircleShape)
-                                .background(Color(0xFF2a2a2a))
-                        )
-                        // active
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(sliderState.value)
-                                .height(volHeight)
-                                .clip(CircleShape)
-                                .background(dim)
-                                .align(Alignment.CenterStart)
-                        )
-                    }
+                    SliderTrack(
+                        fraction = sliderState.value,
+                        height = volHeight,
+                        activeColor = dim
+                    )
                 },
                 thumb = {},
                 modifier = Modifier.width(96.dp).height(32.dp)
@@ -352,6 +317,37 @@ fun MiniPlayer(
                     )
             )
         }
+    }
+}
+
+@Composable
+private fun SliderTrack(
+    fraction: Float,
+    height: Dp,
+    activeColor: Color,
+    widthScale: Float = 1f
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(widthScale)
+            .height(height),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height)
+                .clip(CircleShape)
+                .background(Color(0xFF2a2a2a))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(fraction)
+                .height(height)
+                .clip(CircleShape)
+                .background(activeColor)
+                .align(Alignment.CenterStart)
+        )
     }
 }
 

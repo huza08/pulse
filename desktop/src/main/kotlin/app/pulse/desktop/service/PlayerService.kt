@@ -235,7 +235,9 @@ class PlayerService {
                 loopMode = it.loopMode,
                 currentSong = song,
                 volume = it.volume,
-                isLoading = true
+                isLoading = true,
+                currentPositionMs = it.currentPositionMs,
+                durationMs = it.durationMs
             )
         }
 
