@@ -755,6 +755,7 @@ class PlayerService {
                 val next = s.currentIndex + 1
                 if (next < s.queue.size) {
                     _state.update { it.copy(currentIndex = next) }
+                    maybeSaveQueue()
                     playInternal(s.queue[next])
                 } else {
                     endSong()
@@ -766,6 +767,7 @@ class PlayerService {
             LoopMode.ALL -> {
                 val next = (s.currentIndex + 1) % s.queue.size
                 _state.update { it.copy(currentIndex = next) }
+                maybeSaveQueue()
                 playInternal(s.queue[next])
             }
         }
