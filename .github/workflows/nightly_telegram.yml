@@ -86,7 +86,7 @@ jobs:
 
       - name: Build Nightly APK
         if: steps.check_commits.outputs.run_build == 'true'
-        run: ./gradlew assembleNightly
+        run: ./gradlew assembleNightly --no-configuration-cache
         env:
           ANDROID_NIGHTLY_KEYSTORE: release.jks
           ANDROID_NIGHTLY_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_PASSWORD }}

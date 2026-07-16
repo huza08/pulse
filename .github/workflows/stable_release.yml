@@ -69,7 +69,7 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --no-configuration-cache
         env:
           ANDROID_RELEASE_KEYSTORE: release.jks
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
