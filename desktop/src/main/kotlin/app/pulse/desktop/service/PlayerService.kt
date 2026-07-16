@@ -158,6 +158,7 @@ class PlayerService {
             }
         }
         _state.update { it.copy(currentIndex = nextIdx) }
+        maybeSaveQueue()
         playInternal(s.queue[nextIdx])
     }
 
@@ -177,6 +178,7 @@ class PlayerService {
             LoopMode.NONE -> (s.currentIndex - 1).coerceAtLeast(0)
         }
         _state.update { it.copy(currentIndex = prevIdx) }
+        maybeSaveQueue()
         playInternal(s.queue[prevIdx])
     }
 
@@ -325,7 +327,7 @@ class PlayerService {
 
         if (s.isEnded) {
             log("resume from ended → restart")
-            play(song)
+            playInternal(song)
             return
         }
 
@@ -843,7 +845,6 @@ class PlayerService {
     }
 
     fun dispose() {
-        maybeSaveQueue()
         stop()
         backgroundDownloadJob?.cancel()
         scope.cancel()
