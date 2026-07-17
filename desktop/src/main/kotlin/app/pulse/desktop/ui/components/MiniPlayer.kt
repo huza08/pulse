@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.core.data.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +74,7 @@ fun MiniPlayer(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+        val s = adaptiveScale(maxWidth)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,

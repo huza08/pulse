@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.NetworkImage
 
 @Composable
@@ -56,7 +57,7 @@ fun PlayerScreen(
             .fillMaxSize()
             .background(bg)
     ) {
-        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+        val s = adaptiveScale(maxWidth)
 
         Column(
             modifier = Modifier

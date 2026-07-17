@@ -47,6 +47,7 @@ import app.pulse.core.data.models.Song
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.components.MiniPlayer
+import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
@@ -90,7 +91,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(bg)
     ) {
-        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+        val s = adaptiveScale(maxWidth)
 
         Column(
             modifier = Modifier
