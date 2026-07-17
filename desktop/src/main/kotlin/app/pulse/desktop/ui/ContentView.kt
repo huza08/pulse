@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.screens.home.HomeScreen
+import app.pulse.desktop.ui.screens.search.SearchScreen
 import app.pulse.core.data.models.Song
 import app.pulse.providers.innertube.Innertube
 
@@ -26,7 +27,9 @@ fun ContentView(
             onPlaySong = onPlaySong
         )
 
-        View.Search -> PlaceholderView("Search")
+        View.Search -> SearchScreen(
+            onPlaySong = onPlaySong
+        )
         View.Songs -> PlaceholderView("Songs")
         View.Artists -> PlaceholderView("Artists")
         View.Albums -> PlaceholderView("Albums")
