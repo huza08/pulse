@@ -59,7 +59,10 @@ fun Sidebar(
             .fillMaxHeight()
             .background(SidebarBg)
     ) {
-        // — Header: "Your Library" + actions —
+
+        // currently is a dummy stuff
+        // todo: make it work
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -79,7 +82,6 @@ fun Sidebar(
 
         Spacer(Modifier.height(8.dp))
 
-        // — Filter chips —
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,7 +102,6 @@ fun Sidebar(
 
         Spacer(Modifier.height(8.dp))
 
-        // — Utility row —
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -146,7 +147,6 @@ fun Sidebar(
             )
         }
 
-        // — Library list —
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -161,8 +161,6 @@ fun Sidebar(
         }
     }
 }
-
-// ──────────────── Playlist items ────────────────
 
 @Composable
 private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit) {
@@ -205,7 +203,6 @@ private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit) {
     )
 }
 
-// ──────────────── Artist items ────────────────
 
 @Composable
 private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit) {
@@ -235,7 +232,6 @@ private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit) {
     )
 }
 
-// ──────────────── Shared components ────────────────
 
 @Composable
 private fun HeaderIcon(painter: Painter, desc: String) {
@@ -303,7 +299,6 @@ private fun LibraryItem(
             )
             .padding(horizontal = 8.dp, vertical = 8.dp)
     ) {
-        // Thumbnail
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -318,7 +313,6 @@ private fun LibraryItem(
 
         Spacer(Modifier.width(10.dp))
 
-        // Name + subtitle
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -351,7 +345,6 @@ private fun LibraryItem(
     }
 }
 
-// ──────────────── Liked Songs heart icon ────────────────
 
 @Composable
 private fun LikedSongsIcon() {
