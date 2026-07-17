@@ -19,6 +19,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.components.QueuePanel
 import app.pulse.desktop.ui.screens.home.HomeScreen
 import app.pulse.desktop.ui.screens.player.PlayerScreen
 import app.pulse.providers.innertube.Innertube
@@ -41,6 +42,7 @@ fun main() {
 
         var homePage by remember { mutableStateOf<Result<DiscoverPage>?>(null) }
         var showPlayer by remember { mutableStateOf(false) }
+        var showQueue by remember { mutableStateOf(false) }
 
         Window(
             onCloseRequest = {
@@ -65,7 +67,8 @@ fun main() {
                         player.play(song)
                     },
                     player = player,
-                    onOpenPlayer = { showPlayer = true }
+                    onOpenPlayer = { showPlayer = true },
+                    onToggleQueue = { showQueue = !showQueue }
                 )
 
                 AnimatedVisibility(
@@ -79,6 +82,12 @@ fun main() {
                         onBack = { showPlayer = false }
                     )
                 }
+
+                QueuePanel(
+                    visible = showQueue,
+                    player = player,
+                    onClose = { showQueue = false }
+                )
             }
         }
     }

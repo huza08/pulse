@@ -66,7 +66,8 @@ fun HomeScreen(
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
     onPlaySong: (Song) -> Unit,
     player: PlayerService? = null,
-    onOpenPlayer: () -> Unit = {}
+    onOpenPlayer: () -> Unit = {},
+    onToggleQueue: () -> Unit = {}
 ) {
     var query by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
@@ -281,6 +282,7 @@ fun HomeScreen(
                     player = p,
                     onClick = {},
                     onOpenPlayer = onOpenPlayer,
+                    onToggleQueue = onToggleQueue,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = (16 * s).dp, vertical = (8 * s).dp)

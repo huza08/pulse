@@ -60,6 +60,7 @@ fun MiniPlayer(
     player: PlayerService,
     onClick: () -> Unit,
     onOpenPlayer: () -> Unit = onClick,
+    onToggleQueue: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by player.state.collectAsState()
@@ -293,8 +294,14 @@ fun MiniPlayer(
                 Icon(
                     painter = painterResource("/icons/list.svg"),
                     contentDescription = "Queue",
-                    tint = dim,
-                    modifier = Modifier.size((26 * s).dp)
+                    tint = accent,
+                    modifier = Modifier
+                        .size((26 * s).dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onToggleQueue
+                        )
                 )
                 Spacer(Modifier.width((14 * s).dp))
                 Icon(

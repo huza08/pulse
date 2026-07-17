@@ -196,6 +196,50 @@ class PlayerService {
         maybeSaveQueue()
     }
 
+    fun removeFromQueue(index: Int) {
+        _state.update { s ->
+            if (index < 0 || index >= s.queue.size) return@update s
+            val q = s.queue.toMutableList().apply { removeAt(index) }
+            if (q.isEmpty()) {
+                // last song removed — clear everything
+                return@update s.copy(
+                    queue = emptyList(),
+                    currentIndex = -1,
+                    currentSong = null,
+                    isPlaying = false,
+                    isEnded = true
+                )
+            }
+            // adjust currentIndex when removing before current position
+            val newIdx = when {
+                index < s.currentIndex -> s.currentIndex - 1
+                index == s.currentIndex -> 0.coerceAtMost(q.lastIndex)
+                else -> s.currentIndex
+            }
+            s.copy(queue = q, currentIndex = newIdx, currentSong = q.getOrNull(newIdx))
+        }
+        maybeSaveQueue()
+    }
+
+    fun moveInQueue(from: Int, to: Int) {
+        _state.update { s ->
+            if (from < 0 || from >= s.queue.size || to < 0 || to >= s.queue.size || from == to)
+                return@update s
+            val q = s.queue.toMutableList()
+            val item = q.removeAt(from)
+            q.add(to, item)
+            // adjust currentIndex when moving items
+            val adjIdx = when {
+                s.currentIndex == from -> to
+                from < s.currentIndex && to >= s.currentIndex -> s.currentIndex - 1
+                from > s.currentIndex && to <= s.currentIndex -> s.currentIndex + 1
+                else -> s.currentIndex
+            }
+            s.copy(queue = q, currentIndex = adjIdx)
+        }
+        maybeSaveQueue()
+    }
+
     fun shuffleQueue() {
         _state.update { s ->
             if (s.queue.size <= 1) return@update s
