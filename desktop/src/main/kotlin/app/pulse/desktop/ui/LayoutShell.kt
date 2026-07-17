@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -34,45 +35,48 @@ fun LayoutShell(
 ) {
     val bg = Color(0xFF0a0a0a)
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bg)
     ) {
-        // Top navigation bar
-        TopNavBar(
-            onNavigate = onNavigate
-        )
-
-        Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // Left sidebar
-            Sidebar(
-                activeView = activeView,
+        // Main content — fills full window, touches all edges
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top navigation bar
+            TopNavBar(
                 onNavigate = onNavigate
             )
 
-            // Center content area
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            ) {
-                ContentView(
+            Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                // Left sidebar
+                Sidebar(
                     activeView = activeView,
-                    homePage = homePage,
-                    onPageLoaded = onPageLoaded,
-                    onPlaySong = onPlaySong
+                    onNavigate = onNavigate
+                )
+
+                // Center content area
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    ContentView(
+                        activeView = activeView,
+                        homePage = homePage,
+                        onPageLoaded = onPageLoaded,
+                        onPlaySong = onPlaySong
+                    )
+                }
+
+                // Right context panel
+                ContextPanel(
+                    player = player,
+                    modifier = Modifier.fillMaxHeight()
                 )
             }
-
-            // Right context panel
-            ContextPanel(
-                player = player,
-                modifier = Modifier.fillMaxHeight()
-            )
         }
 
-        // MiniPlayer pinned at bottom
+        // compact miniplayer
         val ps by player.state.collectAsState()
         if (ps.currentSong != null) {
             MiniPlayer(
@@ -81,8 +85,9 @@ fun LayoutShell(
                 onOpenPlayer = onOpenPlayer,
                 onToggleQueue = onToggleQueue,
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(start = 200.dp, end = 321.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 14.dp)
             )
         }
     }
