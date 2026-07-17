@@ -15,8 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.components.ContextPanel
+import app.pulse.desktop.ui.components.MiniPlayer
+import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
 import app.pulse.providers.innertube.Innertube
 
@@ -38,6 +39,11 @@ fun LayoutShell(
             .fillMaxSize()
             .background(bg)
     ) {
+        // Top navigation bar
+        TopNavBar(
+            onNavigate = onNavigate
+        )
+
         Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
             // Left sidebar
             Sidebar(
