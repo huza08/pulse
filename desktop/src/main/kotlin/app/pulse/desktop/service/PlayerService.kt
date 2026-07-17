@@ -475,7 +475,7 @@ class PlayerService {
                     pb.redirectError(ProcessBuilder.Redirect.INHERIT)
                     decodeProcess = pb.start()
                     when (playViaStream(decodeProcess!!.inputStream, false)) {
-                        StreamEnd.COMPLETED -> advanceToNext()
+                        StreamEnd.COMPLETED -> advanceOrStop()
                         StreamEnd.INCOMPLETE_CACHE -> {
                             log("pipeline[$pipelineId] cache was INCOMPLETE, re-downloading")
                             cacheDone.delete()
@@ -508,7 +508,7 @@ class PlayerService {
                     startTeeThread(ytDlp, ffmpeg, cacheFile, videoId, pipelineId, cache = true)
 
                     if (playViaStream(ffmpeg.inputStream, true) == StreamEnd.COMPLETED) {
-                        advanceToNext()
+                        advanceOrStop()
                     }
                     return@launch
                 }
@@ -549,7 +549,7 @@ class PlayerService {
                 startTeeThread(ytLocal, ffLocal, null, videoId, pipelineId, cache = false)
 
                 if (playViaStream(ffLocal.inputStream, false) == StreamEnd.COMPLETED) {
-                    advanceToNext()
+                    advanceOrStop()
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -772,8 +772,6 @@ class PlayerService {
             }
         }
     }
-
-    private fun advanceToNext() = advanceOrStop()
 
     private fun maybeSaveQueue() {
         val s = _state.value

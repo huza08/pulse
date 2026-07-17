@@ -29,6 +29,7 @@ fun SongCard(
     surface: Color,
     text: Color,
     dim: Color,
+    scale: Float = 1f,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -36,27 +37,27 @@ fun SongCard(
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 6.dp)
+            .padding(bottom = (6 * scale).dp)
             .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding((8 * scale).dp)
         ) {
             song.thumbnailUrl?.let { thumb ->
                 NetworkImage(
                     url = thumb,
                     modifier = Modifier
-                        .size(48.dp)
+                        .size((48 * scale).dp)
                         .clip(RoundedCornerShape(6.dp))
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width((12 * scale).dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = 13.sp,
+                    fontSize = (13 * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -65,7 +66,7 @@ fun SongCard(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = 11.sp,
+                        fontSize = (11 * scale).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -75,8 +76,8 @@ fun SongCard(
                 Text(
                     text = dur,
                     color = dim,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(start = 8.dp)
+                    fontSize = (11 * scale).sp,
+                    modifier = Modifier.padding(start = (8 * scale).dp)
                 )
             }
         }

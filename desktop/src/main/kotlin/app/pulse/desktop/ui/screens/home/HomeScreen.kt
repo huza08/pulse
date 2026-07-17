@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -84,29 +85,31 @@ fun HomeScreen(
     val fieldBg = Color(0xFF1a1a1a)
     val fieldBorder = Color(0xFF2a2a2a)
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(bg)
     ) {
+        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 100.dp)
+                .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
         ) {
         Text(
             text = "Pulse",
             color = text,
-            fontSize = 24.sp,
+            fontSize = (24 * s).sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = (12 * s).dp)
         )
 
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text("Search songs...", color = dim, fontSize = 14.sp) },
+            placeholder = { Text("Search songs...", color = dim, fontSize = (14 * s).sp) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
@@ -141,22 +144,22 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height((20 * s).dp))
 
         if (searchResults != null) {
             searchResults?.getOrNull()?.let { itemsPage ->
                 itemsPage?.items?.forEach { songItem ->
                     val song = songItem.toSong()
-                    SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
+                    SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
                 }
             } ?: searchResults?.exceptionOrNull()?.let {
-                Text("Search failed", color = dim, fontSize = 14.sp)
+                Text("Search failed", color = dim, fontSize = (14 * s).sp)
             }
         } else {
             page?.let { p ->
                 if (p.moods.isNotEmpty()) {
-                    SectionTitle("Moods & Genres", text)
-                    Spacer(Modifier.height(12.dp))
+                    SectionTitle("Moods & Genres", text, s)
+                    Spacer(Modifier.height((12 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -169,31 +172,31 @@ fun HomeScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = moodColor),
                                 modifier = Modifier
-                                    .width(140.dp)
-                                    .height(56.dp)
-                                    .padding(end = 8.dp)
+                                    .width((140 * s).dp)
+                                    .height((56 * s).dp)
+                                    .padding(end = (8 * s).dp)
                                     .clickable { }
                             ) {
                                 Box(
                                     contentAlignment = Alignment.CenterStart,
-                                    modifier = Modifier.padding(start = 16.dp)
+                                    modifier = Modifier.padding(start = (16 * s).dp)
                                 ) {
                                     Text(
                                         text = mood.title,
                                         color = moodTextColor,
-                                        fontSize = 13.sp,
+                                        fontSize = (13 * s).sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height((28 * s).dp))
                 }
 
                 if (p.newReleaseAlbums.isNotEmpty()) {
-                    SectionTitle("New Releases", text)
-                    Spacer(Modifier.height(12.dp))
+                    SectionTitle("New Releases", text, s)
+                    Spacer(Modifier.height((12 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -204,8 +207,8 @@ fun HomeScreen(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(containerColor = surface),
                                 modifier = Modifier
-                                    .width(160.dp)
-                                    .padding(end = 12.dp)
+                                    .width((160 * s).dp)
+                                    .padding(end = (12 * s).dp)
                                     .clickable { }
                             ) {
                                 Column {
@@ -223,11 +226,11 @@ fun HomeScreen(
                                             )
                                         }
                                     }
-                                    Column(modifier = Modifier.padding(10.dp)) {
+                                    Column(modifier = Modifier.padding((10 * s).dp)) {
                                         Text(
                                             text = album.info?.name ?: "Untitled",
                                             color = text,
-                                            fontSize = 12.sp,
+                                            fontSize = (12 * s).sp,
                                             fontWeight = FontWeight.Medium,
                                             maxLines = 2,
                                             overflow = TextOverflow.Ellipsis
@@ -236,7 +239,7 @@ fun HomeScreen(
                                             Text(
                                                 text = author.name ?: "",
                                                 color = dim,
-                                                fontSize = 10.sp,
+                                                fontSize = (10 * s).sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
@@ -246,24 +249,24 @@ fun HomeScreen(
                             }
                         }
                     }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height((28 * s).dp))
                 }
 
                 if (p.trending.songs.isNotEmpty()) {
-                    SectionTitle("Trending", text)
-                    Spacer(Modifier.height(12.dp))
+                    SectionTitle("Trending", text, s)
+                    Spacer(Modifier.height((12 * s).dp))
                     p.trending.songs.take(15).forEach { songItem ->
                         val song = songItem.toSong()
-                        SongCard(song = song, surface = surface, text = text, dim = dim, onClick = { onPlaySong(song) })
+                        SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
                     }
                 }
             } ?: run {
                 // Shimmer skeletons while page loads
-                MoodsSkeleton()
-                Spacer(Modifier.height(28.dp))
-                NewReleasesSkeleton()
-                Spacer(Modifier.height(28.dp))
-                TrendingSkeleton()
+                MoodsSkeleton(scale = s)
+                Spacer(Modifier.height((28 * s).dp))
+                NewReleasesSkeleton(scale = s)
+                Spacer(Modifier.height((28 * s).dp))
+                TrendingSkeleton(scale = s)
             }
         }
 
@@ -279,7 +282,7 @@ fun HomeScreen(
                     onOpenPlayer = onOpenPlayer,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = (16 * s).dp, vertical = (8 * s).dp)
                 )
             }
         }
@@ -287,11 +290,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun SectionTitle(title: String, color: Color) {
+private fun SectionTitle(title: String, color: Color, scale: Float = 1f) {
     Text(
         text = title,
         color = color,
-        fontSize = 18.sp,
+        fontSize = (18 * scale).sp,
         fontWeight = FontWeight.SemiBold
     )
 }

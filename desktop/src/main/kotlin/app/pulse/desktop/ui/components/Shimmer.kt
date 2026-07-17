@@ -74,17 +74,17 @@ fun ShimmerRounded(
 }
 
 @Composable
-fun MoodsSkeleton() {
+fun MoodsSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = 160, height = 18, radius = 4)
-        Spacer(Modifier.height(12.dp))
+        ShimmerRounded(width = (160 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
+        Spacer(Modifier.height((12 * scale).dp))
         Row {
             repeat(4) {
                 ShimmerBox(
                     modifier = Modifier
-                        .width(140.dp)
-                        .height(56.dp)
-                        .padding(end = 8.dp)
+                        .width((140 * scale).dp)
+                        .height((56 * scale).dp)
+                        .padding(end = (8 * scale).dp)
                         .clip(RoundedCornerShape(12.dp))
                 )
             }
@@ -93,16 +93,16 @@ fun MoodsSkeleton() {
 }
 
 @Composable
-fun NewReleasesSkeleton() {
+fun NewReleasesSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = 140, height = 18, radius = 4)
-        Spacer(Modifier.height(12.dp))
+        ShimmerRounded(width = (140 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
+        Spacer(Modifier.height((12 * scale).dp))
         Row {
             repeat(4) {
                 Column(
                     modifier = Modifier
-                        .width(160.dp)
-                        .padding(end = 12.dp)
+                        .width((160 * scale).dp)
+                        .padding(end = (12 * scale).dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
@@ -110,10 +110,10 @@ fun NewReleasesSkeleton() {
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(8.dp))
                     )
-                    Spacer(Modifier.height(8.dp))
-                    ShimmerRounded(width = 120, height = 12, radius = 3)
-                    Spacer(Modifier.height(4.dp))
-                    ShimmerRounded(width = 80, height = 10, radius = 3)
+                    Spacer(Modifier.height((8 * scale).dp))
+                    ShimmerRounded(width = (120 * scale).toInt(), height = (12 * scale).toInt(), radius = 3)
+                    Spacer(Modifier.height((4 * scale).dp))
+                    ShimmerRounded(width = (80 * scale).toInt(), height = (10 * scale).toInt(), radius = 3)
                 }
             }
         }
@@ -121,30 +121,30 @@ fun NewReleasesSkeleton() {
 }
 
 @Composable
-fun TrendingSkeleton() {
+fun TrendingSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = 120, height = 18, radius = 4)
-        Spacer(Modifier.height(12.dp))
+        ShimmerRounded(width = (120 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
+        Spacer(Modifier.height((12 * scale).dp))
         repeat(6) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 6.dp)
+                    .padding(bottom = (6 * scale).dp)
             ) {
                 ShimmerBox(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size((48 * scale).dp)
                         .clip(RoundedCornerShape(6.dp))
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width((12 * scale).dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    ShimmerRounded(width = 180, height = 13, radius = 3)
-                    Spacer(Modifier.height(6.dp))
-                    ShimmerRounded(width = 100, height = 11, radius = 3)
+                    ShimmerRounded(width = (180 * scale).toInt(), height = (13 * scale).toInt(), radius = 3)
+                    Spacer(Modifier.height((6 * scale).dp))
+                    ShimmerRounded(width = (100 * scale).toInt(), height = (11 * scale).toInt(), radius = 3)
                 }
-                Spacer(Modifier.width(8.dp))
-                ShimmerRounded(width = 32, height = 11, radius = 3)
+                Spacer(Modifier.width((8 * scale).dp))
+                ShimmerRounded(width = (32 * scale).toInt(), height = (11 * scale).toInt(), radius = 3)
             }
         }
     }

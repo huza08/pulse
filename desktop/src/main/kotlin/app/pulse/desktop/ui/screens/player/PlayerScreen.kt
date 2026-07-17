@@ -3,6 +3,7 @@ package app.pulse.desktop.ui.screens.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,149 +51,149 @@ fun PlayerScreen(
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
-    Column(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(bg)
-            .padding(32.dp)
     ) {
-        // Top bar: back + now playing label
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding((32 * s).dp)
         ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(32.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("←", color = text, fontSize = 18.sp)
-            }
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = "Now Playing",
-                color = dim,
-                fontSize = 14.sp
-            )
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        if (state.currentSong == null) {
-            // Nothing playing
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size((32 * s).dp)
+                ) {
+                    Text("\u2190", color = text, fontSize = (18 * s).sp)
+                }
+                Spacer(Modifier.width((8 * s).dp))
                 Text(
-                    text = "No song selected",
+                    text = "Now Playing",
                     color = dim,
-                    fontSize = 16.sp
+                    fontSize = (14 * s).sp
                 )
             }
-            return
-        }
 
-        val song = state.currentSong!!
+            Spacer(Modifier.height((24 * s).dp))
 
-        // main
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = surface),
-                modifier = Modifier
-                    .fillMaxHeight(0.6f)
-                    .sizeIn(maxWidth = 400.dp, maxHeight = 400.dp)
-                    .aspectRatio(1f)
-            ) {
+            val song = state.currentSong
+
+            if (song == null) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = "No song selected",
+                        color = dim,
+                        fontSize = (16 * s).sp
+                    )
+                }
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = surface),
+                    modifier = Modifier
+                        .fillMaxHeight(0.6f)
+                        .sizeIn(maxWidth = (400 * s).dp, maxHeight = (400 * s).dp)
+                        .aspectRatio(1f)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        song.thumbnailUrl?.let { thumb ->
+                            NetworkImage(
+                                url = thumb,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(16.dp))
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height((28 * s).dp))
+
+                Text(
+                    text = song.title,
+                    color = text,
+                    fontSize = (20 * s).sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .widthIn(max = (420 * s).dp)
+                )
+
+                Spacer(Modifier.height((6 * s).dp))
+
+                song.artistsText?.let { author ->
+                    Text(
+                        text = author,
+                        color = dim,
+                        fontSize = (14 * s).sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(Modifier.height((32 * s).dp))
+
+                Controls(
+                    player = player,
+                    accent = text,
+                    text = text,
+                    dim = dim,
+                    scale = s,
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .widthIn(max = (500 * s).dp)
+                )
+                }
+            }
+
+            if (state.isLoading) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    song.thumbnailUrl?.let { thumb ->
-                        NetworkImage(
-                            url = thumb,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(16.dp))
-                        )
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier.size((40 * s).dp),
+                        color = text,
+                        strokeWidth = (4 * s).dp
+                    )
                 }
             }
 
-            Spacer(Modifier.height(28.dp))
-
-            // Song title
-            Text(
-                text = song.title,
-                color = text,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .widthIn(max = 420.dp)
-            )
-
-            Spacer(Modifier.height(6.dp))
-
-            // Artist
-            song.artistsText?.let { author ->
+            state.error?.let { errorMsg ->
+                Spacer(Modifier.height((8 * s).dp))
                 Text(
-                    text = author,
-                    color = dim,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    text = "Error: $errorMsg",
+                    color = Color(0xFFe74c3c),
+                    fontSize = (12 * s).sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            Spacer(Modifier.height(32.dp))
-
-            // Controls (seek bar, play/pause, volume)
-            Controls(
-                player = player,
-                accent = text,
-                text = text,
-                dim = dim,
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .widthIn(max = 500.dp)
-            )
-        }
-
-        // Loading overlay
-        if (state.isLoading) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(40.dp),
-                    color = text,
-                    strokeWidth = 4.dp
-                )
-            }
-        }
-
-        state.error?.let { errorMsg ->
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = "Error: $errorMsg",
-                color = Color(0xFFe74c3c),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

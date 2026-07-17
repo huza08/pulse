@@ -41,6 +41,7 @@ fun Controls(
     accent: Color,
     text: Color,
     dim: Color,
+    scale: Float = 1f,
     modifier: Modifier = Modifier
 ) {
     val state by player.state.collectAsState()
@@ -57,8 +58,8 @@ fun Controls(
             Text(
                 text = formatDuration(state.currentPositionMs),
                 color = dim,
-                fontSize = 11.sp,
-                modifier = Modifier.width(48.dp)
+                fontSize = (11 * scale).sp,
+                modifier = Modifier.width((48 * scale).dp)
             )
 
             var isDragging by remember { mutableStateOf(false) }
@@ -83,18 +84,18 @@ fun Controls(
                     activeTrackColor = accent,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.weight(1f).height(4.dp)
+                modifier = Modifier.weight(1f).height((4 * scale).dp)
             )
 
             Text(
                 text = formatDuration(state.durationMs),
                 color = dim,
-                fontSize = 11.sp,
-                modifier = Modifier.width(48.dp)
+                fontSize = (11 * scale).sp,
+                modifier = Modifier.width((48 * scale).dp)
             )
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height((12 * scale).dp))
 
         // Playback buttons
         Row(
@@ -119,10 +120,11 @@ fun Controls(
                 onClick = { player.cycleLoopMode() },
                 contentDescription = "Repeat",
                 tint = text.copy(alpha = loopAlpha),
-                size = 18
+                size = 18,
+                scale = scale
             )
 
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width((16 * scale).dp))
 
             // Prev song
             MediaIconButton(
@@ -130,21 +132,22 @@ fun Controls(
                 onClick = { player.playPrevious() },
                 contentDescription = "Previous",
                 tint = text,
-                size = 22
+                size = 22,
+                scale = scale
             )
 
-            Spacer(Modifier.width(44.dp))
+            Spacer(Modifier.width((44 * scale).dp))
 
             // Play/Pause
             if (state.isLoading) {
                 Box(
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size((56 * scale).dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size((28 * scale).dp),
                         color = text,
-                        strokeWidth = 3.dp
+                        strokeWidth = (3 * scale).dp
                     )
                 }
             } else {
@@ -156,11 +159,12 @@ fun Controls(
                     contentDescription = if (state.isPlaying) "Pause" else "Play",
                     tint = text,
                     size = 32,
-                    isMain = true
+                    isMain = true,
+                    scale = scale
                 )
             }
 
-            Spacer(Modifier.width(44.dp))
+            Spacer(Modifier.width((44 * scale).dp))
 
             // Next song
             MediaIconButton(
@@ -168,13 +172,14 @@ fun Controls(
                 onClick = { player.playNext() },
                 contentDescription = "Next",
                 tint = text,
-                size = 22
+                size = 22,
+                scale = scale
             )
 
             Spacer(Modifier.weight(1f))
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height((16 * scale).dp))
 
         // Volume
         Row(
@@ -185,9 +190,9 @@ fun Controls(
                 painter = painterResource("/icons/volume_up.svg"),
                 contentDescription = "Volume",
                 tint = dim,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size((14 * scale).dp)
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width((8 * scale).dp))
 
             var volume by remember { mutableFloatStateOf(state.volume) }
             Slider(
@@ -214,10 +219,11 @@ private fun MediaIconButton(
     contentDescription: String,
     tint: Color,
     size: Int,
-    isMain: Boolean = false
+    isMain: Boolean = false,
+    scale: Float = 1f
 ) {
-    val btnSize = if (isMain) 56.dp else 40.dp
-    val iconSize = (if (isMain) 28 else size).dp
+    val btnSize = ((if (isMain) 56 else 40) * scale).dp
+    val iconSize = ((if (isMain) 28 else size) * scale).dp
 
     IconButton(
         onClick = onClick,

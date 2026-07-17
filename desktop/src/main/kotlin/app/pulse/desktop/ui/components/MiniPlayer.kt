@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -68,272 +69,278 @@ fun MiniPlayer(
     val dim = Color(0xFFa8a39a)
     val accent = Color(0xFFf2f0eb)
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(110.dp)
-            .shadow(12.dp, RoundedCornerShape(55.dp))
-            .background(bg, RoundedCornerShape(55.dp))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
-            .padding(horizontal = 24.dp)
     ) {
-        // left track info
+        val s = (maxWidth.value / 960f).coerceIn(0.8f, 2f)
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.widthIn(max = 320.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF141414))
-            ) {
-                song.thumbnailUrl?.let { thumb ->
-                    NetworkImage(url = thumb, modifier = Modifier.size(80.dp))
-                }
-            }
-            Spacer(Modifier.width(20.dp))
-            Column(verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = song.title,
-                    color = text,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+            modifier = Modifier
+                .fillMaxWidth()
+                .height((110 * s).dp)
+                .shadow(12.dp, RoundedCornerShape(55.dp))
+                .background(bg, RoundedCornerShape(55.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick
                 )
-                song.artistsText?.let { author ->
+                .padding(horizontal = (24 * s).dp)
+        ) {
+            // left track info
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.widthIn(max = (320 * s).dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size((80 * s).dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF141414))
+                ) {
+                    song.thumbnailUrl?.let { thumb ->
+                        NetworkImage(url = thumb, modifier = Modifier.size((80 * s).dp))
+                    }
+                }
+                Spacer(Modifier.width((20 * s).dp))
+                Column(verticalArrangement = Arrangement.Center) {
                     Text(
-                        text = author,
-                        color = dim,
-                        fontSize = 14.sp,
+                        text = song.title,
+                        color = text,
+                        fontSize = (18 * s).sp,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
-            }
-        }
-
-        // center controls + seekbar
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy((-8).dp, Alignment.CenterVertically),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 0.dp)
-            ) {
-                Icon(
-                    painter = painterResource("/icons/shuffle.svg"),
-                    contentDescription = "Shuffle",
-                    tint = dim,
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(Modifier.width(16.dp))
-
-                IconButton16(
-                    painter = painterResource("/icons/play_skip_back.svg"),
-                    desc = "Previous",
-                    tint = text,
-                    size = 32.dp,
-                    onClick = { player.playPrevious() }
-                )
-                Spacer(Modifier.width(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            if (!state.isLoading) {
-                                if (state.isPlaying) player.pause() else player.resume()
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            color = accent,
-                            strokeWidth = 3.dp
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(
-                                if (state.isPlaying) "/icons/pause.svg" else "/icons/play.svg"
-                            ),
-                            contentDescription = if (state.isPlaying) "Pause" else "Play",
-                            tint = Color(0xFFFFFFFF),
-                            modifier = Modifier.size(32.dp)
+                    song.artistsText?.let { author ->
+                        Text(
+                            text = author,
+                            color = dim,
+                            fontSize = (14 * s).sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-                Spacer(Modifier.width(8.dp))
-
-                IconButton16(
-                    painter = painterResource("/icons/play_skip_forward.svg"),
-                    desc = "Next",
-                    tint = text,
-                    size = 32.dp,
-                    onClick = { player.playNext() }
-                )
-                Spacer(Modifier.width(16.dp))
-
-                Icon(
-                    painter = painterResource(
-                        when (state.loopMode) {
-                            LoopMode.ONE -> "/icons/repeat_on.svg"
-                            else -> "/icons/repeat.svg"
-                        }
-                    ),
-                    contentDescription = "Repeat",
-                    tint = when (state.loopMode) {
-                        LoopMode.NONE -> dim.copy(alpha = 0.4f)
-                        LoopMode.ONE, LoopMode.ALL -> accent
-                    },
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { player.cycleLoopMode() }
-                        )
-                )
             }
 
-            // seekbar row
+            // center controls + seekbar
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy((-8 * s).dp, Alignment.CenterVertically),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 0.dp)
+                ) {
+                    Icon(
+                        painter = painterResource("/icons/shuffle.svg"),
+                        contentDescription = "Shuffle",
+                        tint = dim,
+                        modifier = Modifier.size((22 * s).dp)
+                    )
+                    Spacer(Modifier.width((16 * s).dp))
+
+                    IconButton16(
+                        painter = painterResource("/icons/play_skip_back.svg"),
+                        desc = "Previous",
+                        tint = text,
+                        size = (32 * s).dp,
+                        onClick = { player.playPrevious() }
+                    )
+                    Spacer(Modifier.width((8 * s).dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size((60 * s).dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                if (!state.isLoading) {
+                                    if (state.isPlaying) player.pause() else player.resume()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size((32 * s).dp),
+                                color = accent,
+                                strokeWidth = (3 * s).dp
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(
+                                    if (state.isPlaying) "/icons/pause.svg" else "/icons/play.svg"
+                                ),
+                                contentDescription = if (state.isPlaying) "Pause" else "Play",
+                                tint = Color(0xFFFFFFFF),
+                                modifier = Modifier.size((32 * s).dp)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width((8 * s).dp))
+
+                    IconButton16(
+                        painter = painterResource("/icons/play_skip_forward.svg"),
+                        desc = "Next",
+                        tint = text,
+                        size = (32 * s).dp,
+                        onClick = { player.playNext() }
+                    )
+                    Spacer(Modifier.width((16 * s).dp))
+
+                    Icon(
+                        painter = painterResource(
+                            when (state.loopMode) {
+                                LoopMode.ONE -> "/icons/repeat_on.svg"
+                                else -> "/icons/repeat.svg"
+                            }
+                        ),
+                        contentDescription = "Repeat",
+                        tint = when (state.loopMode) {
+                            LoopMode.NONE -> dim.copy(alpha = 0.4f)
+                            LoopMode.ONE, LoopMode.ALL -> accent
+                        },
+                        modifier = Modifier
+                            .size((20 * s).dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { player.cycleLoopMode() }
+                            )
+                    )
+                }
+
+                // seekbar row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.width((560 * s).dp)
+                ) {
+                    Text(
+                        text = formatDuration(state.currentPositionMs),
+                        color = dim,
+                        fontSize = (11 * s).sp,
+                        modifier = Modifier.width((34 * s).dp)
+                    )
+                    val seekInteractionSource = remember { MutableInteractionSource() }
+                    val isSeekHovered by seekInteractionSource.collectIsHoveredAsState()
+                    val isSeekPressed by seekInteractionSource.collectIsPressedAsState()
+                    val isSeekDragged by seekInteractionSource.collectIsDraggedAsState()
+                    val isSeekActive = isSeekHovered || isSeekPressed || isSeekDragged
+                    val seekHeight by animateDpAsState(if (isSeekActive) (12 * s).dp else (6 * s).dp)
+                    val seekWidthScale by animateFloatAsState(if (isSeekActive) 1.02f else 1f)
+
+                    var isDragging by remember { mutableStateOf(false) }
+                    var dragFraction by remember { mutableFloatStateOf(0f) }
+
+                    val displayFraction = if (isDragging) dragFraction
+                    else if (state.durationMs > 0)
+                        (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
+                    else 0f
+
+                    Slider(
+                        value = displayFraction,
+                        onValueChange = { fraction ->
+                            isDragging = true
+                            dragFraction = fraction
+                        },
+                        onValueChangeFinished = {
+                            isDragging = false
+                            player.seek((dragFraction * state.durationMs).toLong())
+                        },
+                        interactionSource = seekInteractionSource,
+                        track = { sliderState ->
+                            SliderTrack(
+                                fraction = sliderState.value,
+                                height = seekHeight,
+                                activeColor = accent,
+                                widthScale = seekWidthScale
+                            )
+                        },
+                        thumb = {},
+                        modifier = Modifier.weight(1f).height((32 * s).dp)
+                    )
+                    Text(
+                        text = formatDuration(state.durationMs),
+                        color = dim,
+                        fontSize = (11 * s).sp,
+                        modifier = Modifier.width((34 * s).dp)
+                    )
+                }
+            }
+
+            // right volume
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.width(560.dp)
+                modifier = Modifier.widthIn(max = (320 * s).dp)
             ) {
-                Text(
-                    text = formatDuration(state.currentPositionMs),
-                    color = dim,
-                    fontSize = 11.sp,
-                    modifier = Modifier.width(34.dp)
+                Spacer(Modifier.width((14 * s).dp))
+                Icon(
+                    painter = painterResource("/icons/lyrics.svg"),
+                    contentDescription = "Lyrics",
+                    tint = dim,
+                    modifier = Modifier.size((26 * s).dp)
                 )
-                val seekInteractionSource = remember { MutableInteractionSource() }
-                val isSeekHovered by seekInteractionSource.collectIsHoveredAsState()
-                val isSeekPressed by seekInteractionSource.collectIsPressedAsState()
-                val isSeekDragged by seekInteractionSource.collectIsDraggedAsState()
-                val isSeekActive = isSeekHovered || isSeekPressed || isSeekDragged
-                val seekHeight by animateDpAsState(if (isSeekActive) 12.dp else 6.dp)
-                val seekWidthScale by animateFloatAsState(if (isSeekActive) 1.02f else 1f)
+                Spacer(Modifier.width((14 * s).dp))
+                Icon(
+                    painter = painterResource("/icons/list.svg"),
+                    contentDescription = "Queue",
+                    tint = dim,
+                    modifier = Modifier.size((26 * s).dp)
+                )
+                Spacer(Modifier.width((14 * s).dp))
+                Icon(
+                    painter = painterResource(
+                        if (state.volume <= 0f) "/icons/volume_muted.svg" else "/icons/volume_up.svg"
+                    ),
+                    contentDescription = "Volume",
+                    tint = dim,
+                    modifier = Modifier.size((26 * s).dp)
+                )
+                Spacer(Modifier.width((12 * s).dp))
 
-                var isDragging by remember { mutableStateOf(false) }
-                var dragFraction by remember { mutableFloatStateOf(0f) }
-
-                val displayFraction = if (isDragging) dragFraction
-                else if (state.durationMs > 0)
-                    (state.currentPositionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
-                else 0f
+                val volInteractionSource = remember { MutableInteractionSource() }
+                val isVolHovered by volInteractionSource.collectIsHoveredAsState()
+                val isVolPressed by volInteractionSource.collectIsPressedAsState()
+                val isVolDragged by volInteractionSource.collectIsDraggedAsState()
+                val isVolActive = isVolHovered || isVolPressed || isVolDragged
+                val volHeight by animateDpAsState(if (isVolActive) (12 * s).dp else (6 * s).dp)
 
                 Slider(
-                    value = displayFraction,
-                    onValueChange = { fraction ->
-                        isDragging = true
-                        dragFraction = fraction
-                    },
-                    onValueChangeFinished = {
-                        isDragging = false
-                        player.seek((dragFraction * state.durationMs).toLong())
-                    },
-                    interactionSource = seekInteractionSource,
+                    value = state.volume,
+                    onValueChange = { player.setVolume(it) },
+                    interactionSource = volInteractionSource,
                     track = { sliderState ->
                         SliderTrack(
                             fraction = sliderState.value,
-                            height = seekHeight,
-                            activeColor = accent,
-                            widthScale = seekWidthScale
+                            height = volHeight,
+                            activeColor = dim
                         )
                     },
                     thumb = {},
-                    modifier = Modifier.weight(1f).height(32.dp)
+                    modifier = Modifier.width((96 * s).dp).height((32 * s).dp)
                 )
-                Text(
-                    text = formatDuration(state.durationMs),
-                    color = dim,
-                    fontSize = 11.sp,
-                    modifier = Modifier.width(34.dp)
+                Spacer(Modifier.width((14 * s).dp))
+                Icon(
+                    painter = painterResource("/icons/expand.svg"),
+                    contentDescription = "Fullscreen",
+                    tint = text,
+                    modifier = Modifier
+                        .size((26 * s).dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onOpenPlayer
+                        )
                 )
             }
-        }
-
-        // right volume
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.widthIn(max = 320.dp)
-        ) {
-
-            Spacer(Modifier.width(14.dp))
-            Icon(
-                painter = painterResource("/icons/lyrics.svg"),
-                contentDescription = "Lyrics",
-                tint = dim,
-                modifier = Modifier.size(26.dp)
-            )
-            Spacer(Modifier.width(14.dp))
-            Icon(
-                painter = painterResource("/icons/list.svg"),
-                contentDescription = "Queue",
-                tint = dim,
-                modifier = Modifier.size(26.dp)
-            )
-            Spacer(Modifier.width(14.dp))
-            Icon(
-                painter = painterResource(
-                    if (state.volume <= 0f) "/icons/volume_muted.svg" else "/icons/volume_up.svg"
-                ),
-                contentDescription = "Volume",
-                tint = dim,
-                modifier = Modifier.size(26.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-
-            val volInteractionSource = remember { MutableInteractionSource() }
-            val isVolHovered by volInteractionSource.collectIsHoveredAsState()
-            val isVolPressed by volInteractionSource.collectIsPressedAsState()
-            val isVolDragged by volInteractionSource.collectIsDraggedAsState()
-            val isVolActive = isVolHovered || isVolPressed || isVolDragged
-            val volHeight by animateDpAsState(if (isVolActive) 12.dp else 6.dp)
-
-            Slider(
-                value = state.volume,
-                onValueChange = { player.setVolume(it) },
-                interactionSource = volInteractionSource,
-                track = { sliderState ->
-                    SliderTrack(
-                        fraction = sliderState.value,
-                        height = volHeight,
-                        activeColor = dim
-                    )
-                },
-                thumb = {},
-                modifier = Modifier.width(96.dp).height(32.dp)
-            )
-            Spacer(Modifier.width(14.dp))
-            Icon(
-                painter = painterResource("/icons/expand.svg"),
-                contentDescription = "Fullscreen",
-                tint = text,
-                modifier = Modifier
-                    .size(26.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onOpenPlayer
-                    )
-            )
         }
     }
 }
