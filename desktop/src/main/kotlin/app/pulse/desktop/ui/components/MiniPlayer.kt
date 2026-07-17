@@ -80,7 +80,7 @@ fun MiniPlayer(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .height((110 * s).dp)
+                .height((90 * s).dp)
                 .shadow(12.dp, RoundedCornerShape(55.dp))
                 .background(bg, RoundedCornerShape(55.dp))
                 .clickable(
