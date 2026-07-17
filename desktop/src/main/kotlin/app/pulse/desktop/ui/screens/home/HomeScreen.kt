@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.core.data.utils.toSong
-import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
@@ -64,10 +61,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     page: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
-    onPlaySong: (Song) -> Unit,
-    player: PlayerService? = null,
-    onOpenPlayer: () -> Unit = {},
-    onToggleQueue: () -> Unit = {}
+    onPlaySong: (Song) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
@@ -274,21 +268,6 @@ fun HomeScreen(
 
         }
 
-        // MiniPlayer
-        player?.let { p ->
-            val ps by p.state.collectAsState()
-            if (ps.currentSong != null) {
-                MiniPlayer(
-                    player = p,
-                    onClick = {},
-                    onOpenPlayer = onOpenPlayer,
-                    onToggleQueue = onToggleQueue,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = (16 * s).dp, vertical = (8 * s).dp)
-                )
-            }
-        }
     }
 }
 

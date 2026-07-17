@@ -3,7 +3,6 @@ package app.pulse.desktop
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
@@ -13,12 +12,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.LayoutShell
 import app.pulse.desktop.ui.components.QueuePanel
 import app.pulse.desktop.ui.screens.home.HomeScreen
 import app.pulse.desktop.ui.screens.player.PlayerScreen
@@ -58,36 +57,38 @@ fun main() {
             // lemme know pls if someone knows how to fix this
             window.background = java.awt.Color(10, 10, 10)
 
-            val backgroundColor = Color(0xFF0a0a0a)
-            Box(Modifier.fillMaxSize().background(backgroundColor)) {
-                HomeScreen(
-                    page = homePage?.getOrNull(),
-                    onPageLoaded = { homePage = it },
-                    onPlaySong = { song ->
-                        player.play(song)
-                    },
-                    player = player,
-                    onOpenPlayer = { showPlayer = true },
-                    onToggleQueue = { showQueue = !showQueue }
-                )
+            LayoutShell(
+                player = player,
+                onOpenPlayer = { showPlayer = true },
+                onToggleQueue = { showQueue = !showQueue }
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    HomeScreen(
+                        page = homePage?.getOrNull(),
+                        onPageLoaded = { homePage = it },
+                        onPlaySong = { song ->
+                            player.play(song)
+                        }
+                    )
 
-                AnimatedVisibility(
-                    visible = showPlayer,
-                    enter = slideInHorizontally { it },
-                    exit = slideOutHorizontally { it },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    PlayerScreen(
+                    AnimatedVisibility(
+                        visible = showPlayer,
+                        enter = slideInHorizontally { it },
+                        exit = slideOutHorizontally { it },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        PlayerScreen(
+                            player = player,
+                            onBack = { showPlayer = false }
+                        )
+                    }
+
+                    QueuePanel(
+                        visible = showQueue,
                         player = player,
-                        onBack = { showPlayer = false }
+                        onClose = { showQueue = false }
                     )
                 }
-
-                QueuePanel(
-                    visible = showQueue,
-                    player = player,
-                    onClose = { showQueue = false }
-                )
             }
         }
     }
