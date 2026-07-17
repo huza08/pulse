@@ -66,7 +66,7 @@ fun main() {
                 onPlaySong = { song -> player.play(song) },
                 player = player,
                 onOpenPlayer = { showPlayer = true },
-                onToggleQueue = { showQueue = !showQueue }
+                onToggleQueue = { showQueue = !showQueue },
             )
 
             // Player screen overlay (on top of layout shell)

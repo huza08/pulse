@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.components.MiniPlayer
+import app.pulse.desktop.ui.components.ContextPanel
 import app.pulse.core.data.models.Song
 import app.pulse.providers.innertube.Innertube
 
@@ -57,6 +58,12 @@ fun LayoutShell(
                     onPlaySong = onPlaySong
                 )
             }
+
+            // Right context panel
+            ContextPanel(
+                player = player,
+                modifier = Modifier.fillMaxHeight()
+            )
         }
 
         // MiniPlayer pinned at bottom
@@ -69,7 +76,7 @@ fun LayoutShell(
                 onToggleQueue = onToggleQueue,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 200.dp) // offset for sidebar width
+                    .padding(start = 200.dp, end = 321.dp)
             )
         }
     }

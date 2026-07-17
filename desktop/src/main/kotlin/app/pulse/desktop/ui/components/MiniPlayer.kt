@@ -286,7 +286,7 @@ fun MiniPlayer(
                 Spacer(Modifier.width((14 * s).dp))
                 Icon(
                     painter = painterResource("/icons/lyrics.svg"),
-                    contentDescription = "Lyrics",
+                    contentDescription = "Now Playing",
                     tint = dim,
                     modifier = Modifier.size((26 * s).dp)
                 )
