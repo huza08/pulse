@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,13 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
 
 @Composable
 fun TopNavBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
     onNavigate: (View) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -35,6 +43,8 @@ fun TopNavBar(
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFF686868)
     val surface = Color(0xFF1e1e1e)
+    val fieldText = Color(0xFFe0ddd7)
+    val fieldPlaceholder = Color(0xFF686868)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -67,41 +77,51 @@ fun TopNavBar(
 
         Spacer(Modifier.width(24.dp))
 
-        // Center: search pill
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        // searchbar
+        OutlinedTextField(
+            value = query,
+            onValueChange = { onQueryChange(it) },
+            placeholder = {
+                Text(
+                    text = "What do you want to play?",
+                    color = fieldPlaceholder,
+                    fontSize = 14.sp
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource("/icons/search.svg"),
+                    contentDescription = "Search",
+                    tint = dim,
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            singleLine = true,
+            textStyle = TextStyle(color = fieldText, fontSize = 14.sp),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = { onNavigate(View.Search) }
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = fieldText,
+                unfocusedTextColor = fieldText,
+                cursorColor = text,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedContainerColor = surface,
+                unfocusedContainerColor = surface
+            ),
+            shape = RoundedCornerShape(20.dp),
             modifier = Modifier
                 .weight(1f)
-                .height(40.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(surface)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = { onNavigate(View.Search) }
-                )
-                .padding(horizontal = 12.dp)
-        ) {
-            Icon(
-                painter = painterResource("/icons/search.svg"),
-                contentDescription = "Search",
-                tint = dim,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = "What do you want to play?",
-                color = dim,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
+        )
 
         Spacer(Modifier.width(16.dp))
 
-        // Right: profile icon
+        // dummy for now
         Icon(
             painter = painterResource("/icons/person.svg"),
             contentDescription = "Profile",

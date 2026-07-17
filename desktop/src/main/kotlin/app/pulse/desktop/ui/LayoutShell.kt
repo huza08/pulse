@@ -26,6 +26,8 @@ import app.pulse.providers.innertube.Innertube
 fun LayoutShell(
     activeView: View,
     onNavigate: (View) -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     homePage: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
     onPlaySong: (Song) -> Unit,
@@ -44,6 +46,8 @@ fun LayoutShell(
         Column(modifier = Modifier.fillMaxSize()) {
             // Top navigation bar
             TopNavBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
                 onNavigate = onNavigate
             )
 
@@ -62,6 +66,7 @@ fun LayoutShell(
                 ) {
                     ContentView(
                         activeView = activeView,
+                        searchQuery = searchQuery,
                         homePage = homePage,
                         onPageLoaded = onPageLoaded,
                         onPlaySong = onPlaySong

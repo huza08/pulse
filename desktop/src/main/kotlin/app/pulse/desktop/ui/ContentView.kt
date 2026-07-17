@@ -16,6 +16,7 @@ import app.pulse.providers.innertube.Innertube
 @Composable
 fun ContentView(
     activeView: View,
+    searchQuery: String,
     homePage: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
     onPlaySong: (Song) -> Unit
@@ -28,6 +29,7 @@ fun ContentView(
         )
 
         View.Search -> SearchScreen(
+            query = searchQuery,
             onPlaySong = onPlaySong
         )
         View.Songs -> PlaceholderView("Songs")

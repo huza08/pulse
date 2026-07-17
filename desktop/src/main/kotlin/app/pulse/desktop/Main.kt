@@ -41,6 +41,7 @@ fun main() {
 
         var homePage by remember { mutableStateOf<Result<DiscoverPage>?>(null) }
         var activeView by remember { mutableStateOf(View.Home) }
+        var searchQuery by remember { mutableStateOf("") }
         var showPlayer by remember { mutableStateOf(false) }
         var showQueue by remember { mutableStateOf(false) }
 
@@ -61,6 +62,8 @@ fun main() {
             LayoutShell(
                 activeView = activeView,
                 onNavigate = { activeView = it },
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
                 homePage = homePage?.getOrNull(),
                 onPageLoaded = { homePage = it },
                 onPlaySong = { song -> player.play(song) },
