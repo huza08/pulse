@@ -25,6 +25,7 @@ import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -252,11 +253,13 @@ object Innertube {
         val artists: List<ArtistItem>? = null
     )
 
+    @Serializable
     data class DiscoverPage(
         val newReleaseAlbums: List<AlbumItem>,
         val moods: List<Mood.Item>,
         val trending: Trending
     ) {
+        @Serializable
         data class Trending(
             val songs: List<SongItem>,
             val endpoint: NavigationEndpoint.Endpoint.Browse?
@@ -267,12 +270,15 @@ object Innertube {
         val title: String,
         val items: List<Item>
     ) {
+        @Serializable
         data class Item(
             val title: String,
             val stripeColor: Long,
             val endpoint: NavigationEndpoint.Endpoint.Browse
         ) : Innertube.Item() {
+            @Transient
             override val thumbnail get() = null
+            @Transient
             override val key
                 get() = "${endpoint.browseId.orEmpty()}${endpoint.params?.let { "/$it" }.orEmpty()}"
 

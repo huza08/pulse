@@ -54,11 +54,96 @@ import app.pulse.providers.innertube.requests.discoverPage
 import app.pulse.providers.innertube.requests.relatedPage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 
-// in-memory cache — survives navigation, cleared on app restart
+private val fCacheJson = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+    encodeDefaults = true
+}
+
+// disk-persisted cache
 private object HomeCache {
     var discover: Result<Innertube.DiscoverPage>? = null
     var related: Result<Innertube.RelatedPage?>? = null
+
+    private val cacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-home")
+    private val discoverFile = File(cacheDir, "discover.json")
+    private val relatedFile = File(cacheDir, "related.json")
+    private val ttlMs = 30L * 60 * 1000 // ttl 30 min
+
+    @Serializable
+    data class RelatedData(val page: Innertube.RelatedPage? = null)
+    @Serializable
+    data class DiscoverData(val page: Innertube.DiscoverPage? = null)
+
+    fun loadFromDisk() {
+        try {
+            if (discoverFile.exists()) {
+                val age = System.currentTimeMillis() - discoverFile.lastModified()
+                if (age <= ttlMs) {
+                    val text = discoverFile.readText()
+                    val data = fCacheJson.decodeFromString<DiscoverData>(text)
+                    if (data.page != null) {
+                        discover = Result.success(data.page)
+                        log("HomeCache", "disk: restored discover (moods=${data.page.moods.size})")
+                    }
+                } else {
+                    discoverFile.delete()
+                }
+            }
+        } catch (e: Exception) {
+            log("HomeCache", "disk: discover cache error: ${e.message}")
+            discoverFile.delete()
+        }
+        try {
+            if (relatedFile.exists()) {
+                val age = System.currentTimeMillis() - relatedFile.lastModified()
+                if (age <= ttlMs) {
+                    val text = relatedFile.readText()
+                    val data = fCacheJson.decodeFromString<RelatedData>(text)
+                    if (data.page != null) {
+                        related = Result.success(data.page)
+                        log("HomeCache", "disk: restored related (songs=${data.page.songs?.size})")
+                    }
+                } else {
+                    relatedFile.delete()
+                }
+            }
+        } catch (e: Exception) {
+            log("HomeCache", "disk: related cache error: ${e.message}")
+            relatedFile.delete()
+        }
+    }
+
+    fun saveToDisk() {
+        cacheDir.mkdirs()
+        // save discover
+        val d = discover
+        if (d?.isSuccess == true && d.getOrNull() != null) {
+            try {
+                val data = DiscoverData(page = d.getOrNull())
+                discoverFile.writeText(fCacheJson.encodeToString(data))
+                log("HomeCache", "disk: saved discover page")
+            } catch (e: Exception) {
+                log("HomeCache", "disk: failed to save discover: ${e.message}")
+            }
+        }
+        // save related
+        val r = related
+        if (r?.isSuccess == true && r.getOrNull() != null) {
+            try {
+                val data = RelatedData(page = r.getOrNull())
+                relatedFile.writeText(fCacheJson.encodeToString(data))
+                log("HomeCache", "disk: saved related page")
+            } catch (e: Exception) {
+                log("HomeCache", "disk: failed to save related: ${e.message}")
+            }
+        }
+    }
 }
 
 @Composable
@@ -70,6 +155,9 @@ fun HomeScreen(
     onMoreAlbums: () -> Unit = {},
     onMoreTrending: () -> Unit = {}
 ) {
+    // disk cache loads once per JVM session
+    remember { HomeCache.loadFromDisk() }
+
     // init from cache if parent didn't provide fresh page
     var discoverResult by remember {
         mutableStateOf(page?.let { Result.success(it) } ?: HomeCache.discover)
@@ -117,6 +205,7 @@ fun HomeScreen(
                     val p = d.getOrNull()
                     log("HomeScreen", "discoverPage OK: moods=${p?.moods?.size}, newReleases=${p?.newReleaseAlbums?.size}, trending=${p?.trending?.songs?.size}")
                     HomeCache.discover = d
+                    HomeCache.saveToDisk()
                 } else {
                     log("HomeScreen", "discoverPage FAILED: ${d?.exceptionOrNull()?.message}")
                 }
@@ -135,6 +224,7 @@ fun HomeScreen(
                 log("HomeScreen", "fallback OK: songs=${page.songs?.size}, albums=${page.albums?.size}, artists=${page.artists?.size}, playlists=${page.playlists?.size}")
                 relatedResult = fallbackResult
                 HomeCache.related = fallbackResult
+                HomeCache.saveToDisk()
             }
         }
 
@@ -154,6 +244,7 @@ fun HomeScreen(
                     log("HomeScreen", "relatedPage OK from seed=$seed: songs=${page.songs?.size}, albums=${page.albums?.size}, artists=${page.artists?.size}, playlists=${page.playlists?.size}")
                     relatedResult = result
                     HomeCache.related = result
+                    HomeCache.saveToDisk()
                     break
                 }
                 if (result?.isSuccess == true && result.getOrNull() == null) {
