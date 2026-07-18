@@ -224,38 +224,33 @@ fun TrendingSkeleton(scale: Float = 1f) {
             radius = CardSizes.skelShimmerRadius
         )
         Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
-        repeat(CardSizes.skelTrendingCount) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = (CardSizes.skelTrendingBottomPad * scale).dp)
-            ) {
-                ShimmerBox(
+        Row {
+            repeat(CardSizes.skelTrendingCount) {
+                val cardW = (CardSizes.gridMinCardW * scale).dp
+                Column(
                     modifier = Modifier
-                        .size((CardSizes.skelTrendingThumb * scale).dp)
-                        .clip(RoundedCornerShape(CardSizes.skelTrendingRadius.dp))
-                )
-                Spacer(Modifier.width((CardSizes.skelTrendingGap * scale).dp))
-                Column(modifier = Modifier.weight(1f)) {
+                        .width(cardW)
+                        .padding(end = (CardSizes.gridGap * scale).dp)
+                ) {
+                    ShimmerBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(CardSizes.gridThumbRadius.dp))
+                    )
+                    Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
                     ShimmerRounded(
-                        width = (CardSizes.skelTrendingTitleW * scale).toInt(),
-                        height = (CardSizes.skelTrendingTitleH * scale).toInt(),
+                        width = (CardSizes.gridMinCardW * 0.8 * scale).toInt(),
+                        height = (CardSizes.gridTitleFont * scale).toInt(),
                         radius = 3
                     )
-                    Spacer(Modifier.height((CardSizes.skelTextGap * scale).dp))
+                    Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
                     ShimmerRounded(
-                        width = (CardSizes.skelTrendingArtistW * scale).toInt(),
-                        height = (CardSizes.skelTrendingSubH * scale).toInt(),
+                        width = (CardSizes.gridMinCardW * 0.5 * scale).toInt(),
+                        height = (CardSizes.gridArtistFont * scale).toInt(),
                         radius = 3
                     )
                 }
-                Spacer(Modifier.width((CardSizes.skelTrendingDurStartPad * scale).dp))
-                ShimmerRounded(
-                    width = (CardSizes.skelTrendingDurW * scale).toInt(),
-                    height = (CardSizes.skelTrendingSubH * scale).toInt(),
-                    radius = 3
-                )
             }
         }
     }
