@@ -59,26 +59,36 @@ fun HomeScreen(
     onMoreAlbums: () -> Unit = {},
     onMoreTrending: () -> Unit = {}
 ) {
+    // i guess this is best fix?
+    var discoverResult by remember { mutableStateOf(page?.let { Result.success(it) }) }
+    var relatedResult by remember { mutableStateOf<Result<Innertube.RelatedPage?>?>(null) }
+
+    // single sequential fetch no race, seed resolved inside coroutine after page loads
+    // android pattern: isSuccess != true = retry on failure too
     LaunchedEffect(Unit) {
-        if (page == null) {
-            val result = Innertube.discoverPage() ?: return@LaunchedEffect
-            onPageLoaded(result)
+        //  fetch discover page if not yet loaded or previous attempt failed
+        if (discoverResult?.isSuccess != true) {
+            discoverResult = Innertube.discoverPage()
+            // notify parent so LayoutShell can pass it down to other screens
+            discoverResult?.let { onPageLoaded(it) }
+        }
+
+        // resolve seed from loaded discover page (atomic — inside coroutine)
+        val seed = discoverResult?.getOrNull()?.trending?.songs?.firstOrNull()?.key
+            ?: "J7p4bzqLvCw"
+
+        // fetch related page if not yet loaded or previous attempt failed
+        if (relatedResult?.isSuccess != true) {
+            relatedResult = Innertube.relatedPage(body = NextBody(videoId = seed))
         }
     }
+
+    val loadedPage = discoverResult?.getOrNull()
 
     val bg = Color(0xFF0a0a0a)
     val surface = Color(0xFF141414)
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
-
-    // quick picks: fetch related page using a trending seed
-    var relatedResult by remember { mutableStateOf<Result<Innertube.RelatedPage?>?>(null) }
-    val seedId = page?.trending?.songs?.firstOrNull()?.key ?: "J7p4bzqLvCw"
-    LaunchedEffect(seedId) {
-        if (relatedResult == null) {
-            relatedResult = Innertube.relatedPage(body = NextBody(videoId = seedId))
-        }
-    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -171,7 +181,7 @@ fun HomeScreen(
             }
 
             // discovr
-            page?.let { p ->
+            loadedPage?.let { p ->
                 // mooodngenre
                 if (p.moods.isNotEmpty()) {
                     SectionHeader("Moods & Genres", onMore = onMoreMoods)
