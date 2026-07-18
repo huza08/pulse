@@ -77,19 +77,27 @@ fun MiniPlayer(
     ) {
         val s = adaptiveScale(maxWidth)
 
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth()
+                .align(Alignment.Center)
+                .fillMaxWidth(0.96f)
                 .height((90 * s).dp)
-                .shadow(12.dp, RoundedCornerShape(55.dp))
-                .background(bg, RoundedCornerShape(55.dp))
+                .shadow(12.dp, RoundedCornerShape(64.dp))
+                .background(bg, RoundedCornerShape(64.dp))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = onClick
                 )
-                .padding(horizontal = (24 * s).dp)
+               // .padding(horizontal = (24 * s).dp)
+                .padding(
+                    start = (14 * s).dp,
+                    top = (4 * s).dp,
+                    end = (24 * s).dp,
+                    bottom = (4 * s).dp
+                )
         ) {
             // left track info
             Row(
@@ -98,7 +106,7 @@ fun MiniPlayer(
             ) {
                 Box(
                     modifier = Modifier
-                        .size((80 * s).dp)
+                        .size((64 * s).dp)
                         .clip(CircleShape)
                         .background(Color(0xFF141414))
                 ) {
