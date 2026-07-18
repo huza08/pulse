@@ -42,13 +42,13 @@ fun SongCard(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding((8 * scale).dp)
+            modifier = Modifier.padding((10 * scale).dp)
         ) {
             song.thumbnailUrl?.let { thumb ->
                 NetworkImage(
                     url = thumb,
                     modifier = Modifier
-                        .size((48 * scale).dp)
+                        .size((72 * scale).dp)
                         .clip(RoundedCornerShape(6.dp))
                 )
                 Spacer(Modifier.width((12 * scale).dp))
@@ -57,7 +57,7 @@ fun SongCard(
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = (13 * scale).sp,
+                    fontSize = (16 * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -66,7 +66,7 @@ fun SongCard(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = (11 * scale).sp,
+                        fontSize = (14 * scale).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -76,7 +76,7 @@ fun SongCard(
                 Text(
                     text = dur,
                     color = dim,
-                    fontSize = (11 * scale).sp,
+                    fontSize = (14 * scale).sp,
                     modifier = Modifier.padding(start = (8 * scale).dp)
                 )
             }

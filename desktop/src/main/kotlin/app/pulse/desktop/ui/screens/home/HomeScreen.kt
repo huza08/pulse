@@ -98,7 +98,7 @@ fun HomeScreen(
                 val qpSongs = related.songs
                 if (qpSongs != null && qpSongs.isNotEmpty()) {
                     SectionHeader("Quick Picks", {})
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -116,7 +116,7 @@ fun HomeScreen(
                             )
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((16 * s).dp))
                 }
 
                 val qpAlbums = related.albums
@@ -132,13 +132,13 @@ fun HomeScreen(
                             AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((16 * s).dp))
                 }
 
                 val qpArtists = related.artists
                 if (qpArtists != null && qpArtists.isNotEmpty()) {
                     SectionHeader("Similar Artists", {})
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -148,13 +148,13 @@ fun HomeScreen(
                             ArtistCard(artist = artist, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((16 * s).dp))
                 }
 
                 val qpPlaylists = related.playlists
                 if (qpPlaylists != null && qpPlaylists.isNotEmpty()) {
                     SectionHeader("Recommended Playlists", {})
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -175,7 +175,7 @@ fun HomeScreen(
                 // mooodngenre
                 if (p.moods.isNotEmpty()) {
                     SectionHeader("Moods & Genres", onMore = onMoreMoods)
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -207,13 +207,13 @@ fun HomeScreen(
                             }
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((16 * s).dp))
                 }
 
                 // new
                 if (p.newReleaseAlbums.isNotEmpty()) {
                     SectionHeader("New Releases", onMore = onMoreAlbums)
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -223,13 +223,13 @@ fun HomeScreen(
                             AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((16 * s).dp))
                 }
 
                 // trendink
                 if (p.trending.songs.isNotEmpty()) {
                     SectionHeader("Trending", onMore = onMoreTrending)
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((8 * s).dp))
                     p.trending.songs.take(15).forEach { songItem ->
                         val song = songItem.toSong()
                         SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })

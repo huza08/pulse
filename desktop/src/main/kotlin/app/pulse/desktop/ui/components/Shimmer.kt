@@ -134,17 +134,17 @@ fun TrendingSkeleton(scale: Float = 1f) {
             ) {
                 ShimmerBox(
                     modifier = Modifier
-                        .size((48 * scale).dp)
+                        .size((72 * scale).dp)
                         .clip(RoundedCornerShape(6.dp))
                 )
                 Spacer(Modifier.width((12 * scale).dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    ShimmerRounded(width = (180 * scale).toInt(), height = (13 * scale).toInt(), radius = 3)
+                    ShimmerRounded(width = (180 * scale).toInt(), height = (16 * scale).toInt(), radius = 3)
                     Spacer(Modifier.height((6 * scale).dp))
-                    ShimmerRounded(width = (100 * scale).toInt(), height = (11 * scale).toInt(), radius = 3)
+                    ShimmerRounded(width = (100 * scale).toInt(), height = (14 * scale).toInt(), radius = 3)
                 }
                 Spacer(Modifier.width((8 * scale).dp))
-                ShimmerRounded(width = (32 * scale).toInt(), height = (11 * scale).toInt(), radius = 3)
+                ShimmerRounded(width = (40 * scale).toInt(), height = (14 * scale).toInt(), radius = 3)
             }
         }
     }
