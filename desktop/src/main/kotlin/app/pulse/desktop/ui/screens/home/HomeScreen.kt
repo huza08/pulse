@@ -87,7 +87,6 @@ fun HomeScreen(
     val loadedPage = discoverResult?.getOrNull()
 
     val bg = Color(0xFF0a0a0a)
-    val surface = Color(0xFF141414)
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
@@ -119,7 +118,6 @@ fun HomeScreen(
                             val song = songItem.toSong()
                             CompactSongCard(
                                 song = song,
-                                surface = surface,
                                 text = text,
                                 dim = dim,
                                 scale = s,
@@ -140,7 +138,7 @@ fun HomeScreen(
                             .horizontalScroll(rememberScrollState())
                     ) {
                         qpAlbums.forEach { album ->
-                            AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
+                            AlbumCard(album = album, text = text, dim = dim, scale = s)
                         }
                     }
                     Spacer(Modifier.height((CardSizes.gapLg * s).dp))
@@ -156,7 +154,7 @@ fun HomeScreen(
                             .horizontalScroll(rememberScrollState())
                     ) {
                         qpArtists.forEach { artist ->
-                            ArtistCard(artist = artist, surface = surface, text = text, dim = dim, scale = s)
+                            ArtistCard(artist = artist, text = text, dim = dim, scale = s)
                         }
                     }
                     Spacer(Modifier.height((CardSizes.gapLg * s).dp))
@@ -172,7 +170,7 @@ fun HomeScreen(
                             .horizontalScroll(rememberScrollState())
                     ) {
                         qpPlaylists.forEach { playlist ->
-                            PlaylistCard(playlist = playlist, surface = surface, text = text, dim = dim, scale = s)
+                            PlaylistCard(playlist = playlist, text = text, dim = dim, scale = s)
                         }
                     }
                     Spacer(Modifier.height((CardSizes.gapXl * s).dp))
@@ -231,7 +229,7 @@ fun HomeScreen(
                             .horizontalScroll(rememberScrollState())
                     ) {
                         p.newReleaseAlbums.forEach { album ->
-                            AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
+                            AlbumCard(album = album, text = text, dim = dim, scale = s)
                         }
                     }
                     Spacer(Modifier.height((CardSizes.gapLg * s).dp))
@@ -243,7 +241,7 @@ fun HomeScreen(
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     p.trending.songs.take(15).forEach { songItem ->
                         val song = songItem.toSong()
-                        SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
+                        SongCard(song = song, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
                     }
                 }
             } ?: run {
@@ -285,7 +283,6 @@ private fun SectionHeader(title: String, onMore: () -> Unit) {
 @Composable
 private fun CompactSongCard(
     song: Song,
-    surface: Color,
     text: Color,
     dim: Color,
     scale: Float,
@@ -293,7 +290,7 @@ private fun CompactSongCard(
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .width((CardSizes.compactSongW * scale).dp)
             .padding(end = (CardSizes.compactSongEndPad * scale).dp)
@@ -316,7 +313,7 @@ private fun CompactSongCard(
                     text = song.title,
                     color = text,
                     fontSize = (CardSizes.compactSongTitle * scale).sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -337,14 +334,13 @@ private fun CompactSongCard(
 @Composable
 private fun AlbumCard(
     album: Innertube.AlbumItem,
-    surface: Color,
     text: Color,
     dim: Color,
     scale: Float
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .width((CardSizes.albumW * scale).dp)
             .padding(end = (CardSizes.albumEndPad * scale).dp)
@@ -367,7 +363,7 @@ private fun AlbumCard(
                     text = album.info?.name ?: "Untitled",
                     color = text,
                     fontSize = (CardSizes.albumTitle * scale).sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -388,14 +384,13 @@ private fun AlbumCard(
 @Composable
 private fun ArtistCard(
     artist: Innertube.ArtistItem,
-    surface: Color,
     text: Color,
     dim: Color,
     scale: Float
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .width((CardSizes.artistW * scale).dp)
             .padding(end = (CardSizes.artistEndPad * scale).dp)
@@ -418,7 +413,7 @@ private fun ArtistCard(
                 text = artist.info?.name ?: "Unknown",
                 color = text,
                 fontSize = (CardSizes.artistName * scale).sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(horizontal = (10 * scale).dp)
@@ -431,14 +426,13 @@ private fun ArtistCard(
 @Composable
 private fun PlaylistCard(
     playlist: Innertube.PlaylistItem,
-    surface: Color,
     text: Color,
     dim: Color,
     scale: Float
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .width((CardSizes.playlistW * scale).dp)
             .padding(end = (CardSizes.playlistEndPad * scale).dp)
@@ -461,7 +455,7 @@ private fun PlaylistCard(
                     text = playlist.info?.name ?: "Untitled",
                     color = text,
                     fontSize = (CardSizes.playlistName * scale).sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

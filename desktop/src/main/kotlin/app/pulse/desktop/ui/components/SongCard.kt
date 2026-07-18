@@ -27,7 +27,6 @@ import app.pulse.desktop.ui.components.CardSizes
 @Composable
 fun SongCard(
     song: Song,
-    surface: Color,
     text: Color,
     dim: Color,
     scale: Float = 1f,
@@ -35,7 +34,7 @@ fun SongCard(
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = (CardSizes.trendingBottomPad * scale).dp)
@@ -59,7 +58,7 @@ fun SongCard(
                     text = song.title,
                     color = text,
                     fontSize = (CardSizes.trendingTitle * scale).sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

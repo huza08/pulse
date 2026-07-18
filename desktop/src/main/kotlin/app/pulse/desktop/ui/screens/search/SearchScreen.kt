@@ -38,7 +38,6 @@ fun SearchScreen(
     var searchResults by remember { mutableStateOf<Result<Innertube.ItemsPage<Innertube.SongItem>?>?>(null) }
 
     val bg = Color(0xFF0a0a0a)
-    val surface = Color(0xFF141414)
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
@@ -89,7 +88,7 @@ fun SearchScreen(
                 searchResults?.getOrNull()?.let { itemsPage ->
                     itemsPage?.items?.forEach { songItem ->
                         val song = songItem.toSong()
-                        SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
+                        SongCard(song = song, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
                     }
                 } ?: searchResults?.exceptionOrNull()?.let {
                     Text("Search failed", color = dim, fontSize = (14 * s).sp)

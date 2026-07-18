@@ -47,7 +47,7 @@ object CardSizes {
     const val trendingDurStartPad = 8
 
     // section header
-    const val headerTitle = 32
+    const val headerTitle = 28
     const val headerMore = 18
 
     // section spacing
