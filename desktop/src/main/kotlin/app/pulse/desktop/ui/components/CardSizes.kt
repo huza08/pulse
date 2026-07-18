@@ -2,29 +2,34 @@ package app.pulse.desktop.ui.components
 
 // card size config — change numbers here to resize all home cards
 object CardSizes {
-    // compact song card (quick picks)
-    const val compactSongW = 180
-    const val compactSongEndPad = 10
+    // unified card sizes
+    const val cardW = 160
+    const val cardTextH = 90   // text area below thumbnail
+    const val cardThumbRadius = 8
+    const val cardEndPad = 10
+
+    // comapact songcard now use unified sizes above
+    const val compactSongW = cardW
+    const val compactSongEndPad = cardEndPad
     const val compactSongInnerPad = 10
     const val compactSongTitle = 20
     const val compactSongArt = 18
 
     // album card (new releases, related albums)
-    const val albumW = 180
-    const val albumEndPad = 10
+    const val albumW = cardW
+    const val albumEndPad = cardEndPad
     const val albumInnerPad = 1
     const val albumTitle = 20
     const val albumAuthor = 18
 
     // artist card (similar artists)
-    const val artistW = 180
-    const val artistEndPad = 10
-    const val artistThumb = 96
+    const val artistW = cardW
+    const val artistEndPad = cardEndPad
     const val artistName = 20
     const val artistVertPad = 18
 
     // playlist card (recommended playlists)
-    const val playlistW = 180
+    const val playlistW = cardW
     const val playlistEndPad = 14
     const val playlistInnerPad = 12
     const val playlistName = 18
@@ -55,6 +60,18 @@ object CardSizes {
     const val gapMd = 12
     const val gapLg = 16
     const val gapXl = 20
+
+    // trending grids
+    const val gridGap = 10
+    const val gridMinCardW = cardW
+    const val gridMaxCols = 6
+    const val gridMinCols = 4
+    const val gridThumbRadius = cardThumbRadius
+    const val gridTitleFont = 15
+    const val gridArtistFont = 13
+    const val gridTextAreaH = cardTextH
+    const val gridTextGapSm = 4
+    const val gridBottomPad = 2
 
     // skeleton — repeat counts
     const val skelMoodCount = 4
