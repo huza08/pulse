@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
+import app.pulse.desktop.ui.components.CardSizes
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
@@ -103,12 +104,12 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
         ) {
-            // ── Quick Picks ──
+            // quick picks
             relatedResult?.getOrNull()?.let { related ->
                 val qpSongs = related.songs
                 if (qpSongs != null && qpSongs.isNotEmpty()) {
                     SectionHeader("Quick Picks", {})
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -126,13 +127,13 @@ fun HomeScreen(
                             )
                         }
                     }
-                    Spacer(Modifier.height((16 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
                 }
 
                 val qpAlbums = related.albums
                 if (qpAlbums != null && qpAlbums.isNotEmpty()) {
                     SectionHeader("Related Albums", {})
-                    Spacer(Modifier.height((12 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapMd * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -142,13 +143,13 @@ fun HomeScreen(
                             AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((16 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
                 }
 
                 val qpArtists = related.artists
                 if (qpArtists != null && qpArtists.isNotEmpty()) {
                     SectionHeader("Similar Artists", {})
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -158,13 +159,13 @@ fun HomeScreen(
                             ArtistCard(artist = artist, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((16 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
                 }
 
                 val qpPlaylists = related.playlists
                 if (qpPlaylists != null && qpPlaylists.isNotEmpty()) {
                     SectionHeader("Recommended Playlists", {})
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -174,7 +175,7 @@ fun HomeScreen(
                             PlaylistCard(playlist = playlist, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((28 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapXl * s).dp))
                 }
             } ?: relatedResult?.exceptionOrNull()?.let {
                 // silent fail — quick picks unavailable, show discover below
@@ -185,7 +186,7 @@ fun HomeScreen(
                 // mooodngenre
                 if (p.moods.isNotEmpty()) {
                     SectionHeader("Moods & Genres", onMore = onMoreMoods)
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -198,32 +199,32 @@ fun HomeScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = moodColor),
                                 modifier = Modifier
-                                    .width((140 * s).dp)
-                                    .height((56 * s).dp)
-                                    .padding(end = (8 * s).dp)
+                                    .width((CardSizes.moodW * s).dp)
+                                    .height((CardSizes.moodH * s).dp)
+                                    .padding(end = (CardSizes.moodEndPad * s).dp)
                                     .clickable { }
                             ) {
                                 Box(
                                     contentAlignment = Alignment.CenterStart,
-                                    modifier = Modifier.padding(start = (16 * s).dp)
+                                    modifier = Modifier.padding(start = (CardSizes.moodInnerStart * s).dp)
                                 ) {
                                     Text(
                                         text = mood.title,
                                         color = moodTextColor,
-                                        fontSize = (13 * s).sp,
+                                        fontSize = (CardSizes.moodFont * s).sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.height((16 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
                 }
 
                 // new
                 if (p.newReleaseAlbums.isNotEmpty()) {
                     SectionHeader("New Releases", onMore = onMoreAlbums)
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -233,13 +234,13 @@ fun HomeScreen(
                             AlbumCard(album = album, surface = surface, text = text, dim = dim, scale = s)
                         }
                     }
-                    Spacer(Modifier.height((16 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
                 }
 
                 // trendink
                 if (p.trending.songs.isNotEmpty()) {
                     SectionHeader("Trending", onMore = onMoreTrending)
-                    Spacer(Modifier.height((8 * s).dp))
+                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
                     p.trending.songs.take(15).forEach { songItem ->
                         val song = songItem.toSong()
                         SongCard(song = song, surface = surface, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
@@ -248,16 +249,16 @@ fun HomeScreen(
             } ?: run {
                 // shimmerzz
                 MoodsSkeleton(scale = s)
-                Spacer(Modifier.height((28 * s).dp))
+                Spacer(Modifier.height((CardSizes.gapXl * s).dp))
                 NewReleasesSkeleton(scale = s)
-                Spacer(Modifier.height((28 * s).dp))
+                Spacer(Modifier.height((CardSizes.gapXl * s).dp))
                 TrendingSkeleton(scale = s)
             }
         }
     }
 }
 
-//reusabel
+// reusabel
 @Composable
 private fun SectionHeader(title: String, onMore: () -> Unit) {
     Row(
@@ -267,7 +268,7 @@ private fun SectionHeader(title: String, onMore: () -> Unit) {
         Text(
             text = title,
             color = Color(0xFFf2f0eb),
-            fontSize = 18.sp,
+            fontSize = CardSizes.headerTitle.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f)
         )
@@ -275,7 +276,7 @@ private fun SectionHeader(title: String, onMore: () -> Unit) {
             Text(
                 text = "More",
                 color = Color(0xFFa8a39a),
-                fontSize = 13.sp
+                fontSize = CardSizes.headerMore.sp
             )
         }
     }
@@ -294,8 +295,8 @@ private fun CompactSongCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
-            .width((140 * scale).dp)
-            .padding(end = (8 * scale).dp)
+            .width((CardSizes.compactSongW * scale).dp)
+            .padding(end = (CardSizes.compactSongEndPad * scale).dp)
             .clickable(onClick = onClick)
     ) {
         Column {
@@ -310,11 +311,11 @@ private fun CompactSongCard(
                     NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((8 * scale).dp)) {
+            Column(modifier = Modifier.padding((CardSizes.compactSongInnerPad * scale).dp)) {
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = (11 * scale).sp,
+                    fontSize = (CardSizes.compactSongTitle * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -323,7 +324,7 @@ private fun CompactSongCard(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = (10 * scale).sp,
+                        fontSize = (CardSizes.compactSongArt * scale).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -345,8 +346,8 @@ private fun AlbumCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
-            .width((160 * scale).dp)
-            .padding(end = (12 * scale).dp)
+            .width((CardSizes.albumW * scale).dp)
+            .padding(end = (CardSizes.albumEndPad * scale).dp)
             .clickable { }
     ) {
         Column {
@@ -361,11 +362,11 @@ private fun AlbumCard(
                     NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((10 * scale).dp)) {
+            Column(modifier = Modifier.padding((CardSizes.albumInnerPad * scale).dp)) {
                 Text(
                     text = album.info?.name ?: "Untitled",
                     color = text,
-                    fontSize = (12 * scale).sp,
+                    fontSize = (CardSizes.albumTitle * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -374,7 +375,7 @@ private fun AlbumCard(
                     Text(
                         text = author.name ?: "",
                         color = dim,
-                        fontSize = (10 * scale).sp,
+                        fontSize = (CardSizes.albumAuthor * scale).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -396,33 +397,33 @@ private fun ArtistCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
-            .width((140 * scale).dp)
-            .padding(end = (12 * scale).dp)
+            .width((CardSizes.artistW * scale).dp)
+            .padding(end = (CardSizes.artistEndPad * scale).dp)
             .clickable { }
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(Modifier.height((12 * scale).dp))
+            Spacer(Modifier.height((CardSizes.artistVertPad * scale).dp))
             Box(
                 modifier = Modifier
-                    .size((80 * scale).dp)
-                    .clip(RoundedCornerShape(40.dp))
+                    .size((CardSizes.artistThumb * scale).dp)
+                    .clip(RoundedCornerShape((CardSizes.artistThumb / 2).dp))
                     .background(Color(0xFF1a1a1a))
             ) {
                 artist.thumbnail?.let { thumb ->
                     NetworkImage(url = thumb.size(100), modifier = Modifier.fillMaxSize())
                 }
             }
-            Spacer(Modifier.height((8 * scale).dp))
+            Spacer(Modifier.height((10 * scale).dp))
             Text(
                 text = artist.info?.name ?: "Unknown",
                 color = text,
-                fontSize = (12 * scale).sp,
+                fontSize = (CardSizes.artistName * scale).sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = (8 * scale).dp)
+                modifier = Modifier.padding(horizontal = (10 * scale).dp)
             )
-            Spacer(Modifier.height((12 * scale).dp))
+            Spacer(Modifier.height((CardSizes.artistVertPad * scale).dp))
         }
     }
 }
@@ -439,8 +440,8 @@ private fun PlaylistCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
-            .width((160 * scale).dp)
-            .padding(end = (12 * scale).dp)
+            .width((CardSizes.playlistW * scale).dp)
+            .padding(end = (CardSizes.playlistEndPad * scale).dp)
             .clickable { }
     ) {
         Column {
@@ -455,11 +456,11 @@ private fun PlaylistCard(
                     NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((10 * scale).dp)) {
+            Column(modifier = Modifier.padding((CardSizes.playlistInnerPad * scale).dp)) {
                 Text(
                     text = playlist.info?.name ?: "Untitled",
                     color = text,
-                    fontSize = (12 * scale).sp,
+                    fontSize = (CardSizes.playlistName * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -467,7 +468,7 @@ private fun PlaylistCard(
                 Text(
                     text = "${playlist.songCount ?: 0} songs",
                     color = dim,
-                    fontSize = (10 * scale).sp,
+                    fontSize = (CardSizes.playlistCount * scale).sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

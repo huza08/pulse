@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
+import app.pulse.desktop.ui.components.CardSizes
 
 @Composable
 fun SongCard(
@@ -37,27 +38,27 @@ fun SongCard(
         colors = CardDefaults.cardColors(containerColor = surface),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = (6 * scale).dp)
+            .padding(bottom = (CardSizes.trendingBottomPad * scale).dp)
             .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding((10 * scale).dp)
+            modifier = Modifier.padding((CardSizes.trendingRowPad * scale).dp)
         ) {
             song.thumbnailUrl?.let { thumb ->
                 NetworkImage(
                     url = thumb,
                     modifier = Modifier
-                        .size((72 * scale).dp)
+                        .size((CardSizes.trendingThumb * scale).dp)
                         .clip(RoundedCornerShape(6.dp))
                 )
-                Spacer(Modifier.width((12 * scale).dp))
+                Spacer(Modifier.width((CardSizes.trendingGap * scale).dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = (16 * scale).sp,
+                    fontSize = (CardSizes.trendingTitle * scale).sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -66,7 +67,7 @@ fun SongCard(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = (14 * scale).sp,
+                        fontSize = (CardSizes.trendingSub * scale).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -76,8 +77,8 @@ fun SongCard(
                 Text(
                     text = dur,
                     color = dim,
-                    fontSize = (14 * scale).sp,
-                    modifier = Modifier.padding(start = (8 * scale).dp)
+                    fontSize = (CardSizes.trendingSub * scale).sp,
+                    modifier = Modifier.padding(start = (CardSizes.trendingDurStartPad * scale).dp)
                 )
             }
         }

@@ -7,7 +7,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -63,7 +61,7 @@ fun ShimmerBox(
 fun ShimmerRounded(
     width: Int = 120,
     height: Int = 14,
-    radius: Int = 4
+    radius: Int = CardSizes.skelShimmerRadius
 ) {
     ShimmerBox(
         modifier = Modifier
@@ -76,16 +74,20 @@ fun ShimmerRounded(
 @Composable
 fun MoodsSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = (160 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
-        Spacer(Modifier.height((12 * scale).dp))
+        ShimmerRounded(
+            width = (CardSizes.skelTitleWide * scale).toInt(),
+            height = (CardSizes.skelSectionH * scale).toInt(),
+            radius = CardSizes.skelShimmerRadius
+        )
+        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
         Row {
-            repeat(4) {
+            repeat(CardSizes.skelMoodCount) {
                 ShimmerBox(
                     modifier = Modifier
-                        .width((140 * scale).dp)
-                        .height((56 * scale).dp)
-                        .padding(end = (8 * scale).dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .width((CardSizes.skelMoodW * scale).dp)
+                        .height((CardSizes.skelMoodH * scale).dp)
+                        .padding(end = (CardSizes.skelMoodEndPad * scale).dp)
+                        .clip(RoundedCornerShape(CardSizes.skelMoodRadius.dp))
                 )
             }
         }
@@ -95,25 +97,37 @@ fun MoodsSkeleton(scale: Float = 1f) {
 @Composable
 fun NewReleasesSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = (140 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
-        Spacer(Modifier.height((12 * scale).dp))
+        ShimmerRounded(
+            width = (CardSizes.skelTitleMid * scale).toInt(),
+            height = (CardSizes.skelSectionH * scale).toInt(),
+            radius = CardSizes.skelShimmerRadius
+        )
+        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
         Row {
-            repeat(4) {
+            repeat(CardSizes.skelAlbumCount) {
                 Column(
                     modifier = Modifier
-                        .width((160 * scale).dp)
-                        .padding(end = (12 * scale).dp)
+                        .width((CardSizes.skelAlbumW * scale).dp)
+                        .padding(end = (CardSizes.skelAlbumEndPad * scale).dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
-                    Spacer(Modifier.height((8 * scale).dp))
-                    ShimmerRounded(width = (120 * scale).toInt(), height = (12 * scale).toInt(), radius = 3)
-                    Spacer(Modifier.height((4 * scale).dp))
-                    ShimmerRounded(width = (80 * scale).toInt(), height = (10 * scale).toInt(), radius = 3)
+                    Spacer(Modifier.height((CardSizes.gapSm * scale).dp))
+                    ShimmerRounded(
+                        width = (CardSizes.skelAlbumNameW * scale).toInt(),
+                        height = (CardSizes.skelAlbumNameH * scale).toInt(),
+                        radius = 3
+                    )
+                    Spacer(Modifier.height((CardSizes.skelTextGapSm * scale).dp))
+                    ShimmerRounded(
+                        width = (CardSizes.skelAlbumAuthorW * scale).toInt(),
+                        height = (CardSizes.skelAlbumAuthorH * scale).toInt(),
+                        radius = 3
+                    )
                 }
             }
         }
@@ -123,28 +137,44 @@ fun NewReleasesSkeleton(scale: Float = 1f) {
 @Composable
 fun TrendingSkeleton(scale: Float = 1f) {
     Column {
-        ShimmerRounded(width = (120 * scale).toInt(), height = (18 * scale).toInt(), radius = 4)
-        Spacer(Modifier.height((12 * scale).dp))
-        repeat(6) {
+        ShimmerRounded(
+            width = (CardSizes.skelTitleNarrow * scale).toInt(),
+            height = (CardSizes.skelSectionH * scale).toInt(),
+            radius = CardSizes.skelShimmerRadius
+        )
+        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        repeat(CardSizes.skelTrendingCount) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = (6 * scale).dp)
+                    .padding(bottom = (CardSizes.skelTrendingBottomPad * scale).dp)
             ) {
                 ShimmerBox(
                     modifier = Modifier
-                        .size((72 * scale).dp)
-                        .clip(RoundedCornerShape(6.dp))
+                        .size((CardSizes.skelTrendingThumb * scale).dp)
+                        .clip(RoundedCornerShape(CardSizes.skelTrendingRadius.dp))
                 )
-                Spacer(Modifier.width((12 * scale).dp))
+                Spacer(Modifier.width((CardSizes.skelTrendingGap * scale).dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    ShimmerRounded(width = (180 * scale).toInt(), height = (16 * scale).toInt(), radius = 3)
-                    Spacer(Modifier.height((6 * scale).dp))
-                    ShimmerRounded(width = (100 * scale).toInt(), height = (14 * scale).toInt(), radius = 3)
+                    ShimmerRounded(
+                        width = (CardSizes.skelTrendingTitleW * scale).toInt(),
+                        height = (CardSizes.skelTrendingTitleH * scale).toInt(),
+                        radius = 3
+                    )
+                    Spacer(Modifier.height((CardSizes.skelTextGap * scale).dp))
+                    ShimmerRounded(
+                        width = (CardSizes.skelTrendingArtistW * scale).toInt(),
+                        height = (CardSizes.skelTrendingSubH * scale).toInt(),
+                        radius = 3
+                    )
                 }
-                Spacer(Modifier.width((8 * scale).dp))
-                ShimmerRounded(width = (40 * scale).toInt(), height = (14 * scale).toInt(), radius = 3)
+                Spacer(Modifier.width((CardSizes.skelTrendingDurStartPad * scale).dp))
+                ShimmerRounded(
+                    width = (CardSizes.skelTrendingDurW * scale).toInt(),
+                    height = (CardSizes.skelTrendingSubH * scale).toInt(),
+                    radius = 3
+                )
             }
         }
     }
