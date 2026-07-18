@@ -3,6 +3,7 @@ package app.pulse.desktop.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
@@ -45,7 +48,6 @@ import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
 import app.pulse.desktop.ui.components.QuickPicksSkeleton
-import app.pulse.desktop.ui.components.SongCard
 import app.pulse.desktop.ui.components.TrendingSkeleton
 import app.pulse.desktop.ui.components.log
 import app.pulse.providers.innertube.Innertube
@@ -274,11 +276,29 @@ fun HomeScreen(
             .background(bg)
     ) {
         val s = adaptiveScale(maxWidth)
+        val availWidth = maxWidth // capture for nested scopes
+        val scrollState = rememberScrollState()
+        var trendingLimit by remember { mutableStateOf(15) }
+
+        // detect scroll near bottom to load more trending (works if theres still trending)
+        val nearBottom by remember {
+            derivedStateOf {
+                scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 400
+            }
+        }
+        LaunchedEffect(nearBottom) {
+            if (nearBottom) {
+                val total = loadedPage?.trending?.songs?.size ?: return@LaunchedEffect
+                if (trendingLimit < total) {
+                    trendingLimit = (trendingLimit + 15).coerceAtMost(total)
+                }
+            }
+        }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
         ) {
             // quick picks
@@ -421,9 +441,38 @@ fun HomeScreen(
                 if (p.trending.songs.isNotEmpty()) {
                     SectionHeader("Trending", onMore = onMoreTrending)
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    p.trending.songs.take(15).forEach { songItem ->
-                        val song = songItem.toSong()
-                        SongCard(song = song, text = text, dim = dim, scale = s, onClick = { onPlaySong(song) })
+
+                    // responsive grid
+                    val gapDp = (CardSizes.gridGap * s).dp
+                    val contentW = availWidth - (48 * s).dp
+                    val minCardDp = (CardSizes.gridMinCardW * s).dp
+                    val rawCols = (contentW / (minCardDp + gapDp)).toInt()
+                        .coerceAtLeast(1)
+                    val colCount = rawCols.coerceIn(CardSizes.gridMinCols, CardSizes.gridMaxCols)
+                    val cardW = (contentW - gapDp * (colCount - 1)) / colCount
+                    val cardH = cardW + (CardSizes.gridTextAreaH * s).dp
+
+                    val totalSongs = p.trending.songs.size
+                    val showCount = trendingLimit.coerceAtMost(totalSongs)
+                    p.trending.songs.take(showCount).chunked(colCount).forEach { rowSongs ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(gapDp)
+                        ) {
+                            rowSongs.forEach { songItem ->
+                                val song = songItem.toSong()
+                                TrendingGridCard(
+                                    song = song,
+                                    cardWidth = cardW,
+                                    cardHeight = cardH,
+                                    text = text,
+                                    dim = dim,
+                                    scale = s,
+                                    onClick = { onPlaySong(song) }
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(gapDp))
                     }
                 }
             } ?: run {
@@ -470,12 +519,15 @@ private fun CompactSongCard(
     scale: Float,
     onClick: () -> Unit
 ) {
+    val cardSize = (CardSizes.cardW * scale).dp
+    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
-            .width((CardSizes.compactSongW * scale).dp)
-            .padding(end = (CardSizes.compactSongEndPad * scale).dp)
+            .width(cardSize)
+            .height(cardH)
+            .padding(end = (CardSizes.cardEndPad * scale).dp)
             .clickable(onClick = onClick)
     ) {
         Column {
@@ -520,12 +572,15 @@ private fun AlbumCard(
     dim: Color,
     scale: Float
 ) {
+    val cardSize = (CardSizes.cardW * scale).dp
+    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
-            .width((CardSizes.albumW * scale).dp)
-            .padding(end = (CardSizes.albumEndPad * scale).dp)
+            .width(cardSize)
+            .height(cardH)
+            .padding(end = (CardSizes.cardEndPad * scale).dp)
             .clickable { }
     ) {
         Column {
@@ -570,37 +625,96 @@ private fun ArtistCard(
     dim: Color,
     scale: Float
 ) {
+    val cardSize = (CardSizes.cardW * scale).dp
+    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
-            .width((CardSizes.artistW * scale).dp)
-            .padding(end = (CardSizes.artistEndPad * scale).dp)
+            .width(cardSize)
+            .height(cardH)
+            .padding(end = (CardSizes.cardEndPad * scale).dp)
             .clickable { }
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(Modifier.height((CardSizes.artistVertPad * scale).dp))
+        Column {
             Box(
                 modifier = Modifier
-                    .size((CardSizes.artistThumb * scale).dp)
-                    .clip(RoundedCornerShape((CardSizes.artistThumb / 2).dp))
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(CardSizes.cardThumbRadius.dp))
                     .background(Color(0xFF1a1a1a))
             ) {
                 artist.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(100), modifier = Modifier.fillMaxSize())
+                    NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
                 }
             }
-            Spacer(Modifier.height((10 * scale).dp))
-            Text(
-                text = artist.info?.name ?: "Unknown",
-                color = text,
-                fontSize = (CardSizes.artistName * scale).sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = (10 * scale).dp)
-            )
-            Spacer(Modifier.height((CardSizes.artistVertPad * scale).dp))
+            Column(
+                modifier = Modifier.padding(horizontal = (CardSizes.artistVertPad * scale).dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = artist.info?.name ?: "Unknown",
+                    color = text,
+                    fontSize = (CardSizes.artistName * scale).sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrendingGridCard(
+    song: Song,
+    cardWidth: Dp,
+    cardHeight: Dp,
+    text: Color,
+    dim: Color,
+    scale: Float = 1f,
+    onClick: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        modifier = Modifier
+            .width(cardWidth)
+            .height(cardHeight)
+            .clickable(onClick = onClick)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(CardSizes.gridThumbRadius.dp))
+                    .background(Color(0xFF1a1a1a))
+            ) {
+                song.thumbnailUrl?.let { thumb ->
+                    NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
+                }
+            }
+            Column(modifier = Modifier.padding(top = (CardSizes.gridTextGapSm * scale).dp)) {
+                Text(
+                    text = song.title,
+                    color = text,
+                    fontSize = (CardSizes.gridTitleFont * scale).sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
+                song.artistsText?.let { author ->
+                    Text(
+                        text = author,
+                        color = dim,
+                        fontSize = (CardSizes.gridArtistFont * scale).sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
 }
@@ -612,11 +726,14 @@ private fun PlaylistCard(
     dim: Color,
     scale: Float
 ) {
+    val cardSize = (CardSizes.cardW * scale).dp
+    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
-            .width((CardSizes.playlistW * scale).dp)
+            .width(cardSize)
+            .height(cardH)
             .padding(end = (CardSizes.playlistEndPad * scale).dp)
             .clickable { }
     ) {
