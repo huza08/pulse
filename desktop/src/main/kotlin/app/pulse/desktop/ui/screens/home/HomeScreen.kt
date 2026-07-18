@@ -44,12 +44,22 @@ import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
+import app.pulse.desktop.ui.components.QuickPicksSkeleton
 import app.pulse.desktop.ui.components.SongCard
 import app.pulse.desktop.ui.components.TrendingSkeleton
+import app.pulse.desktop.ui.components.log
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.NextBody
 import app.pulse.providers.innertube.requests.discoverPage
 import app.pulse.providers.innertube.requests.relatedPage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+// in-memory cache — survives navigation, cleared on app restart
+private object HomeCache {
+    var discover: Result<Innertube.DiscoverPage>? = null
+    var related: Result<Innertube.RelatedPage?>? = null
+}
 
 @Composable
 fun HomeScreen(
@@ -60,27 +70,104 @@ fun HomeScreen(
     onMoreAlbums: () -> Unit = {},
     onMoreTrending: () -> Unit = {}
 ) {
-    // i guess this is best fix?
-    var discoverResult by remember { mutableStateOf(page?.let { Result.success(it) }) }
-    var relatedResult by remember { mutableStateOf<Result<Innertube.RelatedPage?>?>(null) }
+    // init from cache if parent didn't provide fresh page
+    var discoverResult by remember {
+        mutableStateOf(page?.let { Result.success(it) } ?: HomeCache.discover)
+    }
+    var relatedResult by remember {
+        mutableStateOf<Result<Innertube.RelatedPage?>?>(HomeCache.related)
+    }
 
-    // single sequential fetch no race, seed resolved inside coroutine after page loads
-    // android pattern: isSuccess != true = retry on failure too
+    // retry with exponential backoff: 1s, 2s, 4s
+    // returns null when all attempts exhausted (last error is logged)
+    suspend fun <T> retryWithBackoff(
+        maxRetries: Int = 2,
+        initialDelayMs: Long = 1000L,
+        label: String = "",
+        block: suspend () -> Result<T>?
+    ): Result<T>? {
+        var attempt = 0
+        while (true) {
+            val result = block()
+            if (result?.isSuccess == true) return result
+            attempt++
+            if (attempt > maxRetries) {
+                log("HomeScreen", "$label exhausted after $attempt attempts")
+                return result
+            }
+            val delayMs = initialDelayMs * (1L shl attempt)
+            log("HomeScreen", "$label attempt $attempt failed, retry in ${delayMs}ms")
+            delay(delayMs)
+        }
+    }
+
+    // parallel fetch: relatedPage starts with fallback seed while discoverPage loads
     LaunchedEffect(Unit) {
-        //  fetch discover page if not yet loaded or previous attempt failed
-        if (discoverResult?.isSuccess != true) {
-            discoverResult = Innertube.discoverPage()
-            // notify parent so LayoutShell can pass it down to other screens
-            discoverResult?.let { onPageLoaded(it) }
+        log("HomeScreen", "initial: page=${page != null}, discoverLoaded=${discoverResult?.isSuccess}, relatedLoaded=${relatedResult?.isSuccess}")
+
+        // start discover fetch in background (parallel)
+        val discoverJob = launch {
+            if (discoverResult?.isSuccess != true) {
+                log("HomeScreen", "fetching discoverPage...")
+                discoverResult = retryWithBackoff(label = "discoverPage") {
+                    Innertube.discoverPage()
+                }
+                val d = discoverResult
+                if (d?.isSuccess == true) {
+                    val p = d.getOrNull()
+                    log("HomeScreen", "discoverPage OK: moods=${p?.moods?.size}, newReleases=${p?.newReleaseAlbums?.size}, trending=${p?.trending?.songs?.size}")
+                    HomeCache.discover = d
+                } else {
+                    log("HomeScreen", "discoverPage FAILED: ${d?.exceptionOrNull()?.message}")
+                }
+                discoverResult?.let { onPageLoaded(it) }
+            }
         }
 
-        // resolve seed from loaded discover page (atomic — inside coroutine)
-        val seed = discoverResult?.getOrNull()?.trending?.songs?.firstOrNull()?.key
-            ?: "J7p4bzqLvCw"
-
-        // fetch related page if not yet loaded or previous attempt failed
+        // start relatedPage with fallback seed IMMEDIATELY (parallel with discover)
         if (relatedResult?.isSuccess != true) {
-            relatedResult = Innertube.relatedPage(body = NextBody(videoId = seed))
+            log("HomeScreen", "fetching relatedPage with fallback seed (parallel)...")
+            val fallbackResult = retryWithBackoff(maxRetries = 1, label = "relatedPage(fallback)") {
+                Innertube.relatedPage(body = NextBody(videoId = "J7p4bzqLvCw"))
+            }
+            if (fallbackResult?.isSuccess == true && fallbackResult.getOrNull() != null) {
+                val page = fallbackResult.getOrNull()!!
+                log("HomeScreen", "fallback OK: songs=${page.songs?.size}, albums=${page.albums?.size}, artists=${page.artists?.size}, playlists=${page.playlists?.size}")
+                relatedResult = fallbackResult
+                HomeCache.related = fallbackResult
+            }
+        }
+
+        // wait for discover to finish, then try real seeds if fallback failed
+        discoverJob.join()
+
+        val seeds = discoverResult?.getOrNull()?.trending?.songs?.take(3)?.map { it.key }.orEmpty()
+        if (seeds.isNotEmpty() && relatedResult?.isSuccess != true) {
+            log("HomeScreen", "trying ${seeds.size} real seeds: $seeds")
+            for (seed in seeds) {
+                if (relatedResult?.isSuccess == true) break
+                val result = retryWithBackoff(maxRetries = 1, label = "relatedPage($seed)") {
+                    Innertube.relatedPage(body = NextBody(videoId = seed))
+                }
+                if (result?.isSuccess == true && result.getOrNull() != null) {
+                    val page = result.getOrNull()!!
+                    log("HomeScreen", "relatedPage OK from seed=$seed: songs=${page.songs?.size}, albums=${page.albums?.size}, artists=${page.artists?.size}, playlists=${page.playlists?.size}")
+                    relatedResult = result
+                    HomeCache.related = result
+                    break
+                }
+                if (result?.isSuccess == true && result.getOrNull() == null) {
+                    log("HomeScreen", "seed=$seed returned null, trying next...")
+                } else {
+                    log("HomeScreen", "seed=$seed FAILED: ${result?.exceptionOrNull()?.message}, trying next...")
+                }
+            }
+        }
+
+        // mark complete if still nothing
+        if (relatedResult?.isSuccess != true) {
+            log("HomeScreen", "all exhausted, marking related as unavailable")
+            relatedResult = Result.success(null)
         }
     }
 
@@ -175,8 +262,12 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height((CardSizes.gapXl * s).dp))
                 }
-            } ?: relatedResult?.exceptionOrNull()?.let {
-                // silent fail — quick picks unavailable, show discover below
+            } ?: run {
+                if (relatedResult == null) {
+                    // show shimmer so composition tree has slots for quick pick content
+                    // when real data loads later, shimmer seamlessly swaps to real cards
+                    QuickPicksSkeleton(scale = s)
+                }
             }
 
             // discovr

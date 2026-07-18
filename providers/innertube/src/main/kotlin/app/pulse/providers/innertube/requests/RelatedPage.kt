@@ -14,6 +14,14 @@ import app.pulse.providers.utils.runCatchingCancellable
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+private val rLogFmt = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+
+private fun rLog(msg: String) {
+    println("[${LocalTime.now().format(rLogFmt)}] [RelatedPage] $msg")
+}
 
 suspend fun Innertube.relatedPage(body: NextBody) = runCatchingCancellable {
     val nextResponse = client.post(NEXT) {
@@ -24,18 +32,28 @@ suspend fun Innertube.relatedPage(body: NextBody) = runCatchingCancellable {
         )
     }.body<NextResponse>()
 
-    val browseId = nextResponse
-        .contents
-        ?.singleColumnMusicWatchNextResultsRenderer
-        ?.tabbedRenderer
-        ?.watchNextTabbedResultsRenderer
+    // capture tab info before extracting browseId (used in both paths)
+    val tabs = nextResponse
+        .contents?.singleColumnMusicWatchNextResultsRenderer
+        ?.tabbedRenderer?.watchNextTabbedResultsRenderer
         ?.tabs
-        ?.getOrNull(2)
+    val tabCount = tabs?.size
+
+    val browseId = tabs
+        ?.firstOrNull { tab ->
+            tab.tabRenderer?.endpoint?.browseEndpoint?.browseId?.startsWith("MPTR") == true
+        }
         ?.tabRenderer
         ?.endpoint
         ?.browseEndpoint
         ?.browseId
-        ?: return@runCatchingCancellable null
+
+    if (browseId == null) {
+        val tabIds = tabs?.mapNotNull { it.tabRenderer?.endpoint?.browseEndpoint?.browseId }
+        rLog("browseId NULL — tabs=$tabCount browseIds=$tabIds, videoId=${body.videoId}")
+        return@runCatchingCancellable null
+    }
+    rLog("browseId=$browseId from videoId=${body.videoId} (tabs=$tabCount, found by MPTR prefix)")
 
     val response = client.post(BROWSE) {
         setBody(
@@ -54,31 +72,43 @@ suspend fun Innertube.relatedPage(body: NextBody) = runCatchingCancellable {
         .contents
         ?.sectionListRenderer
 
+    val songs = sectionListRenderer
+        ?.findSectionByTitle("You might also like")
+        ?.musicCarouselShelfRenderer
+        ?.contents
+        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
+        ?.mapNotNull(Innertube.SongItem::from)
+    rLog("sections: songs=${songs?.size}")
+
+    val playlists = sectionListRenderer
+        ?.findSectionByTitle("Recommended playlists")
+        ?.musicCarouselShelfRenderer
+        ?.contents
+        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+        ?.mapNotNull(Innertube.PlaylistItem::from)
+        ?.sortedByDescending { it.channel?.name == "YouTube Music" }
+    rLog("sections: playlists=${playlists?.size}")
+
+    val albums = sectionListRenderer
+        ?.findSectionByStrapline("MORE FROM")
+        ?.musicCarouselShelfRenderer
+        ?.contents
+        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+        ?.mapNotNull(Innertube.AlbumItem::from)
+    rLog("sections: albums=${albums?.size}")
+
+    val artists = sectionListRenderer
+        ?.findSectionByTitle("Similar artists")
+        ?.musicCarouselShelfRenderer
+        ?.contents
+        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+        ?.mapNotNull(Innertube.ArtistItem::from)
+    rLog("sections: artists=${artists?.size}")
+
     Innertube.RelatedPage(
-        songs = sectionListRenderer
-            ?.findSectionByTitle("You might also like")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
-            ?.mapNotNull(Innertube.SongItem::from),
-        playlists = sectionListRenderer
-            ?.findSectionByTitle("Recommended playlists")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.PlaylistItem::from)
-            ?.sortedByDescending { it.channel?.name == "YouTube Music" },
-        albums = sectionListRenderer
-            ?.findSectionByStrapline("MORE FROM")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.AlbumItem::from),
-        artists = sectionListRenderer
-            ?.findSectionByTitle("Similar artists")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.ArtistItem::from)
+        songs = songs,
+        playlists = playlists,
+        albums = albums,
+        artists = artists
     )
 }

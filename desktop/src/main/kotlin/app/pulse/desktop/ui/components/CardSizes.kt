@@ -60,6 +60,8 @@ object CardSizes {
     const val skelMoodCount = 4
     const val skelAlbumCount = 4
     const val skelTrendingCount = 6
+    const val skelQpSongCount = 5
+    const val skelQpAlbumCount = 5
 
     // skeleton — shimmer sizes (derived from real card sizes)
     const val skelSectionH = 18
