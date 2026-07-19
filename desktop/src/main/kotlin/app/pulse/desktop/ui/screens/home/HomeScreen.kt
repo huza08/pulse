@@ -659,7 +659,7 @@ private fun ArtistCard(
                 color = text,
                 fontSize = (CardSizes.artistName * scale).sp,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth()
             )
