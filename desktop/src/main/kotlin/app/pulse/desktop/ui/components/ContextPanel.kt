@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,27 +39,15 @@ fun ContextPanel(
     val queue = state.queue
     val currentIndex = state.currentIndex
 
-    val bg = Color(0xFF121212)
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
-    Row(modifier = modifier.fillMaxHeight()) {
-        // left border
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(Color(0xFF2a2a2a))
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .background(bg)
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp)
-        ) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
             // Now Playing header
             Text(
                 text = "Now Playing",
@@ -176,4 +163,3 @@ fun ContextPanel(
             }
         }
     }
-}

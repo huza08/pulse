@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val SidebarBg = Color(0xFF0d0d0d)
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
@@ -55,8 +54,7 @@ fun Sidebar(
 
     Column(
         modifier = modifier
-            .fillMaxHeight()
-            .background(SidebarBg)
+            .fillMaxSize()
     ) {
 
         // currently is a dummy stuff

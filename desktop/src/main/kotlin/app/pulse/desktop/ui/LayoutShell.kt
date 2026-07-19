@@ -1,12 +1,12 @@
 package app.pulse.desktop.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,16 +16,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -73,26 +77,36 @@ fun LayoutShell(
                 onNavigate = onNavigate
             )
 
-            Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 // Left sidebar
-                Sidebar(
-                    activeView = activeView,
-                    onNavigate = onNavigate,
-                    modifier = Modifier.width(sidebarWidth).fillMaxHeight()
-                )
-                // handle
-                ResizableHandle(
-                    modifier = Modifier.offset(x = (-8).dp),
-                    onDrag = { delta ->
-                        sidebarWidth = (sidebarWidth + delta.dp).coerceIn(200.dp, 460.dp)
-                    }
-                )
+                ResizableSidebar(
+                    width = sidebarWidth,
+                    onWidthChange = { sidebarWidth = it },
+                    minWidth = 400.dp,
+                    maxWidth = 460.dp,
+                    handleSide = HandleSide.End
+                ) {
+                    Sidebar(
+                        activeView = activeView,
+                        onNavigate = onNavigate,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
                 // Center content area
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF121212))
+                        .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
                 ) {
                     ContentView(
                         activeView = activeView,
@@ -103,20 +117,17 @@ fun LayoutShell(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .width(panelWidth)
-                        .fillMaxHeight()
+                // Right panel
+                ResizableSidebar(
+                    width = panelWidth,
+                    onWidthChange = { panelWidth = it },
+                    minWidth = 250.dp,
+                    maxWidth = 460.dp,
+                    handleSide = HandleSide.Start
                 ) {
                     ContextPanel(
                         player = player,
                         modifier = Modifier.fillMaxSize()
-                    )
-                    ResizableHandle(
-                        modifier = Modifier.align(Alignment.CenterStart).offset(x = (-8).dp),
-                        onDrag = { delta ->
-                            panelWidth = (panelWidth - delta.dp).coerceIn(250.dp, 460.dp)
-                        }
                     )
                 }
             }
@@ -139,10 +150,63 @@ fun LayoutShell(
     }
 }
 
+// which side the resize handle sits on
+private enum class HandleSide { Start, End }
+
+// resizable sidebar wrapper
+@Composable
+private fun ResizableSidebar(
+    width: Dp,
+    onWidthChange: (Dp) -> Unit,
+    minWidth: Dp,
+    maxWidth: Dp,
+    handleSide: HandleSide,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val (align, offset, dragSign) = when (handleSide) {
+        HandleSide.Start -> Triple(
+            Alignment.CenterStart,
+            (-8).dp,
+            -1f  // drag right = shrink width
+        )
+        HandleSide.End -> Triple(
+            Alignment.CenterEnd,
+            8.dp,
+            1f   // drag right = grow width
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .width(width)
+            .fillMaxHeight()
+    ) {
+        // card surface
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF121212))
+                .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
+        ) {
+            content()
+        }
+        // resize handle
+        ResizableHandle(
+            modifier = Modifier.align(align).offset(x = offset),
+            onDrag = { delta ->
+                val newWidth = width + (delta * dragSign).dp
+                onWidthChange(newWidth.coerceIn(minWidth, maxWidth))
+            }
+        )
+    }
+}
+
 // drag handle
 @Composable
 private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Unit) {
     val s = LocalDensity.current.density
+    val currentOnDrag by rememberUpdatedState(onDrag)
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val pillBg = if (isHovered) Color(0xFF2a2a2a) else Color(0xFF1a1a1a)
@@ -155,7 +219,7 @@ private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Un
             .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
             .pointerInput(Unit) {
                 detectHorizontalDragGestures { _, dragAmount ->
-                    onDrag(dragAmount / s)
+                    currentOnDrag(dragAmount / s)
                 }
             },
         contentAlignment = Alignment.Center
