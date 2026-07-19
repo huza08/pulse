@@ -55,7 +55,6 @@ fun Sidebar(
 
     Column(
         modifier = modifier
-            .width(260.dp)
             .fillMaxHeight()
             .background(SidebarBg)
     ) {

@@ -44,7 +44,7 @@ fun ContextPanel(
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
-    Row(modifier = modifier.width(320.dp).fillMaxHeight()) {
+    Row(modifier = modifier.fillMaxHeight()) {
         // left border
         Box(
             modifier = Modifier
