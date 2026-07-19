@@ -39,8 +39,6 @@ private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
 private val ActiveText = Color(0xFFf2f0eb)
-private val ChipActiveBg = Color(0xFF2a2a2a)
-private val ChipInactiveBg = Color(0xFF141414)
 private val GreenAccent = Color(0xFF1ed760)
 
 
@@ -252,7 +250,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) ChipActiveBg else ChipInactiveBg)
+            .background(if (selected) Color(0xFF2a2a2a) else Color(0xFF141414))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,

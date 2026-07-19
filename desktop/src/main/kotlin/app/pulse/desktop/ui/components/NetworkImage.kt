@@ -20,34 +20,6 @@ import java.security.MessageDigest
 
 private val imageCacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-image-cache")
 
-private const val IMAGE_CACHE_MAX_AGE_MS = 24L * 60 * 60 * 1000   // 24h
-private const val IMAGE_CACHE_MAX_BYTES = 50L * 1024 * 1024         // 50 MB
-
-/** evict stale or oversized image cache entries. runs on first class load. */
-private fun cleanImageCache() {
-    val dir = imageCacheDir
-    if (!dir.isDirectory) return
-    val now = System.currentTimeMillis()
-    val files = dir.listFiles()?.filter { it.isFile }?.toMutableList() ?: return
-
-    val kept = mutableListOf<File>()
-    for (f in files) {
-        if (now - f.lastModified() > IMAGE_CACHE_MAX_AGE_MS) f.delete()
-        else kept.add(f)
-    }
-
-    var total = kept.sumOf { it.length() }
-    if (total <= IMAGE_CACHE_MAX_BYTES) return
-    kept.sortBy { it.lastModified() }
-    for (f in kept) {
-        if (total <= IMAGE_CACHE_MAX_BYTES) break
-        total -= f.length()
-        f.delete()
-    }
-}
-
-private val _imageCacheInit = runCatching { cleanImageCache() }
-
 /** load image from disk cache or download and cache it. */
 @Composable
 fun NetworkImage(url: String, modifier: Modifier = Modifier) {
@@ -78,7 +50,6 @@ fun NetworkImage(url: String, modifier: Modifier = Modifier) {
 }
 
 private fun cacheFileFor(url: String): File {
-    val hash = MessageDigest.getInstance("MD5").digest(url.toByteArray())
-        .joinToString("") { "%02x".format(it) }
+    val hash = url.hashCode().toUInt().toString(16)
     return File(imageCacheDir, hash)
 }

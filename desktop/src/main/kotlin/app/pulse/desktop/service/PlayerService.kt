@@ -5,6 +5,7 @@ import app.pulse.core.data.models.LoopMode
 import app.pulse.core.data.repository.QueueDatabase
 import app.pulse.core.data.utils.NativeBinaries
 import app.pulse.core.data.utils.toSong
+import app.pulse.desktop.ui.components.log as sharedLog
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.PlayerResponse
 import app.pulse.providers.innertube.models.bodies.NextBody
@@ -26,8 +27,6 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
@@ -37,10 +36,9 @@ import javax.sound.sampled.SourceDataLine
 import kotlin.math.log10
 import kotlin.math.roundToLong
 
-private val logFmt = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-
+// bridge: components.log(tag, msg) → private log(msg) so all 30+ call sites unchanged
 private fun log(msg: String) {
-    println("[${LocalTime.now().format(logFmt)}] [PlayerService] $msg")
+    sharedLog("PlayerService", msg)
 }
 
 /** return value from playViaStream to inform the caller what action to take. */
