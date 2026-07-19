@@ -6,7 +6,10 @@ object CardSizes {
     const val cardW = 160
     const val cardTextH = 90   // text area below thumbnail
     const val cardThumbRadius = 8
-    const val cardEndPad = 10
+
+    // gap between adjacent cards in rows
+    const val cardGap = 24
+    const val cardEndPad = cardGap
 
     // unified text area gaps for all cards
     const val thumbTitleGap = 8   // thumbnail bottom to title text
@@ -16,30 +19,33 @@ object CardSizes {
     const val cardTitleFont = 20
     const val cardArtistFont = 18
 
+    // unified inner padding for all card text areas (horizontal)
+    const val cardInnerPad = 10
+
     // compact songcard now use unified sizes above
     const val compactSongW = cardW
-    const val compactSongEndPad = cardEndPad
-    const val compactSongInnerPad = 10   // horizontal padding only
+    const val compactSongEndPad = cardGap
+    const val compactSongInnerPad = cardInnerPad
     const val compactSongTitle = cardTitleFont
     const val compactSongArt = cardArtistFont
 
     // album card (new releases, related albums)
     const val albumW = cardW
-    const val albumEndPad = cardEndPad
-    const val albumInnerPad = 1
+    const val albumEndPad = cardGap
+    const val albumInnerPad = cardInnerPad
     const val albumTitle = cardTitleFont
     const val albumAuthor = cardArtistFont
 
     // artist card (similar artists)
     const val artistW = cardW
-    const val artistEndPad = cardEndPad
+    const val artistEndPad = cardGap
     const val artistName = cardTitleFont
-    const val artistVertPad = 18
+    const val artistVertPad = cardInnerPad
 
     // playlist card (recommended playlists)
     const val playlistW = cardW
-    const val playlistEndPad = 14
-    const val playlistInnerPad = 12
+    const val playlistEndPad = cardGap
+    const val playlistInnerPad = cardInnerPad
     const val playlistName = cardTitleFont
     const val playlistCount = cardArtistFont
 
@@ -70,7 +76,7 @@ object CardSizes {
     const val gapXl = 20
 
     // trending grids
-    const val gridGap = 10
+    const val gridGap = cardGap
     const val gridMinCardW = cardW
     const val gridMaxCols = 6
     const val gridMinCols = 4
