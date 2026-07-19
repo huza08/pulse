@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.components.CardSizes
 import app.pulse.core.data.utils.toSong
+import app.pulse.desktop.ui.components.HomeCard
 import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
@@ -521,55 +522,39 @@ private fun CompactSongCard(
 ) {
     val cardSize = (CardSizes.cardW * scale).dp
     val cardH = cardSize + (CardSizes.cardTextH * scale).dp
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .width(cardSize)
-            .height(cardH)
-            .padding(end = (CardSizes.cardEndPad * scale).dp)
-            .clickable(onClick = onClick)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(Color(0xFF1a1a1a))
-            ) {
-                song.thumbnailUrl?.let { thumb ->
-                    NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
-                }
+    HomeCard(
+        cardWidth = cardSize,
+        cardHeight = cardH,
+        horizontalPadding = (CardSizes.compactSongInnerPad * scale).dp,
+        endPad = (CardSizes.cardEndPad * scale).dp,
+        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        scale = scale,
+        onClick = onClick,
+        thumbnail = {
+            song.thumbnailUrl?.let { thumb ->
+                NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
             }
-            Column(
-                modifier = Modifier.padding(
-                    start = (CardSizes.compactSongInnerPad * scale).dp,
-                    end = (CardSizes.compactSongInnerPad * scale).dp,
-                    top = (CardSizes.thumbTitleGap * scale).dp
-                )
-            ) {
-                Text(
-                    text = song.title,
-                    color = text,
-                    fontSize = (CardSizes.compactSongTitle * scale).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                song.artistsText?.let { author ->
-                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
-                    Text(
-                        text = author,
-                        color = dim,
-                        fontSize = (CardSizes.compactSongArt * scale).sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
+        },
+        title = {
+            Text(
+                text = song.title,
+                color = text,
+                fontSize = (CardSizes.compactSongTitle * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        subtitle = song.artistsText?.let { author -> {
+            Text(
+                text = author,
+                color = dim,
+                fontSize = (CardSizes.compactSongArt * scale).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }}
+    )
 }
 
 @Composable
@@ -581,55 +566,38 @@ private fun AlbumCard(
 ) {
     val cardSize = (CardSizes.cardW * scale).dp
     val cardH = cardSize + (CardSizes.cardTextH * scale).dp
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .width(cardSize)
-            .height(cardH)
-            .padding(end = (CardSizes.cardEndPad * scale).dp)
-            .clickable { }
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(Color(0xFF1a1a1a))
-            ) {
-                album.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
-                }
+    HomeCard(
+        cardWidth = cardSize,
+        cardHeight = cardH,
+        horizontalPadding = (CardSizes.albumInnerPad * scale).dp,
+        endPad = (CardSizes.cardEndPad * scale).dp,
+        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        scale = scale,
+        thumbnail = {
+            album.thumbnail?.let { thumb ->
+                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
             }
-            Column(
-                modifier = Modifier.padding(
-                    start = (CardSizes.albumInnerPad * scale).dp,
-                    end = (CardSizes.albumInnerPad * scale).dp,
-                    top = (CardSizes.thumbTitleGap * scale).dp
-                )
-            ) {
-                Text(
-                    text = album.info?.name ?: "Untitled",
-                    color = text,
-                    fontSize = (CardSizes.albumTitle * scale).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                album.authors?.firstOrNull()?.let { author ->
-                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
-                    Text(
-                        text = author.name ?: "",
-                        color = dim,
-                        fontSize = (CardSizes.albumAuthor * scale).sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
+        },
+        title = {
+            Text(
+                text = album.info?.name ?: "Untitled",
+                color = text,
+                fontSize = (CardSizes.albumTitle * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        subtitle = album.authors?.firstOrNull()?.let { author -> {
+            Text(
+                text = author.name ?: "",
+                color = dim,
+                fontSize = (CardSizes.albumAuthor * scale).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }}
+    )
 }
 
 @Composable
@@ -641,46 +609,28 @@ private fun ArtistCard(
 ) {
     val cardSize = (CardSizes.cardW * scale).dp
     val cardH = cardSize + (CardSizes.cardTextH * scale).dp
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .width(cardSize)
-            .height(cardH)
-            .padding(end = (CardSizes.cardEndPad * scale).dp)
-            .clickable { }
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(CardSizes.cardThumbRadius.dp))
-                    .background(Color(0xFF1a1a1a))
-            ) {
-                artist.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
-                }
+    HomeCard(
+        cardWidth = cardSize,
+        cardHeight = cardH,
+        horizontalPadding = (CardSizes.artistVertPad * scale).dp,
+        endPad = (CardSizes.cardEndPad * scale).dp,
+        scale = scale,
+        thumbnail = {
+            artist.thumbnail?.let { thumb ->
+                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
             }
-            Column(
-                modifier = Modifier.padding(
-                    start = (CardSizes.artistVertPad * scale).dp,
-                    end = (CardSizes.artistVertPad * scale).dp,
-                    top = (CardSizes.thumbTitleGap * scale).dp
-                ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = artist.info?.name ?: "Unknown",
-                    color = text,
-                    fontSize = (CardSizes.artistName * scale).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        },
+        title = {
+            Text(
+                text = artist.info?.name ?: "Unknown",
+                color = text,
+                fontSize = (CardSizes.artistName * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
-    }
+    )
 }
 
 @Composable
@@ -693,48 +643,37 @@ private fun TrendingGridCard(
     scale: Float = 1f,
     onClick: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .width(cardWidth)
-            .height(cardHeight)
-            .clickable(onClick = onClick)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(CardSizes.gridThumbRadius.dp))
-                    .background(Color(0xFF1a1a1a))
-            ) {
-                song.thumbnailUrl?.let { thumb ->
-                    NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
-                }
+    HomeCard(
+        cardWidth = cardWidth,
+        cardHeight = cardHeight,
+        titleFontWeight = FontWeight.Medium,
+        scale = scale,
+        onClick = onClick,
+        thumbnail = {
+            song.thumbnailUrl?.let { thumb ->
+                NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
             }
-            Column(modifier = Modifier.padding(top = (CardSizes.thumbTitleGap * scale).dp)) {
-                Text(
-                    text = song.title,
-                    color = text,
-                    fontSize = (CardSizes.gridTitleFont * scale).sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                song.artistsText?.let { author ->
-                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
-                    Text(
-                        text = author,
-                        color = dim,
-                        fontSize = (CardSizes.gridArtistFont * scale).sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
+        },
+        title = {
+            Text(
+                text = song.title,
+                color = text,
+                fontSize = (CardSizes.gridTitleFont * scale).sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        subtitle = song.artistsText?.let { author -> {
+            Text(
+                text = author,
+                color = dim,
+                fontSize = (CardSizes.gridArtistFont * scale).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }}
+    )
 }
 
 @Composable
@@ -746,51 +685,36 @@ private fun PlaylistCard(
 ) {
     val cardSize = (CardSizes.cardW * scale).dp
     val cardH = cardSize + (CardSizes.cardTextH * scale).dp
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .width(cardSize)
-            .height(cardH)
-            .padding(end = (CardSizes.playlistEndPad * scale).dp)
-            .clickable { }
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(Color(0xFF1a1a1a))
-            ) {
-                playlist.thumbnail?.let { thumb ->
-                    NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
-                }
+    HomeCard(
+        cardWidth = cardSize,
+        cardHeight = cardH,
+        horizontalPadding = (CardSizes.playlistInnerPad * scale).dp,
+        endPad = (CardSizes.playlistEndPad * scale).dp,
+        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        scale = scale,
+        thumbnail = {
+            playlist.thumbnail?.let { thumb ->
+                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
             }
-            Column(
-                modifier = Modifier.padding(
-                    start = (CardSizes.playlistInnerPad * scale).dp,
-                    end = (CardSizes.playlistInnerPad * scale).dp,
-                    top = (CardSizes.thumbTitleGap * scale).dp
-                )
-            ) {
-                Text(
-                    text = playlist.info?.name ?: "Untitled",
-                    color = text,
-                    fontSize = (CardSizes.playlistName * scale).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
-                Text(
-                    text = "${playlist.songCount ?: 0} songs",
-                    color = dim,
-                    fontSize = (CardSizes.playlistCount * scale).sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        },
+        title = {
+            Text(
+                text = playlist.info?.name ?: "Untitled",
+                color = text,
+                fontSize = (CardSizes.playlistName * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        subtitle = {
+            Text(
+                text = "${playlist.songCount ?: 0} songs",
+                color = dim,
+                fontSize = (CardSizes.playlistCount * scale).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
-    }
+    )
 }
