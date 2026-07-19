@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,16 +44,119 @@ private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
 private val GreenAccent = Color(0xFF1ed760)
 
-
 @Composable
 fun Sidebar(
     activeView: View,
     onNavigate: (View) -> Unit,
-    onHideSidebar: () -> Unit = {},
+    isCollapsed: Boolean = false,
+    onToggleCollapse: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var filterTab by remember { mutableStateOf(0) } // 0 = Playlists, 1 = Artists
+    var filterTab by remember { mutableStateOf(0) }
 
+    if (isCollapsed) {
+        CollapsedSidebar(
+            onToggleCollapse = onToggleCollapse,
+            modifier = modifier
+        )
+    } else {
+        ExpandedSidebar(
+            activeView = activeView,
+            onNavigate = onNavigate,
+            onToggleCollapse = onToggleCollapse,
+            filterTab = filterTab,
+            onFilterTabChange = { filterTab = it },
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun CollapsedSidebar(
+    onToggleCollapse: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // header
+        Icon(
+            painter = painterResource("/icons/chevron_back.svg"),
+            contentDescription = "Expand sidebar",
+            tint = TextColor,
+            modifier = Modifier
+                .size(32.dp)
+                .padding(6.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onToggleCollapse
+                )
+        )
+        Spacer(Modifier.height(4.dp))
+        Icon(
+            painter = painterResource("/icons/add.svg"),
+            contentDescription = "Create",
+            tint = DimColor,
+            modifier = Modifier
+                .size(32.dp)
+                .padding(6.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { /* todo */ }
+                )
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // icon-only items
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Liked Songs
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFFb02897)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource("/icons/heart.svg"),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            // playlist items
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFd4a373)))
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF444444)))
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF555555)))
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF8a5a44)))
+            // artist items
+            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF333333)))
+            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF444444)))
+            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF555555)))
+        }
+    }
+}
+
+@Composable
+private fun ExpandedSidebar(
+    activeView: View,
+    onNavigate: (View) -> Unit,
+    onToggleCollapse: () -> Unit,
+    filterTab: Int,
+    onFilterTabChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val hoverSrc = remember { MutableInteractionSource() }
     val isHovered by hoverSrc.collectIsHoveredAsState()
 
@@ -61,24 +165,24 @@ fun Sidebar(
             .fillMaxSize()
             .hoverable(hoverSrc)
     ) {
-
+        // header
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 12.dp)
         ) {
             if (isHovered) {
                 Icon(
                     painter = painterResource("/icons/chevron_back.svg"),
-                    contentDescription = "Hide sidebar",
+                    contentDescription = "Collapse sidebar",
                     tint = TextColor,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onHideSidebar
+                            onClick = onToggleCollapse
                         )
                 )
                 Spacer(Modifier.width(8.dp))
@@ -90,12 +194,11 @@ fun Sidebar(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
-            HeaderIcon(painterResource("/icons/add.svg"), "Create playlist or folder")
-            HeaderIcon(painterResource("/icons/chevron_down.svg"), "Collapse")
+            HeaderIcon(painterResource("/icons/add.svg"), "Create")
+            HeaderIcon(painterResource("/icons/expand.svg"), "Expand library")
         }
 
-        Spacer(Modifier.height(8.dp))
-
+        // filter pills
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,18 +207,19 @@ fun Sidebar(
             FilterChip(
                 label = "Playlists",
                 selected = filterTab == 0,
-                onClick = { filterTab = 0 }
+                onClick = { onFilterTabChange(0) }
             )
             Spacer(Modifier.width(8.dp))
             FilterChip(
                 label = "Artists",
                 selected = filterTab == 1,
-                onClick = { filterTab = 1 }
+                onClick = { onFilterTabChange(1) }
             )
         }
 
         Spacer(Modifier.height(8.dp))
 
+        // search/sort row
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -125,7 +229,7 @@ fun Sidebar(
         ) {
             Icon(
                 painter = painterResource("/icons/search.svg"),
-                contentDescription = "Search in library",
+                contentDescription = "Search",
                 tint = DimColor,
                 modifier = Modifier
                     .size(28.dp)
@@ -133,22 +237,19 @@ fun Sidebar(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = { /* todo: search within library */ }
+                        onClick = { /* todo */ }
                     )
             )
-
             Spacer(Modifier.weight(1f))
-
             Text(
                 text = "Recents",
                 color = DimColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
-
             Icon(
                 painter = painterResource("/icons/list.svg"),
-                contentDescription = "Sort view",
+                contentDescription = "Toggle view",
                 tint = DimColor,
                 modifier = Modifier
                     .size(28.dp)
@@ -156,11 +257,12 @@ fun Sidebar(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = { /* todo: toggle sort */ }
+                        onClick = { /* todo */ }
                     )
             )
         }
 
+        // scrollable list
         Column(
             modifier = Modifier
                 .fillMaxWidth()

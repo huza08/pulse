@@ -66,15 +66,22 @@ fun LayoutShell(
     val bg = Color(0xFF0a0a0a)
 
     // sidebar widths — animated triggers smooth center content re-layout
-    var targetSidebarWidth by remember { mutableStateOf(460.dp) }
+    var targetSidebarWidth by remember { mutableStateOf(340.dp) }
     var targetPanelWidth by remember { mutableStateOf(460.dp) }
-    var showLeftSidebar by remember { mutableStateOf(true) }
     var showRightPanel by remember { mutableStateOf(true) }
+    var sidebarCollapsed by remember { mutableStateOf(false) }
 
     val hideAnim = spring<Dp>(dampingRatio = 0.8f, stiffness = 500f)
 
+    // collapse/expand via drag:
+    if (targetSidebarWidth <= 80.dp) {
+        sidebarCollapsed = true
+    } else if (targetSidebarWidth >= 120.dp) {
+        sidebarCollapsed = false
+    }
+
     val sidebarWidth by animateDpAsState(
-        targetValue = if (showLeftSidebar) targetSidebarWidth else 0.dp,
+        targetValue = if (sidebarCollapsed) 80.dp else targetSidebarWidth,
         animationSpec = hideAnim
     )
     val panelWidth by animateDpAsState(
@@ -103,23 +110,29 @@ fun LayoutShell(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Left sidebar — animated width triggers smooth center reflow
-                if (showLeftSidebar || sidebarWidth > 0.dp) {
+                // Left sidebar
                     ResizableSidebar(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
-                        minWidth = 400.dp,
+                        minWidth = 80.dp,
                         maxWidth = 460.dp,
                         handleIsStart = false
                     ) {
                         Sidebar(
                             activeView = activeView,
                             onNavigate = onNavigate,
-                            onHideSidebar = { showLeftSidebar = false },
+                            isCollapsed = sidebarCollapsed,
+                            onToggleCollapse = {
+                                sidebarCollapsed = !sidebarCollapsed
+                                if (sidebarCollapsed) {
+                                    targetSidebarWidth = 80.dp
+                                } else {
+                                    targetSidebarWidth = 340.dp
+                                }
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
-                }
 
                 // Center content area
                 Box(
@@ -158,14 +171,6 @@ fun LayoutShell(
         }
 
         // re-show buttons
-        if (!showLeftSidebar && sidebarWidth <= 1.dp) {
-            ReShowButton(
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp),
-                icon = "/icons/chevron_forward.svg",
-                desc = "Show sidebar",
-                onClick = { showLeftSidebar = true }
-            )
-        }
         if (!showRightPanel && panelWidth <= 1.dp) {
             ReShowButton(
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
