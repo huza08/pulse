@@ -8,10 +8,14 @@ object CardSizes {
     const val cardThumbRadius = 8
     const val cardEndPad = 10
 
-    // comapact songcard now use unified sizes above
+    // unified text area gaps for all cards
+    const val thumbTitleGap = 8   // thumbnail bottom to title text
+    const val titleArtistGap = 4   // title text to artist/author
+
+    // compact songcard now use unified sizes above
     const val compactSongW = cardW
     const val compactSongEndPad = cardEndPad
-    const val compactSongInnerPad = 10
+    const val compactSongInnerPad = 10   // horizontal padding only
     const val compactSongTitle = 20
     const val compactSongArt = 18
 
@@ -70,7 +74,7 @@ object CardSizes {
     const val gridTitleFont = 15
     const val gridArtistFont = 13
     const val gridTextAreaH = cardTextH
-    const val gridTextGapSm = 4
+    const val gridTextGapSm = titleArtistGap
     const val gridBottomPad = 2
 
     // skeleton — repeat counts

@@ -542,7 +542,13 @@ private fun CompactSongCard(
                     NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((CardSizes.compactSongInnerPad * scale).dp)) {
+            Column(
+                modifier = Modifier.padding(
+                    start = (CardSizes.compactSongInnerPad * scale).dp,
+                    end = (CardSizes.compactSongInnerPad * scale).dp,
+                    top = (CardSizes.thumbTitleGap * scale).dp
+                )
+            ) {
                 Text(
                     text = song.title,
                     color = text,
@@ -552,6 +558,7 @@ private fun CompactSongCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 song.artistsText?.let { author ->
+                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
                     Text(
                         text = author,
                         color = dim,
@@ -595,7 +602,13 @@ private fun AlbumCard(
                     NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((CardSizes.albumInnerPad * scale).dp)) {
+            Column(
+                modifier = Modifier.padding(
+                    start = (CardSizes.albumInnerPad * scale).dp,
+                    end = (CardSizes.albumInnerPad * scale).dp,
+                    top = (CardSizes.thumbTitleGap * scale).dp
+                )
+            ) {
                 Text(
                     text = album.info?.name ?: "Untitled",
                     color = text,
@@ -605,6 +618,7 @@ private fun AlbumCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 album.authors?.firstOrNull()?.let { author ->
+                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
                     Text(
                         text = author.name ?: "",
                         color = dim,
@@ -649,7 +663,11 @@ private fun ArtistCard(
                 }
             }
             Column(
-                modifier = Modifier.padding(horizontal = (CardSizes.artistVertPad * scale).dp),
+                modifier = Modifier.padding(
+                    start = (CardSizes.artistVertPad * scale).dp,
+                    end = (CardSizes.artistVertPad * scale).dp,
+                    top = (CardSizes.thumbTitleGap * scale).dp
+                ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -695,7 +713,7 @@ private fun TrendingGridCard(
                     NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding(top = (CardSizes.gridTextGapSm * scale).dp)) {
+            Column(modifier = Modifier.padding(top = (CardSizes.thumbTitleGap * scale).dp)) {
                 Text(
                     text = song.title,
                     color = text,
@@ -704,8 +722,8 @@ private fun TrendingGridCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
                 song.artistsText?.let { author ->
+                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
                     Text(
                         text = author,
                         color = dim,
@@ -749,7 +767,13 @@ private fun PlaylistCard(
                     NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
                 }
             }
-            Column(modifier = Modifier.padding((CardSizes.playlistInnerPad * scale).dp)) {
+            Column(
+                modifier = Modifier.padding(
+                    start = (CardSizes.playlistInnerPad * scale).dp,
+                    end = (CardSizes.playlistInnerPad * scale).dp,
+                    top = (CardSizes.thumbTitleGap * scale).dp
+                )
+            ) {
                 Text(
                     text = playlist.info?.name ?: "Untitled",
                     color = text,
@@ -758,6 +782,7 @@ private fun PlaylistCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
                 Text(
                     text = "${playlist.songCount ?: 0} songs",
                     color = dim,
