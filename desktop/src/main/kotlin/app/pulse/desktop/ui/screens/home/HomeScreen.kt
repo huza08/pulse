@@ -646,7 +646,6 @@ private fun TrendingGridCard(
     HomeCard(
         cardWidth = cardWidth,
         cardHeight = cardHeight,
-        titleFontWeight = FontWeight.Medium,
         scale = scale,
         onClick = onClick,
         thumbnail = {
@@ -658,8 +657,7 @@ private fun TrendingGridCard(
             Text(
                 text = song.title,
                 color = text,
-                fontSize = (CardSizes.gridTitleFont * scale).sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = (CardSizes.gridTitleFont * scale).sp,                        fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
