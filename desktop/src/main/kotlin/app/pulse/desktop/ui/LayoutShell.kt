@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,11 +80,11 @@ fun LayoutShell(
                     onNavigate = onNavigate,
                     modifier = Modifier.width(sidebarWidth).fillMaxHeight()
                 )
-
-                // drag handle left panel
+                // handle
                 ResizableHandle(
+                    modifier = Modifier.offset(x = (-8).dp),
                     onDrag = { delta ->
-                        sidebarWidth = (sidebarWidth + delta.dp).coerceIn(400.dp, 460.dp)
+                        sidebarWidth = (sidebarWidth + delta.dp).coerceIn(200.dp, 460.dp)
                     }
                 )
 
@@ -102,18 +103,22 @@ fun LayoutShell(
                     )
                 }
 
-                // drag handle right panel
-                ResizableHandle(
-                    onDrag = { delta ->
-                        panelWidth = (panelWidth - delta.dp).coerceIn(400.dp, 460.dp)
-                    }
-                )
-
-                // Right context panel
-                ContextPanel(
-                    player = player,
-                    modifier = Modifier.width(panelWidth).fillMaxHeight()
-                )
+                Box(
+                    modifier = Modifier
+                        .width(panelWidth)
+                        .fillMaxHeight()
+                ) {
+                    ContextPanel(
+                        player = player,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    ResizableHandle(
+                        modifier = Modifier.align(Alignment.CenterStart).offset(x = (-8).dp),
+                        onDrag = { delta ->
+                            panelWidth = (panelWidth - delta.dp).coerceIn(250.dp, 460.dp)
+                        }
+                    )
+                }
             }
         }
 
@@ -136,14 +141,14 @@ fun LayoutShell(
 
 // drag handle
 @Composable
-private fun ResizableHandle(onDrag: (Float) -> Unit) {
+private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Unit) {
     val s = LocalDensity.current.density
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val pillBg = if (isHovered) Color(0xFF2a2a2a) else Color(0xFF1a1a1a)
     val dotColor = if (isHovered) Color(0xFF666666) else Color(0xFF555555)
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(16.dp)
             .fillMaxHeight()
             .hoverable(interactionSource)
