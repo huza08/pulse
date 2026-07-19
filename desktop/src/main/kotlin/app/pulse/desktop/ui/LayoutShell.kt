@@ -1,7 +1,10 @@
 package app.pulse.desktop.ui
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,11 +18,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,7 +67,14 @@ fun LayoutShell(
 
     // resizable sidebar widths
     var sidebarWidth by remember { mutableStateOf(460.dp) }
-    var panelWidth by remember { mutableStateOf(460.dp) }
+    var targetPanelWidth by remember { mutableStateOf(460.dp) }
+    var showRightPanel by remember { mutableStateOf(true) }
+    val showInteraction = remember { MutableInteractionSource() }
+
+    val panelWidth by animateDpAsState(
+        targetValue = if (showRightPanel) targetPanelWidth else 0.dp,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
+    )
 
     Box(
         modifier = Modifier
@@ -104,8 +117,7 @@ fun LayoutShell(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF121212))
+                        .background(Color(0xFF121212), RoundedCornerShape(8.dp))
                         .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
                 ) {
                     ContentView(
@@ -118,18 +130,47 @@ fun LayoutShell(
                 }
 
                 // Right panel
-                ResizableSidebar(
-                    width = panelWidth,
-                    onWidthChange = { panelWidth = it },
-                    minWidth = 250.dp,
-                    maxWidth = 460.dp,
-                    handleSide = HandleSide.Start
-                ) {
-                    ContextPanel(
-                        player = player,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                if (showRightPanel || panelWidth > 0.dp) {
+                    ResizableSidebar(
+                        width = panelWidth,
+                        onWidthChange = { targetPanelWidth = it },
+                        minWidth = 250.dp,
+                        maxWidth = 460.dp,
+                        handleSide = HandleSide.Start
+                    ) {
+                        ContextPanel(
+                            player = player,
+                            onHidePanel = { showRightPanel = false },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
+            }
+        }
+
+        // re-show button when panel hidden
+        if (!showRightPanel && panelWidth <= 1.dp) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 8.dp)
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1c1c1c))
+                    .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
+                    .clickable(
+                        interactionSource = showInteraction,
+                        indication = null,
+                        onClick = { showRightPanel = true }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource("/icons/chevron_back.svg"),
+                    contentDescription = "Show panel",
+                    tint = Color(0xFFf2f0eb),
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
 
@@ -185,8 +226,7 @@ private fun ResizableSidebar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF121212))
+                .background(Color(0xFF121212), RoundedCornerShape(8.dp))
                 .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
         ) {
             content()

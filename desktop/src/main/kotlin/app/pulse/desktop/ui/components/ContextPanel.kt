@@ -1,8 +1,10 @@
-@file:Suppress("DEPRECATION")
-
 package app.pulse.desktop.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -38,6 +41,7 @@ import app.pulse.desktop.service.PlayerService
 @Composable
 fun ContextPanel(
     player: PlayerService,
+    onHidePanel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by player.state.collectAsState()
@@ -49,8 +53,13 @@ fun ContextPanel(
     val dim = Color(0xFFa8a39a)
     val cardBg = Color(0xFF1c1c1c)
 
+    val hoverSrc = remember { MutableInteractionSource() }
+    val isHovered by hoverSrc.collectIsHoveredAsState()
+
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .hoverable(hoverSrc)
+            .then(modifier)
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
@@ -61,6 +70,21 @@ fun ContextPanel(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            if (isHovered) {
+                Icon(
+                    painter = painterResource("/icons/chevron_forward.svg"),
+                    contentDescription = "Hide panel",
+                    tint = text,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onHidePanel
+                        )
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Text(
                 text = "Now Playing",
                 color = text,
@@ -77,7 +101,7 @@ fun ContextPanel(
             )
         }
 
-        // Card 1: Artwork + Pink Backdrop + Icons
+        // artwork
         Box(
             modifier = Modifier
                 .fillMaxWidth()
