@@ -28,6 +28,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -441,11 +442,16 @@ fun HomeScreen(
                 TrendingSkeleton(scale = s)
             }
         }
+        val scrollbarAlpha by animateFloatAsState(
+            targetValue = if (scrollState.isScrollInProgress) 1f else 0f,
+            animationSpec = tween(durationMillis = 600)
+        )
         VerticalScrollbar(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .fillMaxHeight()
-                .padding(top = 8.dp, bottom = 8.dp, end = 2.dp),
+                .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
+                .alpha(scrollbarAlpha),
             adapter = rememberScrollbarAdapter(scrollState),
             style = sbStyle
         )
