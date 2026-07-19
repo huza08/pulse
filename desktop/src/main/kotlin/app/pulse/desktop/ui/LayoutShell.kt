@@ -66,11 +66,16 @@ fun LayoutShell(
     val bg = Color(0xFF0a0a0a)
 
     // resizable sidebar widths
-    var sidebarWidth by remember { mutableStateOf(460.dp) }
+    var targetSidebarWidth by remember { mutableStateOf(460.dp) }
     var targetPanelWidth by remember { mutableStateOf(460.dp) }
+    var showLeftSidebar by remember { mutableStateOf(true) }
     var showRightPanel by remember { mutableStateOf(true) }
     val showInteraction = remember { MutableInteractionSource() }
 
+    val sidebarWidth by animateDpAsState(
+        targetValue = if (showLeftSidebar) targetSidebarWidth else 0.dp,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
+    )
     val panelWidth by animateDpAsState(
         targetValue = if (showRightPanel) targetPanelWidth else 0.dp,
         animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
@@ -98,18 +103,21 @@ fun LayoutShell(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Left sidebar
-                ResizableSidebar(
-                    width = sidebarWidth,
-                    onWidthChange = { sidebarWidth = it },
-                    minWidth = 400.dp,
-                    maxWidth = 460.dp,
-                    handleSide = HandleSide.End
-                ) {
-                    Sidebar(
-                        activeView = activeView,
-                        onNavigate = onNavigate,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                if (showLeftSidebar || sidebarWidth > 0.dp) {
+                    ResizableSidebar(
+                        width = sidebarWidth,
+                        onWidthChange = { targetSidebarWidth = it },
+                        minWidth = 400.dp,
+                        maxWidth = 460.dp,
+                        handleSide = HandleSide.End
+                    ) {
+                        Sidebar(
+                            activeView = activeView,
+                            onNavigate = onNavigate,
+                            onHideSidebar = { showLeftSidebar = false },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 // Center content area
@@ -148,7 +156,33 @@ fun LayoutShell(
             }
         }
 
-        // re-show button when panel hidden
+        // re-show button for left sidebar
+        if (!showLeftSidebar && sidebarWidth <= 1.dp) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 8.dp)
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1c1c1c))
+                    .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { showLeftSidebar = true }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource("/icons/chevron_forward.svg"),
+                    contentDescription = "Show sidebar",
+                    tint = Color(0xFFf2f0eb),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        // re-show button for right panel
         if (!showRightPanel && panelWidth <= 1.dp) {
             Box(
                 modifier = Modifier

@@ -2,7 +2,9 @@ package app.pulse.desktop.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +41,6 @@ import androidx.compose.ui.unit.sp
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
-private val ActiveText = Color(0xFFf2f0eb)
 private val GreenAccent = Color(0xFF1ed760)
 
 
@@ -46,17 +48,19 @@ private val GreenAccent = Color(0xFF1ed760)
 fun Sidebar(
     activeView: View,
     onNavigate: (View) -> Unit,
+    onHideSidebar: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var filterTab by remember { mutableStateOf(0) } // 0 = Playlists, 1 = Artists
 
+    val hoverSrc = remember { MutableInteractionSource() }
+    val isHovered by hoverSrc.collectIsHoveredAsState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
+            .hoverable(hoverSrc)
     ) {
-
-        // currently is a dummy stuff
-        // todo: make it work
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -64,6 +68,21 @@ fun Sidebar(
                 .fillMaxWidth()
                 .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
         ) {
+            if (isHovered) {
+                Icon(
+                    painter = painterResource("/icons/chevron_back.svg"),
+                    contentDescription = "Hide sidebar",
+                    tint = TextColor,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onHideSidebar
+                        )
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Text(
                 text = "Your Library",
                 color = TextColor,
@@ -160,7 +179,14 @@ fun Sidebar(
 @Composable
 private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit) {
     LibraryItem(
-        icon = { LikedSongsIcon() },
+        icon = {
+            Icon(
+                painter = painterResource("/icons/heart.svg"),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp)
+            )
+        },
         iconPlaceholder = Color(0xFFb02897),
         name = "Liked Songs",
         subtitle = "Playlist • 27 songs",
@@ -197,7 +223,6 @@ private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit) {
         onClick = { onNavigate(View.Playlists) }
     )
 }
-
 
 @Composable
 private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit) {
@@ -340,13 +365,3 @@ private fun LibraryItem(
     }
 }
 
-
-@Composable
-private fun LikedSongsIcon() {
-    Icon(
-        painter = painterResource("/icons/heart.svg"),
-        contentDescription = null,
-        tint = Color.White,
-        modifier = Modifier.size(18.dp)
-    )
-}
