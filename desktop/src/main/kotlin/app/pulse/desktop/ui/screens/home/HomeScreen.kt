@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -54,7 +53,6 @@ import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.components.CardSizes
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.ui.components.HomeCard
-import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.MoodsSkeleton
 import app.pulse.desktop.ui.components.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
@@ -281,12 +279,11 @@ fun HomeScreen(
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bg)
     ) {
-        val s = adaptiveScale(maxWidth)
         val scrollState = rememberScrollState()
         val sbStyle = remember {
             ScrollbarStyle(
@@ -305,14 +302,14 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
+                    .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 100.dp)
             ) {
             // quick picks
             relatedResult?.getOrNull()?.let { related ->
                 val qpSongs = related.songs
                 if (qpSongs != null && qpSongs.isNotEmpty()) {
                     SectionHeader("Quick Picks", {})
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         qpSongs.take(20).forEach { songItem ->
                             val song = songItem.toSong()
@@ -320,52 +317,51 @@ fun HomeScreen(
                                 song = song,
                                 text = text,
                                 dim = dim,
-                                scale = s,
                                 onClick = { onPlaySong(song) }
                             )
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapLg.dp))
                 }
 
                 val qpAlbums = related.albums
                 if (qpAlbums != null && qpAlbums.isNotEmpty()) {
                     SectionHeader("Related Albums", {})
-                    Spacer(Modifier.height((CardSizes.gapMd * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapMd.dp))
                     CarouselRow {
                         qpAlbums.forEach { album ->
-                            AlbumCard(album = album, text = text, dim = dim, scale = s)
+                            AlbumCard(album = album, text = text, dim = dim)
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapLg.dp))
                 }
 
                 val qpArtists = related.artists
                 if (qpArtists != null && qpArtists.isNotEmpty()) {
                     SectionHeader("Similar Artists", {})
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         qpArtists.forEach { artist ->
-                            ArtistCard(artist = artist, text = text, dim = dim, scale = s)
+                            ArtistCard(artist = artist, text = text, dim = dim)
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapLg.dp))
                 }
 
                 val qpPlaylists = related.playlists
                 if (qpPlaylists != null && qpPlaylists.isNotEmpty()) {
                     SectionHeader("Recommended Playlists", {})
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         qpPlaylists.forEach { playlist ->
-                            PlaylistCard(playlist = playlist, text = text, dim = dim, scale = s)
+                            PlaylistCard(playlist = playlist, text = text, dim = dim)
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapXl * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapXl.dp))
                 }
             } ?: run {
                 if (relatedResult == null) {
-                    QuickPicksSkeleton(scale = s)
+                    QuickPicksSkeleton()
                 }
             }
 
@@ -374,7 +370,7 @@ fun HomeScreen(
                 // mooodngenre
                 if (p.moods.isNotEmpty()) {
                     SectionHeader("Moods & Genres", onMore = onMoreMoods)
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         p.moods.sortedBy { it.title }.forEach { mood ->
                             val moodColor = Color(mood.stripeColor)
@@ -383,44 +379,44 @@ fun HomeScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = moodColor),
                                 modifier = Modifier
-                                    .width((CardSizes.moodW * s).dp)
-                                    .height((CardSizes.moodH * s).dp)
-                                    .padding(end = (CardSizes.moodEndPad * s).dp)
+                                    .width(CardSizes.moodW.dp)
+                                    .height(CardSizes.moodH.dp)
+                                    .padding(end = CardSizes.moodEndPad.dp)
                                     .clickable { }
                             ) {
                                 Box(
                                     contentAlignment = Alignment.CenterStart,
-                                    modifier = Modifier.padding(start = (CardSizes.moodInnerStart * s).dp)
+                                    modifier = Modifier.padding(start = CardSizes.moodInnerStart.dp)
                                 ) {
                                     Text(
                                         text = mood.title,
                                         color = moodTextColor,
-                                        fontSize = (CardSizes.moodFont * s).sp,
+                                        fontSize = CardSizes.moodFont.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapLg.dp))
                 }
 
                 // new
                 if (p.newReleaseAlbums.isNotEmpty()) {
                     SectionHeader("New Releases", onMore = onMoreAlbums)
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         p.newReleaseAlbums.forEach { album ->
-                            AlbumCard(album = album, text = text, dim = dim, scale = s)
+                            AlbumCard(album = album, text = text, dim = dim)
                         }
                     }
-                    Spacer(Modifier.height((CardSizes.gapLg * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapLg.dp))
                 }
 
                 // trendink
                 if (p.trending.songs.isNotEmpty()) {
                     SectionHeader("Trending", onMore = onMoreTrending)
-                    Spacer(Modifier.height((CardSizes.gapSm * s).dp))
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
                     CarouselRow {
                         p.trending.songs.forEach { songItem ->
                             val song = songItem.toSong()
@@ -428,18 +424,17 @@ fun HomeScreen(
                                 song = song,
                                 text = text,
                                 dim = dim,
-                                scale = s,
                                 onClick = { onPlaySong(song) }
                             )
                         }
                     }
                 }
             } ?: run {
-                MoodsSkeleton(scale = s)
-                Spacer(Modifier.height((CardSizes.gapXl * s).dp))
-                NewReleasesSkeleton(scale = s)
-                Spacer(Modifier.height((CardSizes.gapXl * s).dp))
-                TrendingSkeleton(scale = s)
+                MoodsSkeleton()
+                Spacer(Modifier.height(CardSizes.gapXl.dp))
+                NewReleasesSkeleton()
+                Spacer(Modifier.height(CardSizes.gapXl.dp))
+                TrendingSkeleton()
             }
         }
         val scrollbarAlpha by animateFloatAsState(
@@ -555,18 +550,16 @@ private fun CompactSongCard(
     song: Song,
     text: Color,
     dim: Color,
-    scale: Float,
     onClick: () -> Unit
 ) {
-    val cardSize = (CardSizes.cardW * scale).dp
-    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
+    val cardSize = CardSizes.cardW.dp
+    val cardH = cardSize + CardSizes.cardTextH.dp
     HomeCard(
         cardWidth = cardSize,
         cardHeight = cardH,
-        horizontalPadding = (CardSizes.compactSongInnerPad * scale).dp,
-        endPad = (CardSizes.cardEndPad * scale).dp,
+        horizontalPadding = CardSizes.compactSongInnerPad.dp,
+        endPad = CardSizes.cardEndPad.dp,
         thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-        scale = scale,
         onClick = onClick,
         thumbnail = {
             song.thumbnailUrl?.let { thumb ->
@@ -577,7 +570,7 @@ private fun CompactSongCard(
             Text(
                 text = song.title,
                 color = text,
-                fontSize = (CardSizes.compactSongTitle * scale).sp,
+                fontSize = CardSizes.compactSongTitle.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -587,7 +580,7 @@ private fun CompactSongCard(
             Text(
                 text = author,
                 color = dim,
-                fontSize = (CardSizes.compactSongArt * scale).sp,
+                fontSize = CardSizes.compactSongArt.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -599,18 +592,16 @@ private fun CompactSongCard(
 private fun AlbumCard(
     album: Innertube.AlbumItem,
     text: Color,
-    dim: Color,
-    scale: Float
+    dim: Color
 ) {
-    val cardSize = (CardSizes.cardW * scale).dp
-    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
+    val cardSize = CardSizes.cardW.dp
+    val cardH = cardSize + CardSizes.cardTextH.dp
     HomeCard(
         cardWidth = cardSize,
         cardHeight = cardH,
-        horizontalPadding = (CardSizes.albumInnerPad * scale).dp,
-        endPad = (CardSizes.cardEndPad * scale).dp,
+        horizontalPadding = CardSizes.albumInnerPad.dp,
+        endPad = CardSizes.cardEndPad.dp,
         thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-        scale = scale,
         thumbnail = {
             album.thumbnail?.let { thumb ->
                 NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
@@ -620,7 +611,7 @@ private fun AlbumCard(
             Text(
                 text = album.info?.name ?: "Untitled",
                 color = text,
-                fontSize = (CardSizes.albumTitle * scale).sp,
+                fontSize = CardSizes.albumTitle.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -630,7 +621,7 @@ private fun AlbumCard(
             Text(
                 text = author.name ?: "",
                 color = dim,
-                fontSize = (CardSizes.albumAuthor * scale).sp,
+                fontSize = CardSizes.albumAuthor.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -642,18 +633,16 @@ private fun AlbumCard(
 private fun ArtistCard(
     artist: Innertube.ArtistItem,
     text: Color,
-    dim: Color,
-    scale: Float
+    dim: Color
 ) {
-    val cardSize = (CardSizes.cardW * scale).dp
-    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
+    val cardSize = CardSizes.cardW.dp
+    val cardH = cardSize + CardSizes.cardTextH.dp
     HomeCard(
         cardWidth = cardSize,
         cardHeight = cardH,
-        horizontalPadding = (CardSizes.artistVertPad * scale).dp,
-        endPad = (CardSizes.cardEndPad * scale).dp,
+        horizontalPadding = CardSizes.artistVertPad.dp,
+        endPad = CardSizes.cardEndPad.dp,
         thumbClipShape = CircleShape,
-        scale = scale,
         thumbnail = {
             artist.thumbnail?.let { thumb ->
                 NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
@@ -663,7 +652,7 @@ private fun ArtistCard(
             Text(
                 text = artist.info?.name ?: "Unknown",
                 color = text,
-                fontSize = (CardSizes.artistName * scale).sp,
+                fontSize = CardSizes.artistName.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -677,18 +666,16 @@ private fun ArtistCard(
 private fun PlaylistCard(
     playlist: Innertube.PlaylistItem,
     text: Color,
-    dim: Color,
-    scale: Float
+    dim: Color
 ) {
-    val cardSize = (CardSizes.cardW * scale).dp
-    val cardH = cardSize + (CardSizes.cardTextH * scale).dp
+    val cardSize = CardSizes.cardW.dp
+    val cardH = cardSize + CardSizes.cardTextH.dp
     HomeCard(
         cardWidth = cardSize,
         cardHeight = cardH,
-        horizontalPadding = (CardSizes.playlistInnerPad * scale).dp,
-        endPad = (CardSizes.playlistEndPad * scale).dp,
+        horizontalPadding = CardSizes.playlistInnerPad.dp,
+        endPad = CardSizes.cardEndPad.dp,
         thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-        scale = scale,
         thumbnail = {
             playlist.thumbnail?.let { thumb ->
                 NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
@@ -698,7 +685,7 @@ private fun PlaylistCard(
             Text(
                 text = playlist.info?.name ?: "Untitled",
                 color = text,
-                fontSize = (CardSizes.playlistName * scale).sp,
+                fontSize = CardSizes.playlistName.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -708,7 +695,7 @@ private fun PlaylistCard(
             Text(
                 text = "${playlist.songCount ?: 0} songs",
                 color = dim,
-                fontSize = (CardSizes.playlistCount * scale).sp,
+                fontSize = CardSizes.playlistCount.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

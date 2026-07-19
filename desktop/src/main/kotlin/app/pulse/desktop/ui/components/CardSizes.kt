@@ -3,7 +3,7 @@ package app.pulse.desktop.ui.components
 // card size config — change numbers here to resize all home cards
 object CardSizes {
     // unified card sizes
-    const val cardW = 160
+    const val cardW = 180
     const val cardTextH = 90   // text area below thumbnail
     const val cardThumbRadius = 8
 

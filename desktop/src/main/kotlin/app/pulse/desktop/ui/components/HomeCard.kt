@@ -29,7 +29,6 @@ fun HomeCard(
     horizontalPadding: Dp = 0.dp,
     endPad: Dp = 0.dp,
     thumbClipShape: Shape = RoundedCornerShape(CardSizes.cardThumbRadius.dp),
-    scale: Float,
     onClick: () -> Unit = {},
     thumbnail: @Composable () -> Unit,
     title: @Composable () -> Unit,
@@ -58,12 +57,12 @@ fun HomeCard(
                 modifier = Modifier.padding(
                     start = horizontalPadding,
                     end = horizontalPadding,
-                    top = (CardSizes.thumbTitleGap * scale).dp
+                    top = CardSizes.thumbTitleGap.dp
                 )
             ) {
                 title()
                 subtitle?.let {
-                    Spacer(Modifier.height((CardSizes.titleArtistGap * scale).dp))
+                    Spacer(Modifier.height(CardSizes.titleArtistGap.dp))
                     it()
                 }
             }

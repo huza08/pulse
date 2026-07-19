@@ -65,20 +65,21 @@ fun LayoutShell(
 ) {
     val bg = Color(0xFF0a0a0a)
 
-    // resizable sidebar widths
+    // sidebar widths — animated triggers smooth center content re-layout
     var targetSidebarWidth by remember { mutableStateOf(460.dp) }
     var targetPanelWidth by remember { mutableStateOf(460.dp) }
     var showLeftSidebar by remember { mutableStateOf(true) }
     var showRightPanel by remember { mutableStateOf(true) }
-    val showInteraction = remember { MutableInteractionSource() }
+
+    val hideAnim = spring<Dp>(dampingRatio = 0.8f, stiffness = 500f)
 
     val sidebarWidth by animateDpAsState(
         targetValue = if (showLeftSidebar) targetSidebarWidth else 0.dp,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
+        animationSpec = hideAnim
     )
     val panelWidth by animateDpAsState(
         targetValue = if (showRightPanel) targetPanelWidth else 0.dp,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)
+        animationSpec = hideAnim
     )
 
     Box(
@@ -102,14 +103,14 @@ fun LayoutShell(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Left sidebar
+                // Left sidebar — animated width triggers smooth center reflow
                 if (showLeftSidebar || sidebarWidth > 0.dp) {
                     ResizableSidebar(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
                         minWidth = 400.dp,
                         maxWidth = 460.dp,
-                        handleSide = HandleSide.End
+                        handleIsStart = false
                     ) {
                         Sidebar(
                             activeView = activeView,
@@ -137,14 +138,14 @@ fun LayoutShell(
                     )
                 }
 
-                // Right panel
+                // Right panel — animated width triggers smooth center reflow
                 if (showRightPanel || panelWidth > 0.dp) {
                     ResizableSidebar(
                         width = panelWidth,
                         onWidthChange = { targetPanelWidth = it },
                         minWidth = 250.dp,
                         maxWidth = 460.dp,
-                        handleSide = HandleSide.Start
+                        handleIsStart = true
                     ) {
                         ContextPanel(
                             player = player,
@@ -156,56 +157,22 @@ fun LayoutShell(
             }
         }
 
-        // re-show button for left sidebar
+        // re-show buttons
         if (!showLeftSidebar && sidebarWidth <= 1.dp) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 8.dp)
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF1c1c1c))
-                    .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { showLeftSidebar = true }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource("/icons/chevron_forward.svg"),
-                    contentDescription = "Show sidebar",
-                    tint = Color(0xFFf2f0eb),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            ReShowButton(
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp),
+                icon = "/icons/chevron_forward.svg",
+                desc = "Show sidebar",
+                onClick = { showLeftSidebar = true }
+            )
         }
-
-        // re-show button for right panel
         if (!showRightPanel && panelWidth <= 1.dp) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp)
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF1c1c1c))
-                    .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
-                    .clickable(
-                        interactionSource = showInteraction,
-                        indication = null,
-                        onClick = { showRightPanel = true }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource("/icons/chevron_back.svg"),
-                    contentDescription = "Show panel",
-                    tint = Color(0xFFf2f0eb),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            ReShowButton(
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
+                icon = "/icons/chevron_back.svg",
+                desc = "Show panel",
+                onClick = { showRightPanel = true }
+            )
         }
 
         // compact miniplayer
@@ -225,8 +192,35 @@ fun LayoutShell(
     }
 }
 
-// which side the resize handle sits on
-private enum class HandleSide { Start, End }
+// re-show pill button — alignment/padding set by caller (has BoxScope)
+@Composable
+private fun ReShowButton(
+    modifier: Modifier = Modifier,
+    icon: String,
+    desc: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF1c1c1c))
+            .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = desc,
+            tint = Color(0xFFf2f0eb),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
 
 // resizable sidebar wrapper
 @Composable
@@ -235,21 +229,18 @@ private fun ResizableSidebar(
     onWidthChange: (Dp) -> Unit,
     minWidth: Dp,
     maxWidth: Dp,
-    handleSide: HandleSide,
+    handleIsStart: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val (align, offset, dragSign) = when (handleSide) {
-        HandleSide.Start -> Triple(
-            Alignment.CenterStart,
-            (-8).dp,
-            -1f  // drag right = shrink width
-        )
-        HandleSide.End -> Triple(
-            Alignment.CenterEnd,
-            8.dp,
-            1f   // drag right = grow width
-        )
-    }
+    val (align, handleOffset, dragSign) = if (handleIsStart) Triple(
+        Alignment.CenterStart,
+        (-8).dp,
+        -1f
+    ) else Triple(
+        Alignment.CenterEnd,
+        8.dp,
+        1f
+    )
 
     Box(
         modifier = Modifier
@@ -267,7 +258,7 @@ private fun ResizableSidebar(
         }
         // resize handle
         ResizableHandle(
-            modifier = Modifier.align(align).offset(x = offset),
+            modifier = Modifier.align(align).offset(x = handleOffset),
             onDrag = { delta ->
                 val newWidth = width + (delta * dragSign).dp
                 onWidthChange(newWidth.coerceIn(minWidth, maxWidth))

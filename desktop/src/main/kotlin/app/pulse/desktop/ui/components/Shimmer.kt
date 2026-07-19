@@ -73,17 +73,17 @@ fun ShimmerRounded(
 }
 
 @Composable
-fun MoodsSkeleton(scale: Float = 1f) {
+fun MoodsSkeleton() {
     Column {
-        ShimmerRounded(width = CardSizes.skelTitleWide.dp * scale, height = CardSizes.skelSectionH.dp * scale, radius = CardSizes.skelShimmerRadius.dp)
-        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        ShimmerRounded(width = CardSizes.skelTitleWide.dp, height = CardSizes.skelSectionH.dp, radius = CardSizes.skelShimmerRadius.dp)
+        Spacer(Modifier.height(CardSizes.gapMd.dp))
         Row {
             repeat(CardSizes.skelMoodCount) {
                 ShimmerBox(
                     modifier = Modifier
-                        .width((CardSizes.skelMoodW * scale).dp)
-                        .height((CardSizes.skelMoodH * scale).dp)
-                        .padding(end = (CardSizes.skelMoodEndPad * scale).dp)
+                        .width(CardSizes.skelMoodW.dp)
+                        .height(CardSizes.skelMoodH.dp)
+                        .padding(end = CardSizes.skelMoodEndPad.dp)
                         .clip(RoundedCornerShape(CardSizes.skelMoodRadius.dp))
                 )
             }
@@ -92,16 +92,16 @@ fun MoodsSkeleton(scale: Float = 1f) {
 }
 
 @Composable
-fun NewReleasesSkeleton(scale: Float = 1f) {
+fun NewReleasesSkeleton() {
     Column {
-        ShimmerRounded(width = CardSizes.skelTitleMid.dp * scale, height = CardSizes.skelSectionH.dp * scale, radius = CardSizes.skelShimmerRadius.dp)
-        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        ShimmerRounded(width = CardSizes.skelTitleMid.dp, height = CardSizes.skelSectionH.dp, radius = CardSizes.skelShimmerRadius.dp)
+        Spacer(Modifier.height(CardSizes.gapMd.dp))
         Row {
             repeat(CardSizes.skelAlbumCount) {
                 Column(
                     modifier = Modifier
-                        .width((CardSizes.skelAlbumW * scale).dp)
-                        .padding(end = (CardSizes.skelAlbumEndPad * scale).dp)
+                        .width(CardSizes.skelAlbumW.dp)
+                        .padding(end = CardSizes.skelAlbumEndPad.dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
@@ -109,10 +109,10 @@ fun NewReleasesSkeleton(scale: Float = 1f) {
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
-                    Spacer(Modifier.height((CardSizes.gapSm * scale).dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp * scale, height = CardSizes.skelAlbumNameH.dp * scale, radius = 3.dp)
-                    Spacer(Modifier.height((CardSizes.skelTextGapSm * scale).dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp * scale, height = CardSizes.skelAlbumAuthorH.dp * scale, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
+                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
+                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = 3.dp)
                 }
             }
         }
@@ -120,17 +120,17 @@ fun NewReleasesSkeleton(scale: Float = 1f) {
 }
 
 @Composable
-fun QuickPicksSkeleton(scale: Float = 1f) {
+fun QuickPicksSkeleton() {
     // quick picks songs row
     Column {
-        ShimmerRounded(width = CardSizes.skelTitleWide.dp * scale, height = CardSizes.skelSectionH.dp * scale, radius = CardSizes.skelShimmerRadius.dp)
-        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        ShimmerRounded(width = CardSizes.skelTitleWide.dp, height = CardSizes.skelSectionH.dp, radius = CardSizes.skelShimmerRadius.dp)
+        Spacer(Modifier.height(CardSizes.gapMd.dp))
         Row {
             repeat(CardSizes.skelQpSongCount) {
                 Column(
                     modifier = Modifier
-                        .width((CardSizes.compactSongW * scale).dp)
-                        .padding(end = (CardSizes.compactSongEndPad * scale).dp)
+                        .width(CardSizes.compactSongW.dp)
+                        .padding(end = CardSizes.compactSongEndPad.dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
@@ -138,27 +138,27 @@ fun QuickPicksSkeleton(scale: Float = 1f) {
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
-                    Spacer(Modifier.height((CardSizes.gapSm * scale).dp))
-                    ShimmerRounded(width = (CardSizes.compactSongW * 0.7 * scale).dp, height = (CardSizes.compactSongTitle * 0.7 * scale).dp, radius = 3.dp)
-                    Spacer(Modifier.height((CardSizes.skelTextGapSm * scale).dp))
-                    ShimmerRounded(width = (CardSizes.compactSongW * 0.4 * scale).dp, height = (CardSizes.compactSongArt * 0.6 * scale).dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
+                    ShimmerRounded(width = (CardSizes.compactSongW * 0.7).dp, height = (CardSizes.compactSongTitle * 0.7).dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
+                    ShimmerRounded(width = (CardSizes.compactSongW * 0.4).dp, height = (CardSizes.compactSongArt * 0.6).dp, radius = 3.dp)
                 }
             }
         }
     }
 
-    Spacer(Modifier.height((CardSizes.gapLg * scale).dp))
+    Spacer(Modifier.height(CardSizes.gapLg.dp))
 
     // related albums row
     Column {
-        ShimmerRounded(width = CardSizes.skelTitleMid.dp * scale, height = CardSizes.skelSectionH.dp * scale, radius = CardSizes.skelShimmerRadius.dp)
-        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        ShimmerRounded(width = CardSizes.skelTitleMid.dp, height = CardSizes.skelSectionH.dp, radius = CardSizes.skelShimmerRadius.dp)
+        Spacer(Modifier.height(CardSizes.gapMd.dp))
         Row {
             repeat(CardSizes.skelQpAlbumCount) {
                 Column(
                     modifier = Modifier
-                        .width((CardSizes.albumW * scale).dp)
-                        .padding(end = (CardSizes.albumEndPad * scale).dp)
+                        .width(CardSizes.albumW.dp)
+                        .padding(end = CardSizes.albumEndPad.dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
@@ -166,10 +166,10 @@ fun QuickPicksSkeleton(scale: Float = 1f) {
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
-                    Spacer(Modifier.height((CardSizes.gapSm * scale).dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp * scale, height = CardSizes.skelAlbumNameH.dp * scale, radius = 3.dp)
-                    Spacer(Modifier.height((CardSizes.skelTextGapSm * scale).dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp * scale, height = CardSizes.skelAlbumAuthorH.dp * scale, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.gapSm.dp))
+                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
+                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = 3.dp)
                 }
             }
         }
@@ -177,17 +177,17 @@ fun QuickPicksSkeleton(scale: Float = 1f) {
 }
 
 @Composable
-fun TrendingSkeleton(scale: Float = 1f) {
+fun TrendingSkeleton() {
     Column {
-        ShimmerRounded(width = CardSizes.skelTitleNarrow.dp * scale, height = CardSizes.skelSectionH.dp * scale, radius = CardSizes.skelShimmerRadius.dp)
-        Spacer(Modifier.height((CardSizes.gapMd * scale).dp))
+        ShimmerRounded(width = CardSizes.skelTitleNarrow.dp, height = CardSizes.skelSectionH.dp, radius = CardSizes.skelShimmerRadius.dp)
+        Spacer(Modifier.height(CardSizes.gapMd.dp))
         Row {
             repeat(CardSizes.skelTrendingCount) {
-                val cardW = (CardSizes.gridMinCardW * scale).dp
+                val cardW = CardSizes.gridMinCardW.dp
                 Column(
                     modifier = Modifier
                         .width(cardW)
-                        .padding(end = (CardSizes.gridGap * scale).dp)
+                        .padding(end = CardSizes.gridGap.dp)
                 ) {
                     ShimmerBox(
                         modifier = Modifier
@@ -195,10 +195,10 @@ fun TrendingSkeleton(scale: Float = 1f) {
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(CardSizes.gridThumbRadius.dp))
                     )
-                    Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
-                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.8 * scale).dp, height = (CardSizes.gridTitleFont * scale).dp, radius = 3.dp)
-                    Spacer(Modifier.height((CardSizes.gridTextGapSm * scale).dp))
-                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.5 * scale).dp, height = (CardSizes.gridArtistFont * scale).dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.gridTextGapSm.dp))
+                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.8).dp, height = CardSizes.gridTitleFont.dp, radius = 3.dp)
+                    Spacer(Modifier.height(CardSizes.gridTextGapSm.dp))
+                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.5).dp, height = CardSizes.gridArtistFont.dp, radius = 3.dp)
                 }
             }
         }
