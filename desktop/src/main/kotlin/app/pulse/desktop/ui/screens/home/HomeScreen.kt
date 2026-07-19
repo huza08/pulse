@@ -1,6 +1,5 @@
 package app.pulse.desktop.ui.screens.home
 
-import androidx.compose.foundation.HorizontalScrollbar
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
@@ -27,6 +26,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -311,17 +311,7 @@ fun HomeScreen(
                 if (qpSongs != null && qpSongs.isNotEmpty()) {
                     SectionHeader("Quick Picks", {})
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    var showHint by remember { mutableStateOf(true) }
-                    LaunchedEffect(Unit) { delay(5000); showHint = false }
-                    if (showHint) {
-                        Text(
-                            text = "\u2194  Drag to scroll",
-                            color = dim.copy(alpha = 0.3f),
-                            fontSize = (12 * s).sp,
-                            modifier = Modifier.padding(bottom = (4 * s).dp)
-                        )
-                    }
-                    CarouselRow(onFirstDrag = { showHint = false }) {
+                    CarouselRow {
                         qpSongs.take(20).forEach { songItem ->
                             val song = songItem.toSong()
                             CompactSongCard(
@@ -467,11 +457,9 @@ fun HomeScreen(
 private fun CarouselRow(
     modifier: Modifier = Modifier,
     bgColor: Color = Color(0xFF0a0a0a),
-    onFirstDrag: (() -> Unit)? = null,
     content: @Composable RowScope.() -> Unit
 ) {
     val scrollState = rememberScrollState()
-    var hasDragged by remember { mutableStateOf(false) }
 
     // edge fade alpha
     val edgeFadeAlpha by animateFloatAsState(
@@ -483,72 +471,52 @@ private fun CarouselRow(
         animationSpec = tween(durationMillis = 300)
     )
 
-    val sbStyle = remember {
-        ScrollbarStyle(
-            minimalHeight = 8.dp,
-            thickness = 6.dp,
-            shape = RoundedCornerShape(3.dp),
-            hoverDurationMillis = 300,
-            unhoverColor = Color(0xFF5a5a5a).copy(alpha = 0.2f),
-            hoverColor = Color(0xFF8a8a8a).copy(alpha = 0.6f)
-        )
-    }
+    var viewportWidth by remember { mutableStateOf(0f) }
     Box(modifier = modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
                 .pointerInput(scrollState) {
                     detectDragGestures { change, dragAmount ->
-                        if (!hasDragged) {
-                            hasDragged = true
-                            onFirstDrag?.invoke()
-                        }
                         change.consume()
                         scrollState.dispatchRawDelta(-dragAmount.x)
                     }
                 }
+                .onSizeChanged { viewportWidth = it.width.toFloat() }
+                .horizontalScroll(scrollState)
                 .drawWithContent {
                     drawContent()
-
+                    // INNER to horizontalScroll → content coords, use viewportWidth for right edge
                     val fadeW = 80.dp.toPx()
+                    val scrollOff = scrollState.value.toFloat()
+                    val vw = if (viewportWidth > 0f) viewportWidth else size.width
                     if (edgeFadeAlpha > 0.001f) {
                         drawRect(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(bgColor.copy(alpha = edgeFadeAlpha), Color.Transparent),
-                                startX = 0f,
-                                endX = fadeW
+                                startX = scrollOff,
+                                endX = scrollOff + fadeW
                             ),
                             size = Size(fadeW, size.height),
-                            topLeft = Offset.Zero
+                            topLeft = Offset(scrollOff, 0f)
                         )
                     }
                     if (rightFadeAlpha > 0.001f) {
                         drawRect(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(Color.Transparent, bgColor.copy(alpha = rightFadeAlpha)),
-                                startX = size.width - fadeW,
-                                endX = size.width
+                                startX = scrollOff + vw - fadeW,
+                                endX = scrollOff + vw
                             ),
                             size = Size(fadeW, size.height),
-                            topLeft = Offset(size.width - fadeW, 0f)
+                            topLeft = Offset(scrollOff + vw - fadeW, 0f)
                         )
                     }
                 }
-                .horizontalScroll(scrollState)
         ) {
             Row(content = content)
         }
 
-        HorizontalScrollbar(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(6.dp),
-            adapter = rememberScrollbarAdapter(scrollState),
-            style = sbStyle
-        )
     }
 }
 
