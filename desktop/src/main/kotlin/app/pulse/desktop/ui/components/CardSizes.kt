@@ -12,32 +12,36 @@ object CardSizes {
     const val thumbTitleGap = 8   // thumbnail bottom to title text
     const val titleArtistGap = 4   // title text to artist/author
 
+    // unified font sizes for all cards
+    const val cardTitleFont = 20
+    const val cardArtistFont = 18
+
     // compact songcard now use unified sizes above
     const val compactSongW = cardW
     const val compactSongEndPad = cardEndPad
     const val compactSongInnerPad = 10   // horizontal padding only
-    const val compactSongTitle = 20
-    const val compactSongArt = 18
+    const val compactSongTitle = cardTitleFont
+    const val compactSongArt = cardArtistFont
 
     // album card (new releases, related albums)
     const val albumW = cardW
     const val albumEndPad = cardEndPad
     const val albumInnerPad = 1
-    const val albumTitle = 20
-    const val albumAuthor = 18
+    const val albumTitle = cardTitleFont
+    const val albumAuthor = cardArtistFont
 
     // artist card (similar artists)
     const val artistW = cardW
     const val artistEndPad = cardEndPad
-    const val artistName = 20
+    const val artistName = cardTitleFont
     const val artistVertPad = 18
 
     // playlist card (recommended playlists)
     const val playlistW = cardW
     const val playlistEndPad = 14
     const val playlistInnerPad = 12
-    const val playlistName = 18
-    const val playlistCount = 15
+    const val playlistName = cardTitleFont
+    const val playlistCount = cardArtistFont
 
     // mood/genre card
     const val moodW = 180
@@ -51,8 +55,8 @@ object CardSizes {
     const val trendingRowPad = 10
     const val trendingBottomPad = 6
     const val trendingGap = 12
-    const val trendingTitle = 20
-    const val trendingSub = 20
+    const val trendingTitle = cardTitleFont
+    const val trendingSub = cardArtistFont
     const val trendingDurStartPad = 8
 
     // section header
@@ -71,8 +75,8 @@ object CardSizes {
     const val gridMaxCols = 6
     const val gridMinCols = 4
     const val gridThumbRadius = cardThumbRadius
-    const val gridTitleFont = 15
-    const val gridArtistFont = 13
+    const val gridTitleFont = cardTitleFont
+    const val gridArtistFont = cardArtistFont
     const val gridTextAreaH = cardTextH
     const val gridTextGapSm = titleArtistGap
     const val gridBottomPad = 2
