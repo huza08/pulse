@@ -82,7 +82,7 @@ fun LayoutShell(
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Left sidebar
                 ResizableSidebar(
