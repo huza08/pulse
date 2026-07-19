@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
@@ -27,7 +28,7 @@ fun HomeCard(
     cardHeight: Dp,
     horizontalPadding: Dp = 0.dp,
     endPad: Dp = 0.dp,
-    thumbClipShape: RoundedCornerShape = RoundedCornerShape(CardSizes.cardThumbRadius.dp),
+    thumbClipShape: Shape = RoundedCornerShape(CardSizes.cardThumbRadius.dp),
     scale: Float,
     onClick: () -> Unit = {},
     thumbnail: @Composable () -> Unit,

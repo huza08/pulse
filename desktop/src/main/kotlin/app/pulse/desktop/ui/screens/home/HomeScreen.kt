@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.animateFloatAsState
@@ -645,6 +646,7 @@ private fun ArtistCard(
         cardHeight = cardH,
         horizontalPadding = (CardSizes.artistVertPad * scale).dp,
         endPad = (CardSizes.cardEndPad * scale).dp,
+        thumbClipShape = CircleShape,
         scale = scale,
         thumbnail = {
             artist.thumbnail?.let { thumb ->
@@ -658,7 +660,8 @@ private fun ArtistCard(
                 fontSize = (CardSizes.artistName * scale).sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     )
