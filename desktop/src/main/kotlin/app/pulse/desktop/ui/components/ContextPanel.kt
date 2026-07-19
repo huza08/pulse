@@ -56,6 +56,27 @@ fun ContextPanel(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Now Playing",
+                color = text,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                painter = painterResource("/icons/ellipsis_horizontal.svg"),
+                contentDescription = "More",
+                tint = text,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
         // Card 1: Artwork + Pink Backdrop + Icons
         Box(
             modifier = Modifier
