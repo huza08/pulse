@@ -64,7 +64,7 @@ fun Sidebar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
+                .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
         ) {
             Text(
                 text = "Your Library",
