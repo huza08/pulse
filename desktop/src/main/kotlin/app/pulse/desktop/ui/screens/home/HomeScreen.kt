@@ -1,43 +1,51 @@
 package app.pulse.desktop.ui.screens.home
 
+import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
@@ -277,42 +285,43 @@ fun HomeScreen(
             .background(bg)
     ) {
         val s = adaptiveScale(maxWidth)
-        val availWidth = maxWidth // capture for nested scopes
         val scrollState = rememberScrollState()
-        var trendingLimit by remember { mutableStateOf(15) }
+        val sbStyle = remember {
+            ScrollbarStyle(
+                minimalHeight = 16.dp,
+                thickness = 8.dp,
+                shape = RoundedCornerShape(4.dp),
+                hoverDurationMillis = 300,
+                unhoverColor = Color(0xFF5a5a5a).copy(alpha = 0.2f),
+                hoverColor = Color(0xFF8a8a8a).copy(alpha = 0.6f)
 
-        // detect scroll near bottom to load more trending (works if theres still trending)
-        val nearBottom by remember {
-            derivedStateOf {
-                scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 400
-            }
-        }
-        LaunchedEffect(nearBottom) {
-            if (nearBottom) {
-                val total = loadedPage?.trending?.songs?.size ?: return@LaunchedEffect
-                if (trendingLimit < total) {
-                    trendingLimit = (trendingLimit + 15).coerceAtMost(total)
-                }
-            }
+            )
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
-        ) {
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(start = (24 * s).dp, end = (24 * s).dp, top = (24 * s).dp, bottom = (100 * s).dp)
+            ) {
             // quick picks
             relatedResult?.getOrNull()?.let { related ->
                 val qpSongs = related.songs
                 if (qpSongs != null && qpSongs.isNotEmpty()) {
                     SectionHeader("Quick Picks", {})
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    var showHint by remember { mutableStateOf(true) }
+                    LaunchedEffect(Unit) { delay(5000); showHint = false }
+                    if (showHint) {
+                        Text(
+                            text = "\u2194  Drag to scroll",
+                            color = dim.copy(alpha = 0.3f),
+                            fontSize = (12 * s).sp,
+                            modifier = Modifier.padding(bottom = (4 * s).dp)
+                        )
+                    }
+                    CarouselRow(onFirstDrag = { showHint = false }) {
                         qpSongs.take(20).forEach { songItem ->
                             val song = songItem.toSong()
                             CompactSongCard(
@@ -331,11 +340,7 @@ fun HomeScreen(
                 if (qpAlbums != null && qpAlbums.isNotEmpty()) {
                     SectionHeader("Related Albums", {})
                     Spacer(Modifier.height((CardSizes.gapMd * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    CarouselRow {
                         qpAlbums.forEach { album ->
                             AlbumCard(album = album, text = text, dim = dim, scale = s)
                         }
@@ -347,11 +352,7 @@ fun HomeScreen(
                 if (qpArtists != null && qpArtists.isNotEmpty()) {
                     SectionHeader("Similar Artists", {})
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    CarouselRow {
                         qpArtists.forEach { artist ->
                             ArtistCard(artist = artist, text = text, dim = dim, scale = s)
                         }
@@ -363,11 +364,7 @@ fun HomeScreen(
                 if (qpPlaylists != null && qpPlaylists.isNotEmpty()) {
                     SectionHeader("Recommended Playlists", {})
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    CarouselRow {
                         qpPlaylists.forEach { playlist ->
                             PlaylistCard(playlist = playlist, text = text, dim = dim, scale = s)
                         }
@@ -376,8 +373,6 @@ fun HomeScreen(
                 }
             } ?: run {
                 if (relatedResult == null) {
-                    // show shimmer so composition tree has slots for quick pick content
-                    // when real data loads later, shimmer seamlessly swaps to real cards
                     QuickPicksSkeleton(scale = s)
                 }
             }
@@ -388,11 +383,7 @@ fun HomeScreen(
                 if (p.moods.isNotEmpty()) {
                     SectionHeader("Moods & Genres", onMore = onMoreMoods)
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    CarouselRow {
                         p.moods.sortedBy { it.title }.forEach { mood ->
                             val moodColor = Color(mood.stripeColor)
                             val moodTextColor = if (moodColor.luminance() >= 0.5f) Color.Black else Color.White
@@ -426,11 +417,7 @@ fun HomeScreen(
                 if (p.newReleaseAlbums.isNotEmpty()) {
                     SectionHeader("New Releases", onMore = onMoreAlbums)
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
+                    CarouselRow {
                         p.newReleaseAlbums.forEach { album ->
                             AlbumCard(album = album, text = text, dim = dim, scale = s)
                         }
@@ -442,42 +429,20 @@ fun HomeScreen(
                 if (p.trending.songs.isNotEmpty()) {
                     SectionHeader("Trending", onMore = onMoreTrending)
                     Spacer(Modifier.height((CardSizes.gapSm * s).dp))
-
-                    // responsive grid
-                    val gapDp = (CardSizes.gridGap * s).dp
-                    val contentW = availWidth - (48 * s).dp
-                    val minCardDp = (CardSizes.gridMinCardW * s).dp
-                    val rawCols = (contentW / (minCardDp + gapDp)).toInt()
-                        .coerceAtLeast(1)
-                    val colCount = rawCols.coerceIn(CardSizes.gridMinCols, CardSizes.gridMaxCols)
-                    val cardW = (contentW - gapDp * (colCount - 1)) / colCount
-                    val cardH = cardW + (CardSizes.gridTextAreaH * s).dp
-
-                    val totalSongs = p.trending.songs.size
-                    val showCount = trendingLimit.coerceAtMost(totalSongs)
-                    p.trending.songs.take(showCount).chunked(colCount).forEach { rowSongs ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(gapDp)
-                        ) {
-                            rowSongs.forEach { songItem ->
-                                val song = songItem.toSong()
-                                TrendingGridCard(
-                                    song = song,
-                                    cardWidth = cardW,
-                                    cardHeight = cardH,
-                                    text = text,
-                                    dim = dim,
-                                    scale = s,
-                                    onClick = { onPlaySong(song) }
-                                )
-                            }
+                    CarouselRow {
+                        p.trending.songs.forEach { songItem ->
+                            val song = songItem.toSong()
+                            CompactSongCard(
+                                song = song,
+                                text = text,
+                                dim = dim,
+                                scale = s,
+                                onClick = { onPlaySong(song) }
+                            )
                         }
-                        Spacer(Modifier.height(gapDp))
                     }
                 }
             } ?: run {
-                // shimmerzz
                 MoodsSkeleton(scale = s)
                 Spacer(Modifier.height((CardSizes.gapXl * s).dp))
                 NewReleasesSkeleton(scale = s)
@@ -485,10 +450,108 @@ fun HomeScreen(
                 TrendingSkeleton(scale = s)
             }
         }
+        VerticalScrollbar(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .padding(top = 8.dp, bottom = 8.dp, end = 2.dp),
+            adapter = rememberScrollbarAdapter(scrollState),
+            style = sbStyle
+        )
+    }
     }
 }
 
-// reusabel
+// carousel row
+@Composable
+private fun CarouselRow(
+    modifier: Modifier = Modifier,
+    bgColor: Color = Color(0xFF0a0a0a),
+    onFirstDrag: (() -> Unit)? = null,
+    content: @Composable RowScope.() -> Unit
+) {
+    val scrollState = rememberScrollState()
+    var hasDragged by remember { mutableStateOf(false) }
+
+    // edge fade alpha
+    val edgeFadeAlpha by animateFloatAsState(
+        targetValue = if (scrollState.value > 0f) 1f else 0f,
+        animationSpec = tween(durationMillis = 300)
+    )
+    val rightFadeAlpha by animateFloatAsState(
+        targetValue = if (scrollState.maxValue > 0 && scrollState.value < scrollState.maxValue) 0.8f else 0f,
+        animationSpec = tween(durationMillis = 300)
+    )
+
+    val sbStyle = remember {
+        ScrollbarStyle(
+            minimalHeight = 8.dp,
+            thickness = 6.dp,
+            shape = RoundedCornerShape(3.dp),
+            hoverDurationMillis = 300,
+            unhoverColor = Color(0xFF5a5a5a).copy(alpha = 0.2f),
+            hoverColor = Color(0xFF8a8a8a).copy(alpha = 0.6f)
+        )
+    }
+    Box(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+                .pointerInput(scrollState) {
+                    detectDragGestures { change, dragAmount ->
+                        if (!hasDragged) {
+                            hasDragged = true
+                            onFirstDrag?.invoke()
+                        }
+                        change.consume()
+                        scrollState.dispatchRawDelta(-dragAmount.x)
+                    }
+                }
+                .drawWithContent {
+                    drawContent()
+
+                    val fadeW = 80.dp.toPx()
+                    if (edgeFadeAlpha > 0.001f) {
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(bgColor.copy(alpha = edgeFadeAlpha), Color.Transparent),
+                                startX = 0f,
+                                endX = fadeW
+                            ),
+                            size = Size(fadeW, size.height),
+                            topLeft = Offset.Zero
+                        )
+                    }
+                    if (rightFadeAlpha > 0.001f) {
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color.Transparent, bgColor.copy(alpha = rightFadeAlpha)),
+                                startX = size.width - fadeW,
+                                endX = size.width
+                            ),
+                            size = Size(fadeW, size.height),
+                            topLeft = Offset(size.width - fadeW, 0f)
+                        )
+                    }
+                }
+                .horizontalScroll(scrollState)
+        ) {
+            Row(content = content)
+        }
+
+        HorizontalScrollbar(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(6.dp),
+            adapter = rememberScrollbarAdapter(scrollState),
+            style = sbStyle
+        )
+    }
+}
+
 @Composable
 private fun SectionHeader(title: String, onMore: () -> Unit) {
     Row(
@@ -630,47 +693,6 @@ private fun ArtistCard(
                 overflow = TextOverflow.Ellipsis
             )
         }
-    )
-}
-
-@Composable
-private fun TrendingGridCard(
-    song: Song,
-    cardWidth: Dp,
-    cardHeight: Dp,
-    text: Color,
-    dim: Color,
-    scale: Float = 1f,
-    onClick: () -> Unit
-) {
-    HomeCard(
-        cardWidth = cardWidth,
-        cardHeight = cardHeight,
-        scale = scale,
-        onClick = onClick,
-        thumbnail = {
-            song.thumbnailUrl?.let { thumb ->
-                NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
-            }
-        },
-        title = {
-            Text(
-                text = song.title,
-                color = text,
-                fontSize = (CardSizes.gridTitleFont * scale).sp,                        fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        subtitle = song.artistsText?.let { author -> {
-            Text(
-                text = author,
-                color = dim,
-                fontSize = (CardSizes.gridArtistFont * scale).sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }}
     )
 }
 
