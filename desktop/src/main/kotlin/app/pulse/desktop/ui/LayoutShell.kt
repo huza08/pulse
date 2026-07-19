@@ -5,6 +5,8 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -132,16 +134,17 @@ fun LayoutShell(
     }
 }
 
-// thin vertical drag handle for resizing sidebars
+// drag handle
 @Composable
 private fun ResizableHandle(onDrag: (Float) -> Unit) {
     val s = LocalDensity.current.density
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val lineColor = if (isHovered) Color(0xFF666666) else Color(0xFF3a3a3a)
+    val pillBg = if (isHovered) Color(0xFF2a2a2a) else Color(0xFF1a1a1a)
+    val dotColor = if (isHovered) Color(0xFF666666) else Color(0xFF555555)
     Box(
         modifier = Modifier
-            .width(8.dp)
+            .width(16.dp)
             .fillMaxHeight()
             .hoverable(interactionSource)
             .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
@@ -152,19 +155,25 @@ private fun ResizableHandle(onDrag: (Float) -> Unit) {
             },
         contentAlignment = Alignment.Center
     ) {
-        // thin visible line
-        Box(
+        // pill dots
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-                .background(lineColor)
-        )
-        // grip thumb dot
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(24.dp)
-                .background(lineColor, RoundedCornerShape(2.dp))
-        )
+                .width(16.dp)
+                .height(42.dp)
+                .border(1.dp, Color(0xFF3a3a3a), RoundedCornerShape(67.dp))
+                .background(pillBg, RoundedCornerShape(67.dp))
+                .padding(vertical = 4.dp)
+        ) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .width(8.dp)
+                        .height(8.dp)
+                        .background(dotColor, RoundedCornerShape(67.dp))
+                )
+            }
+        }
     }
 }
