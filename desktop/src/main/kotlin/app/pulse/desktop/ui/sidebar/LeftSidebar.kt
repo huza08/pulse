@@ -1,5 +1,13 @@
 package app.pulse.desktop.ui.sidebar
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -50,6 +58,9 @@ fun LeftSidebar(
     onNavigate: (View) -> Unit,
     isCollapsed: Boolean = false,
     onToggleCollapse: () -> Unit = {},
+    filterRevealed: Boolean = true,
+    searchRevealed: Boolean = true,
+    titleRevealed: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var filterTab by remember { mutableStateOf(0) }
@@ -66,6 +77,9 @@ fun LeftSidebar(
             onToggleCollapse = onToggleCollapse,
             filterTab = filterTab,
             onFilterTabChange = { filterTab = it },
+            filterRevealed = filterRevealed,
+            searchRevealed = searchRevealed,
+            titleRevealed = titleRevealed,
             modifier = modifier
         )
     }
@@ -155,6 +169,9 @@ private fun ExpandedSidebar(
     onToggleCollapse: () -> Unit,
     filterTab: Int,
     onFilterTabChange: (Int) -> Unit,
+    filterRevealed: Boolean = true,
+    searchRevealed: Boolean = true,
+    titleRevealed: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val hoverSrc = remember { MutableInteractionSource() }
@@ -162,8 +179,6 @@ private fun ExpandedSidebar(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .width(340.dp)
             .hoverable(hoverSrc)
     ) {
         // header
@@ -188,79 +203,98 @@ private fun ExpandedSidebar(
                 )
                 Spacer(Modifier.width(8.dp))
             }
-            Text(
-                text = "Your Library",
-                color = TextColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            AnimatedVisibility(
+                visible = titleRevealed,
+                enter = expandHorizontally(tween(600)) + fadeIn(tween(600)),
+                exit = shrinkHorizontally(tween(600)) + fadeOut(tween(600))
+            ) {
+                Text(
+                    text = "Your Library",
+                    color = TextColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             Spacer(Modifier.weight(1f))
             HeaderIcon(painterResource("/icons/add.svg"), "Create")
             HeaderIcon(painterResource("/icons/expand.svg"), "Expand library")
         }
 
         // filter pills
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
+        AnimatedVisibility(
+            visible = filterRevealed,
+            enter = expandVertically(tween(600)) + fadeIn(tween(600)),
+            exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {
-            FilterChip(
-                label = "Playlists",
-                selected = filterTab == 0,
-                onClick = { onFilterTabChange(0) }
-            )
-            Spacer(Modifier.width(8.dp))
-            FilterChip(
-                label = "Artists",
-                selected = filterTab == 1,
-                onClick = { onFilterTabChange(1) }
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+            ) {
+                FilterChip(
+                    label = "Playlists",
+                    selected = filterTab == 0,
+                    onClick = { onFilterTabChange(0) }
+                )
+                Spacer(Modifier.width(8.dp))
+                FilterChip(
+                    label = "Artists",
+                    selected = filterTab == 1,
+                    onClick = { onFilterTabChange(1) }
+                )
+            }
         }
 
-        Spacer(Modifier.height(8.dp))
-
         // search/sort row
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-                .height(36.dp)
+        AnimatedVisibility(
+            visible = searchRevealed,
+            enter = expandVertically(tween(600)) + fadeIn(tween(600)),
+            exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {
-            Icon(
-                painter = painterResource("/icons/search.svg"),
-                contentDescription = "Search",
-                tint = DimColor,
+            Spacer(Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .size(28.dp)
-                    .padding(4.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { /* todo */ }
-                    )
-            )
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = "Recents",
-                color = DimColor,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Icon(
-                painter = painterResource("/icons/list.svg"),
-                contentDescription = "Toggle view",
-                tint = DimColor,
-                modifier = Modifier
-                    .size(28.dp)
-                    .padding(4.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { /* todo */ }
-                    )
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .height(36.dp)
+            ) {
+                Icon(
+                    painter = painterResource("/icons/search.svg"),
+                    contentDescription = "Search",
+                    tint = DimColor,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .padding(4.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { /* todo */ }
+                        )
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = "Recents",
+                    color = DimColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Icon(
+                    painter = painterResource("/icons/list.svg"),
+                    contentDescription = "Toggle view",
+                    tint = DimColor,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .padding(4.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { /* todo */ }
+                        )
+                )
+            }
         }
 
         // scrollable list
