@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -70,7 +69,7 @@ fun LayoutShell(
 
     // sidebar widths — animated triggers smooth center content re-layout
     var targetSidebarWidth by remember { mutableStateOf(340.dp) }
-    var targetPanelWidth by remember { mutableStateOf(380.dp) }
+    var targetPanelWidth by remember { mutableStateOf(400.dp) }
     var showRightPanel by remember { mutableStateOf(true) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
 
@@ -117,8 +116,8 @@ fun LayoutShell(
                     ResizableSidebar(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
-                        minWidth = 80.dp,
-                        maxWidth = 380.dp,
+                        minWidth = 320.dp,
+                        maxWidth = 400.dp,
                         handleIsStart = false
                     ) {
                         LeftSidebar(
@@ -142,8 +141,8 @@ fun LayoutShell(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .requiredWidthIn(min = 320.dp)
-                        .clipToBounds()
+                        .requiredWidthIn(min = 128.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(Color(0xFF121212), RoundedCornerShape(8.dp))
                         .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
                 ) {
@@ -161,13 +160,16 @@ fun LayoutShell(
                     ResizableSidebar(
                         width = panelWidth,
                         onWidthChange = { targetPanelWidth = it },
-                        minWidth = 250.dp,
+                        minWidth = 320.dp,
                         maxWidth = 340.dp,
                         handleIsStart = true
                     ) {
                         RightSidebar(
                             player = player,
-                            onHidePanel = { showRightPanel = false },
+                            onHidePanel = {
+                                showRightPanel = false
+                                targetPanelWidth = 320.dp
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -261,6 +263,7 @@ private fun ResizableSidebar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFF121212), RoundedCornerShape(8.dp))
                 .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
         ) {

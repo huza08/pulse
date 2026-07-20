@@ -85,6 +85,7 @@ fun MiniPlayer(
                 .fillMaxWidth(0.96f)
                 .height((90 * s).dp)
                 .shadow(12.dp, RoundedCornerShape(64.dp))
+                .clip(RoundedCornerShape(64.dp))
                 .background(bg, RoundedCornerShape(64.dp))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

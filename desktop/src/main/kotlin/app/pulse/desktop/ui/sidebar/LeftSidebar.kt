@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -166,7 +165,6 @@ private fun ExpandedSidebar(
         modifier = modifier
             .fillMaxSize()
             .requiredWidthIn(min = 340.dp)
-            .clipToBounds()
             .hoverable(hoverSrc)
     ) {
         // header
