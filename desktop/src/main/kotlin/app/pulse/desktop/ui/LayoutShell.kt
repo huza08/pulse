@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.BoxScope
@@ -36,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -68,7 +70,7 @@ fun LayoutShell(
 
     // sidebar widths — animated triggers smooth center content re-layout
     var targetSidebarWidth by remember { mutableStateOf(340.dp) }
-    var targetPanelWidth by remember { mutableStateOf(460.dp) }
+    var targetPanelWidth by remember { mutableStateOf(380.dp) }
     var showRightPanel by remember { mutableStateOf(true) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
 
@@ -116,7 +118,7 @@ fun LayoutShell(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
                         minWidth = 80.dp,
-                        maxWidth = 460.dp,
+                        maxWidth = 380.dp,
                         handleIsStart = false
                     ) {
                         LeftSidebar(
@@ -140,6 +142,8 @@ fun LayoutShell(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .requiredWidthIn(min = 320.dp)
+                        .clipToBounds()
                         .background(Color(0xFF121212), RoundedCornerShape(8.dp))
                         .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
                 ) {
@@ -158,7 +162,7 @@ fun LayoutShell(
                         width = panelWidth,
                         onWidthChange = { targetPanelWidth = it },
                         minWidth = 250.dp,
-                        maxWidth = 460.dp,
+                        maxWidth = 340.dp,
                         handleIsStart = true
                     ) {
                         RightSidebar(
