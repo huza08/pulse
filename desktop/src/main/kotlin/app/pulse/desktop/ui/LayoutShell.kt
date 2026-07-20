@@ -73,7 +73,7 @@ fun LayoutShell(
     var showRightPanel by remember { mutableStateOf(true) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
 
-    val hideAnim = spring<Dp>(dampingRatio = 0.8f, stiffness = 500f)
+    val hideAnim = spring<Dp>(dampingRatio = 1f, stiffness = 300f)
 
     // collapse/expand via drag:
     if (targetSidebarWidth <= 80.dp) {
