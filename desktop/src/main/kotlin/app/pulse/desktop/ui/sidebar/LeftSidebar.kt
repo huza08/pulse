@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -164,7 +163,7 @@ private fun ExpandedSidebar(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .requiredWidthIn(min = 340.dp)
+            .width(340.dp)
             .hoverable(hoverSrc)
     ) {
         // header
@@ -193,9 +192,9 @@ private fun ExpandedSidebar(
                 text = "Your Library",
                 color = TextColor,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+                fontWeight = FontWeight.Bold
             )
+            Spacer(Modifier.weight(1f))
             HeaderIcon(painterResource("/icons/add.svg"), "Create")
             HeaderIcon(painterResource("/icons/expand.svg"), "Expand library")
         }
