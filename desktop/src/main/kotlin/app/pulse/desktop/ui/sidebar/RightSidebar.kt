@@ -1,4 +1,4 @@
-package app.pulse.desktop.ui.components
+package app.pulse.desktop.ui.sidebar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +37,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.components.NetworkImage
 
 @Composable
-fun ContextPanel(
+fun RightSidebar(
     player: PlayerService,
     onHidePanel: () -> Unit = {},
     modifier: Modifier = Modifier

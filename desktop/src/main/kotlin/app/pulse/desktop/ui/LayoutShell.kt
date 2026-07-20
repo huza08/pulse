@@ -43,7 +43,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.components.ContextPanel
+import app.pulse.desktop.ui.sidebar.LeftSidebar
+import app.pulse.desktop.ui.sidebar.RightSidebar
 import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
@@ -118,7 +119,7 @@ fun LayoutShell(
                         maxWidth = 460.dp,
                         handleIsStart = false
                     ) {
-                        Sidebar(
+                        LeftSidebar(
                             activeView = activeView,
                             onNavigate = onNavigate,
                             isCollapsed = sidebarCollapsed,
@@ -160,7 +161,7 @@ fun LayoutShell(
                         maxWidth = 460.dp,
                         handleIsStart = true
                     ) {
-                        ContextPanel(
+                        RightSidebar(
                             player = player,
                             onHidePanel = { showRightPanel = false },
                             modifier = Modifier.fillMaxSize()

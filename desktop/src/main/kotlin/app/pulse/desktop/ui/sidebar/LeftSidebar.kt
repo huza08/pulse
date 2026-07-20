@@ -1,4 +1,4 @@
-package app.pulse.desktop.ui
+package app.pulse.desktop.ui.sidebar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.pulse.desktop.ui.View
 
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
@@ -45,7 +46,7 @@ private val ActiveBg = Color(0xFF2a2a2a)
 private val GreenAccent = Color(0xFF1ed760)
 
 @Composable
-fun Sidebar(
+fun LeftSidebar(
     activeView: View,
     onNavigate: (View) -> Unit,
     isCollapsed: Boolean = false,
@@ -466,4 +467,3 @@ private fun LibraryItem(
         }
     }
 }
-
