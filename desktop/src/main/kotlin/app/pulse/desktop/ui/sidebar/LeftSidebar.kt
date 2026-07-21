@@ -99,7 +99,7 @@ private fun CollapsedSidebar(
     ) {
         // header
         Icon(
-            painter = painterResource("/icons/chevron_back.svg"),
+            painter = painterResource("/icons/chevron_forward.svg"),
             contentDescription = "Expand sidebar",
             tint = TextColor,
             modifier = Modifier
