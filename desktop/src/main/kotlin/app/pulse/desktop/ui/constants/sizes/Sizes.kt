@@ -9,9 +9,9 @@ object Sizes {
     const val sidebarMaxWidth = 400
     const val sidebarCollapsedDrag = 80  // drag threshold for collapse
     const val sidebarRestoreWidth = 340 // width when uncollapsing, same looks
-    const val panelTargetWidth = 400
-    const val panelMinWidth = 320
-    const val panelMaxWidth = 340
+    const val panelTargetWidth = sidebarTargetWidth
+    const val panelMinWidth = sidebarMinWidth
+    const val panelMaxWidth = sidebarMaxWidth
 
     // left sidebar
     const val sidebarCollapsedWidth = 96
@@ -34,6 +34,8 @@ object Sizes {
     const val sidebarFilterPadH = 16  // filter row horizontal padding
 
     // right sidebar (matched to left sidebar sizes)
+    const val rightCollapsedWidth = 48
+    const val rightIntermediateWidth = 140
     const val rightPanelPadding = 24    // matches sidebarItemPadH (outer + section spacing)
     const val rightCardInnerPad = 16    // inner padding for credit/queue cards
     const val rightCardRadius = 12
@@ -43,10 +45,10 @@ object Sizes {
     const val rightShareIcon = 24       // matches sidebarIconSm
     const val rightChevronIcon = 24     // matches sidebarIconSm
     const val rightThumbRadius = 6
-    const val rightCardContentGap = 8   // matches sidebarItemGap
-    const val rightSongArtistGap = 4    // matches sidebarItemPadV
-    const val rightItemGap = 8          // matches sidebarItemGap
-    const val rightChevronSpacer = 8    // matches sidebarItemGap
+    const val rightCardContentGap = sidebarItemGap
+    const val rightSongArtistGap = sidebarItemPadV
+    const val rightItemGap = sidebarItemGap
+    const val rightChevronSpacer = sidebarItemGap
 
     // queue
     const val queueThumbSize = 64

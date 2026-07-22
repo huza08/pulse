@@ -1,5 +1,7 @@
 package app.pulse.desktop.ui.sidebar
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -7,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,21 +36,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
+import app.pulse.core.data.models.Song
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.constants.fonts.FontSizes
 import app.pulse.desktop.ui.utils.NetworkImage
 import app.pulse.desktop.ui.constants.sizes.Sizes
 
+enum class RightPanelState { COLLAPSED, EXPANDED }
+
 @Composable
 fun RightSidebar(
     player: PlayerService,
-    onHidePanel: () -> Unit = {},
+    panelState: RightPanelState = RightPanelState.EXPANDED,
+    onCycleState: () -> Unit = {},
+    onPeekChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by player.state.collectAsState()
@@ -53,6 +67,87 @@ fun RightSidebar(
     val queue = state.queue
     val currentIndex = state.currentIndex
 
+    val textColor = Color(0xFFf2f0eb)
+    val isCollapsed = panelState == RightPanelState.COLLAPSED
+
+    val interactionSrc = remember { MutableInteractionSource() }
+    val isHovered by interactionSrc.collectIsHoveredAsState()
+
+    LaunchedEffect(isHovered) { onPeekChange(isHovered) }
+
+    val isFullyCollapsed = isCollapsed && !isHovered
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .hoverable(interactionSrc)
+    ) {
+        if (isFullyCollapsed) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = Sizes.sidebarPad.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Icon(
+                    painter = painterResource("/icons/chevron_forward.svg"),
+                    contentDescription = "Show panel",
+                    tint = textColor,
+                    modifier = Modifier
+                        .size(Sizes.sidebarIconSm.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onCycleState
+                        )
+                )
+            }
+        } else {
+            val density = LocalDensity.current
+            val fullW = with(density) { Sizes.panelMinWidth.dp.toPx().roundToInt() }
+            val peekOffsetXDp = ((Sizes.panelMinWidth - Sizes.rightIntermediateWidth) / 2).dp
+            val animSpec = remember { spring<Dp>(dampingRatio = 1f, stiffness = 300f) }
+            val animateOffset by animateDpAsState(
+                targetValue = if (isCollapsed) peekOffsetXDp else 0.dp,
+                animationSpec = animSpec
+            )
+
+            Box(
+                modifier = Modifier
+                    .offset(x = animateOffset)
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(
+                            Constraints(
+                                minWidth = fullW.coerceAtLeast(constraints.maxWidth),
+                                maxWidth = fullW.coerceAtLeast(constraints.maxWidth),
+                                minHeight = constraints.minHeight,
+                                maxHeight = constraints.maxHeight
+                            )
+                        )
+                        layout(placeable.width, placeable.height) {
+                            placeable.placeRelative(0, 0)
+                        }
+                    }
+            ) {
+                ExpandedRightSidebar(
+                    song = song,
+                    queue = queue,
+                    currentIndex = currentIndex,
+                    onCycleState = onCycleState
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExpandedRightSidebar(
+    song: Song?,
+    queue: List<Song>,
+    currentIndex: Int,
+    onCycleState: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val text = Color(0xFFf2f0eb)
     val dim = Color(0xFFa8a39a)
     val cardBg = Color(0xFF1c1c1c)
@@ -76,15 +171,15 @@ fun RightSidebar(
         ) {
             if (isHovered) {
                 Icon(
-                    painter = painterResource("/icons/chevron_forward.svg"),
-                    contentDescription = "Hide panel",
+                    painter = painterResource("/icons/chevron_back.svg"),
+                    contentDescription = "Collapse panel",
                     tint = text,
                     modifier = Modifier
                         .size(Sizes.rightChevronIcon.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onHidePanel
+                            onClick = onCycleState
                         )
                 )
                 Spacer(Modifier.width(Sizes.rightChevronSpacer.dp))
@@ -110,9 +205,8 @@ fun RightSidebar(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
-                .background(Color(0xFFD946EF)) // pink backdrop
+                .background(Color(0xFFD946EF))
         ) {
-            // artwork
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,7 +228,6 @@ fun RightSidebar(
                 }
             }
 
-            // share icon top-right
             Icon(
                 painter = painterResource("/icons/share_social.svg"),
                 contentDescription = "Share",
@@ -144,7 +237,6 @@ fun RightSidebar(
                     .padding(Sizes.sidebarItemPadH.dp)
                     .size(Sizes.rightShareIcon.dp)
             )
-
         }
 
         // song identity
@@ -171,7 +263,7 @@ fun RightSidebar(
             }
         }
 
-
+        // credits
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,7 +309,7 @@ fun RightSidebar(
             }
         }
 
-
+        // queue
         if (queue.size > 1) {
             Box(
                 modifier = Modifier
@@ -242,7 +334,6 @@ fun RightSidebar(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // mini thumb
                             Box(
                                 modifier = Modifier
                                     .size(Sizes.rightQueueThumb.dp)

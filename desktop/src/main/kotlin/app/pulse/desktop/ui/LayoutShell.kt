@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,14 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredWidthIn
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +40,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.LeftSidebar
+import app.pulse.desktop.ui.sidebar.RightPanelState
 import app.pulse.desktop.ui.sidebar.RightSidebar
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
@@ -67,7 +64,8 @@ fun LayoutShell(
     // sidebar widths — animated triggers smooth center content re-layout
     var targetSidebarWidth by remember { mutableStateOf(Sizes.sidebarTargetWidth.dp) }
     var targetPanelWidth by remember { mutableStateOf(Sizes.panelTargetWidth.dp) }
-    var showRightPanel by remember { mutableStateOf(true) }
+    var panelState by remember { mutableStateOf(RightPanelState.EXPANDED) }
+    var isPeeking by remember { mutableStateOf(false) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
 
     val hideAnim = spring<Dp>(dampingRatio = 1f, stiffness = 300f)
@@ -84,7 +82,11 @@ fun LayoutShell(
         animationSpec = hideAnim
     )
     val panelWidth by animateDpAsState(
-        targetValue = if (showRightPanel) targetPanelWidth else 0.dp,
+        targetValue = when {
+            panelState == RightPanelState.EXPANDED -> targetPanelWidth
+            isPeeking -> Sizes.rightIntermediateWidth.dp
+            else -> Sizes.rightCollapsedWidth.dp
+        },
         animationSpec = hideAnim
     )
 
@@ -155,66 +157,31 @@ fun LayoutShell(
                 }
 
                 // Right panel — animated width triggers smooth center reflow
-                if (showRightPanel || panelWidth > 0.dp) {
-                    ResizableSidebar(
-                        width = panelWidth,
-                        onWidthChange = { targetPanelWidth = it },
-                        minWidth = Sizes.panelMinWidth.dp,
-                        maxWidth = Sizes.panelMaxWidth.dp,
-                        handleIsStart = true
-                    ) {
-                        RightSidebar(
-                            player = player,
-                            onHidePanel = {
-                                showRightPanel = false
+                ResizableSidebar(
+                    width = panelWidth,
+                    onWidthChange = { targetPanelWidth = it },
+                    minWidth = Sizes.rightCollapsedWidth.dp,
+                    maxWidth = Sizes.panelMaxWidth.dp,
+                    handleIsStart = true
+                ) {
+                    RightSidebar(
+                        player = player,
+                        panelState = panelState,
+                        onCycleState = {
+                            if (panelState == RightPanelState.COLLAPSED) {
                                 targetPanelWidth = Sizes.panelMinWidth.dp
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                            }
+                            panelState = if (panelState == RightPanelState.EXPANDED)
+                                RightPanelState.COLLAPSED
+                            else
+                                RightPanelState.EXPANDED
+                        },
+                        onPeekChange = { peeking -> isPeeking = peeking },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
-
-        // re-show buttons
-        if (!showRightPanel && panelWidth <= 1.dp) {
-            ReShowButton(
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = Sizes.sidebarItemGap.dp),
-                icon = "/icons/chevron_back.svg",
-                desc = "Show panel",
-                onClick = { showRightPanel = true }
-            )
-        }
-    }
-}
-
-// re-show pill button — alignment/padding set by caller (has BoxScope)
-@Composable
-private fun ReShowButton(
-    modifier: Modifier = Modifier,
-    icon: String,
-    desc: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .size(Sizes.reShowBtnSize.dp)
-            .clip(RoundedCornerShape(Sizes.radiusLg.dp))
-            .background(Color(0xFF1c1c1c))
-            .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusLg.dp))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = desc,
-            tint = Color(0xFFf2f0eb),
-            modifier = Modifier.size(Sizes.reShowIconSize.dp)
-        )
     }
 }
 
@@ -297,14 +264,13 @@ private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Un
                 .background(pillBg, RoundedCornerShape(Sizes.radiusCircle.dp))
                 .padding(vertical = Sizes.resizerPadV.dp)
         ) {
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .width(Sizes.dotSize.dp)
-                        .height(Sizes.dotSize.dp)
-                        .background(dotColor, RoundedCornerShape(Sizes.radiusCircle.dp))
-                )
-            }
+            val dotMod = Modifier
+                .width(Sizes.dotSize.dp)
+                .height(Sizes.dotSize.dp)
+                .background(dotColor, RoundedCornerShape(Sizes.radiusCircle.dp))
+            Box(modifier = dotMod)
+            Box(modifier = dotMod)
+            Box(modifier = dotMod)
         }
     }
 }
