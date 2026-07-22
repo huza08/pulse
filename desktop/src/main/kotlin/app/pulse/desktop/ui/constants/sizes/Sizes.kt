@@ -76,11 +76,8 @@ object Sizes {
     const val radiusMd = 8
     const val radiusLg = 12
     const val radiusPill = 16
-    const val radiusCircle = 67  // drag handle pill
     const val resizerW = 16
-    const val resizerPillH = 42
-    const val dotSize = 8               // resize handle dots
-    const val resizerPadV = 4           // pill vertical padding
+    const val resizerHintH = 0.4f     // hint line height fraction
 
     // reshow
     const val reShowBtnSize = 40

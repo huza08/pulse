@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -231,15 +230,15 @@ private fun ResizableSidebar(
     }
 }
 
-// drag handle
+// drag hint
 @Composable
 private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Unit) {
     val s = LocalDensity.current.density
     val currentOnDrag by rememberUpdatedState(onDrag)
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val pillBg = if (isHovered) Color(0xFF2a2a2a) else Color(0xFF1a1a1a)
-    val dotColor = if (isHovered) Color(0xFF666666) else Color(0xFF555555)
+    val hintColor = if (isHovered) Color(0xFF555555) else Color.Transparent
+
     Box(
         modifier = modifier
             .width(Sizes.resizerW.dp)
@@ -253,24 +252,11 @@ private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Un
             },
         contentAlignment = Alignment.Center
     ) {
-        // pill dots
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly,
+        Box(
             modifier = Modifier
-                .width(Sizes.resizerW.dp)
-                .height(Sizes.resizerPillH.dp)
-                .border(1.dp, Color(0xFF3a3a3a), RoundedCornerShape(Sizes.radiusCircle.dp))
-                .background(pillBg, RoundedCornerShape(Sizes.radiusCircle.dp))
-                .padding(vertical = Sizes.resizerPadV.dp)
-        ) {
-            val dotMod = Modifier
-                .width(Sizes.dotSize.dp)
-                .height(Sizes.dotSize.dp)
-                .background(dotColor, RoundedCornerShape(Sizes.radiusCircle.dp))
-            Box(modifier = dotMod)
-            Box(modifier = dotMod)
-            Box(modifier = dotMod)
-        }
+                .width(2.dp)
+                .fillMaxHeight(Sizes.resizerHintH)
+                .background(hintColor, RoundedCornerShape(1.dp))
+        )
     }
 }
