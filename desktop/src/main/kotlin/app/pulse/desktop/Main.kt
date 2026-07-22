@@ -1,8 +1,8 @@
 package app.pulse.desktop
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,8 +81,8 @@ fun main() {
                 // Player screen overlay (on top of layout shell)
                 AnimatedVisibility(
                     visible = showPlayer,
-                    enter = slideInHorizontally { it },
-                    exit = slideOutHorizontally { it },
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Box(Modifier.fillMaxSize()) {
