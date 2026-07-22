@@ -117,7 +117,7 @@ private fun CollapsedSidebar(
             tint = DimColor,
             modifier = Modifier
                 .size(Sizes.sidebarIconLg.dp)
-                .padding(6.dp)
+                .padding(Sizes.sidebarIconPad.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -146,7 +146,7 @@ private fun CollapsedSidebar(
                     painter = painterResource("/icons/heart.svg"),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(Sizes.sidebarHeartIcon.dp)
                 )
             }
             // playlist items
@@ -184,7 +184,7 @@ private fun ExpandedSidebar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 12.dp)
+                .padding(start = Sizes.rightPanelPadding.dp, end = Sizes.rightPanelPadding.dp, top = Sizes.sidebarHeaderTop.dp, bottom = Sizes.sidebarHeaderBottom.dp)
         ) {
             if (isHovered) {
                 Icon(
@@ -229,14 +229,14 @@ private fun ExpandedSidebar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = Sizes.sidebarFilterPadH.dp)
             ) {
                 FilterChip(
                     label = "Playlists",
                     selected = filterTab == 0,
                     onClick = { onFilterTabChange(0) }
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(Sizes.sidebarItemGap.dp))
                 FilterChip(
                     label = "Artists",
                     selected = filterTab == 1,
@@ -251,7 +251,7 @@ private fun ExpandedSidebar(
             enter = expandVertically(tween(600)) + fadeIn(tween(600)),
             exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Sizes.sidebarItemGap.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -265,7 +265,7 @@ private fun ExpandedSidebar(
                     tint = DimColor,
                     modifier = Modifier
                         .size(Sizes.sidebarIconMd.dp)
-                        .padding(4.dp)
+                        .padding(Sizes.sidebarItemPadV.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -285,7 +285,7 @@ private fun ExpandedSidebar(
                     tint = DimColor,
                     modifier = Modifier
                         .size(Sizes.sidebarIconMd.dp)
-                        .padding(4.dp)
+                        .padding(Sizes.sidebarItemPadV.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -301,7 +301,7 @@ private fun ExpandedSidebar(
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(top = 4.dp)
+                .padding(top = Sizes.sidebarItemPadV.dp)
         ) {
             when (filterTab) {
                 0 -> PlaylistItems(activeView, onNavigate)
@@ -388,14 +388,14 @@ private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit) {
 
 
 @Composable
-private fun HeaderIcon(painter: Painter, desc: String, size: Dp = 32.dp) {
+private fun HeaderIcon(painter: Painter, desc: String, size: Dp = Sizes.sidebarIconMd.dp) {
     Icon(
         painter = painter,
         contentDescription = desc,
         tint = DimColor,
         modifier = Modifier
             .size(size)
-            .padding(4.dp)
+            .padding(Sizes.sidebarItemPadV.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -408,14 +408,14 @@ private fun HeaderIcon(painter: Painter, desc: String, size: Dp = 32.dp) {
 private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(Sizes.radiusPill.dp))
             .background(if (selected) Color(0xFF2a2a2a) else Color(0xFF141414))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = Sizes.sidebarFilterPadH.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         Text(
             text = label,
@@ -443,7 +443,7 @@ private fun LibraryItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = Sizes.sidebarOuterPadH.dp)
             .clip(RoundedCornerShape(Sizes.radiusSm.dp))
             .background(bgColor)
             .clickable(

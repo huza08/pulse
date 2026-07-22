@@ -26,6 +26,10 @@ object Sizes {
     const val sidebarItemPadV = 4     // inner vertical padding
     const val sidebarItemPadH = 10    // inner horizontal padding
     const val sidebarOuterPadH = 8    // outer horizontal padding
+    const val sidebarIconPad = 6      // create icon padding
+    const val sidebarHeaderTop = 20   // header title top padding
+    const val sidebarHeaderBottom = 12 // header title bottom padding
+    const val sidebarFilterPadH = 12  // filter row horizontal padding
 
     // right sidebar
     const val rightPanelPadding = 16
@@ -81,6 +85,11 @@ object Sizes {
     const val sidebarUncollapseThreshold = 120
     const val sidebarWideThreshold = 250
     const val centerMinWidth = 128
+    const val windowDefaultW = 1280
+    const val windowDefaultH = 720
+
+    // shimmer
+    const val shimmerRadiusXs = 6         // text placeholder lines
 
     // homescreen
     const val homeColumnPad = 24           // main column padding start/end/top

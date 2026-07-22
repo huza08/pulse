@@ -267,7 +267,7 @@ private fun QueueItem(
             }
         }
 
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(Sizes.queueItemSpacerSm.dp))
 
         // duration
         song.durationText?.let { dur ->
@@ -276,7 +276,7 @@ private fun QueueItem(
                 color = dim,
                 fontSize = FontSizes.miniSub.sp
             )
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(Sizes.queueItemSpacerSm.dp))
         }
 
         // remove

@@ -249,11 +249,11 @@ private fun ResizableSidebar(
 ) {
     val (align, handleOffset, dragSign) = if (handleIsStart) Triple(
         Alignment.CenterStart,
-        (-8).dp,
+        (-Sizes.sidebarItemGap).dp,
         -1f
     ) else Triple(
         Alignment.CenterEnd,
-        8.dp,
+        Sizes.sidebarItemGap.dp,
         1f
     )
 

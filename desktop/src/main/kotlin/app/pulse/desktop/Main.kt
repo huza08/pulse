@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import app.pulse.desktop.ui.components.Sizes
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import app.pulse.desktop.service.PlayerService
@@ -51,7 +52,7 @@ fun main() {
                 exitApplication()
             },
             title = "Pulse",
-            state = WindowState(width = 960.dp, height = 680.dp)
+            state = WindowState(width = Sizes.windowDefaultW.dp, height = Sizes.windowDefaultH.dp)
         ) {
             // set background directly on AWT window to prevent white flash on loonix/wayland
             // i found this on internet but this is not working on hyprland

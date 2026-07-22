@@ -35,7 +35,7 @@ fun HomeCard(
     subtitle: (@Composable () -> Unit)? = null,
 ) {
     Card(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(Sizes.radiusMd.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .width(cardWidth)
