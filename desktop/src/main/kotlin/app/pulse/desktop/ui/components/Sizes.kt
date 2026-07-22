@@ -35,6 +35,11 @@ object Sizes {
     const val rightEllipsisIcon = 18
     const val rightShareIcon = 18
     const val rightChevronIcon = 20
+    const val rightThumbRadius = 4
+    const val rightCardContentGap = 12    // spinner inside card
+    const val rightSongArtistGap = 4      // between title and artist
+    const val rightItemGap = 10           // between queue items
+    const val rightChevronSpacer = 8      // between chevron and Now Playing
 
     // queue
     const val queueThumbSize = 36
@@ -43,6 +48,10 @@ object Sizes {
     const val queueReorderW = 20
     const val queueMinWidth = 300
     const val queueMaxWidth = 400
+    const val queueThumbRadius = 4
+    const val queueItemPadV = 6           // item vertical padding
+    const val queueSpacerMd = 12          // header→close, header→divider etc.
+    const val queueItemSpacerSm = 6       // info→duration, duration→remove
 
     // topbar
     const val topBarHeight = 72
@@ -61,10 +70,17 @@ object Sizes {
     const val radiusCircle = 67  // drag handle pill
     const val resizerW = 16
     const val resizerPillH = 42
+    const val dotSize = 8               // resize handle dots
+    const val resizerPadV = 4           // pill vertical padding
 
     // reshow
     const val reShowBtnSize = 40
     const val reShowIconSize = 18
+
+    // layout shell thresholds
+    const val sidebarUncollapseThreshold = 120
+    const val sidebarWideThreshold = 250
+    const val centerMinWidth = 128
 
     // homescreen
     const val homeColumnPad = 24           // main column padding start/end/top

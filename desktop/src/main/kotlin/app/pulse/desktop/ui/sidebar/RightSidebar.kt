@@ -86,7 +86,7 @@ fun RightSidebar(
                             onClick = onHidePanel
                         )
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(Sizes.rightChevronSpacer.dp))
             }
             Text(
                 text = "Now Playing",
@@ -108,7 +108,7 @@ fun RightSidebar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
                 .background(Color(0xFFD946EF)) // pink backdrop
         ) {
             // artwork
@@ -156,7 +156,7 @@ fun RightSidebar(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Sizes.rightSongArtistGap.dp))
                 song.artistsText?.let { author ->
                     Text(
                         text = author,
@@ -173,7 +173,7 @@ fun RightSidebar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
                 .background(cardBg)
                 .padding(Sizes.rightPanelPadding.dp)
         ) {
@@ -185,7 +185,7 @@ fun RightSidebar(
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Sizes.rightCardContentGap.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -196,7 +196,7 @@ fun RightSidebar(
                         tint = dim,
                         modifier = Modifier.size(Sizes.rightCreditIcon.dp)
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Sizes.rightChevronSpacer.dp))
                     Text(
                         text = "Main Artist",
                         color = dim,
@@ -220,7 +220,7 @@ fun RightSidebar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
                     .background(cardBg)
                     .padding(Sizes.rightPanelPadding.dp)
             ) {
@@ -232,7 +232,7 @@ fun RightSidebar(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 1.sp
                     )
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(Sizes.rightCardContentGap.dp))
 
                     val upcoming = queue.drop(currentIndex + 1).take(3)
                     upcoming.forEachIndexed { i, nextSong ->
@@ -244,14 +244,14 @@ fun RightSidebar(
                             Box(
                                 modifier = Modifier
                                     .size(Sizes.rightQueueThumb.dp)
-                                    .clip(RoundedCornerShape(4.dp))
+                                    .clip(RoundedCornerShape(Sizes.rightThumbRadius.dp))
                                     .background(Color(0xFF1a1a1a))
                             ) {
                                 nextSong.thumbnailUrl?.let { thumb ->
                                     NetworkImage(url = thumb, modifier = Modifier.size(Sizes.rightQueueThumb.dp))
                                 }
                             }
-                            Spacer(Modifier.width(10.dp))
+                            Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = nextSong.title,
@@ -272,7 +272,7 @@ fun RightSidebar(
                             }
                         }
                         if (i < upcoming.lastIndex) {
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(Sizes.rightItemGap.dp))
                         }
                     }
                 }

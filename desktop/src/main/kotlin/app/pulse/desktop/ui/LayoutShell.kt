@@ -79,7 +79,7 @@ fun LayoutShell(
     // collapse/expand via drag:
     if (targetSidebarWidth <= Sizes.sidebarCollapsedDrag.dp) {
         sidebarCollapsed = true
-    } else if (targetSidebarWidth >= 120.dp) {
+    } else if (targetSidebarWidth >= Sizes.sidebarUncollapseThreshold.dp) {
         sidebarCollapsed = false
     }
 
@@ -110,8 +110,8 @@ fun LayoutShell(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(Sizes.rightPanelPadding.dp),
+                horizontalArrangement = Arrangement.spacedBy(Sizes.rightPanelPadding.dp)
             ) {
                 // Left sidebar
                     ResizableSidebar(
@@ -121,7 +121,7 @@ fun LayoutShell(
                         maxWidth = Sizes.sidebarMaxWidth.dp,
                         handleIsStart = false
                     ) {
-                        val isWide = sidebarWidth > 250.dp
+                        val isWide = sidebarWidth > Sizes.sidebarWideThreshold.dp
                         LeftSidebar(
                             activeView = activeView,
                             onNavigate = onNavigate,
@@ -129,7 +129,7 @@ fun LayoutShell(
                             onToggleCollapse = {
                                 sidebarCollapsed = !sidebarCollapsed
                                 if (sidebarCollapsed) {
-                                    targetSidebarWidth = 80.dp
+                                    targetSidebarWidth = Sizes.sidebarCollapsedDrag.dp
                                 } else {
                                     targetSidebarWidth = Sizes.sidebarRestoreWidth.dp
                                 }
@@ -144,10 +144,10 @@ fun LayoutShell(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .requiredWidthIn(min = 128.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF121212), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
+                        .requiredWidthIn(min = Sizes.centerMinWidth.dp)
+                        .clip(RoundedCornerShape(Sizes.radiusMd.dp))
+                        .background(Color(0xFF121212), RoundedCornerShape(Sizes.radiusMd.dp))
+                        .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusMd.dp))
                 ) {
                     ContentView(
                         activeView = activeView,
@@ -183,7 +183,7 @@ fun LayoutShell(
         // re-show buttons
         if (!showRightPanel && panelWidth <= 1.dp) {
             ReShowButton(
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = Sizes.sidebarItemGap.dp),
                 icon = "/icons/chevron_back.svg",
                 desc = "Show panel",
                 onClick = { showRightPanel = true }
@@ -217,10 +217,10 @@ private fun ReShowButton(
 ) {
     Box(
         modifier = modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .size(Sizes.reShowBtnSize.dp)
+            .clip(RoundedCornerShape(Sizes.radiusLg.dp))
             .background(Color(0xFF1c1c1c))
-            .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusLg.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -232,7 +232,7 @@ private fun ReShowButton(
             painter = painterResource(icon),
             contentDescription = desc,
             tint = Color(0xFFf2f0eb),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(Sizes.reShowIconSize.dp)
         )
     }
 }
@@ -266,9 +266,9 @@ private fun ResizableSidebar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF121212), RoundedCornerShape(8.dp))
-                .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(Sizes.radiusMd.dp))
+                .background(Color(0xFF121212), RoundedCornerShape(Sizes.radiusMd.dp))
+                .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusMd.dp))
         ) {
             content()
         }
@@ -294,7 +294,7 @@ private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Un
     val dotColor = if (isHovered) Color(0xFF666666) else Color(0xFF555555)
     Box(
         modifier = modifier
-            .width(16.dp)
+            .width(Sizes.resizerW.dp)
             .fillMaxHeight()
             .hoverable(interactionSource)
             .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
@@ -310,18 +310,18 @@ private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Un
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier
-                .width(16.dp)
-                .height(42.dp)
-                .border(1.dp, Color(0xFF3a3a3a), RoundedCornerShape(67.dp))
-                .background(pillBg, RoundedCornerShape(67.dp))
-                .padding(vertical = 4.dp)
+                .width(Sizes.resizerW.dp)
+                .height(Sizes.resizerPillH.dp)
+                .border(1.dp, Color(0xFF3a3a3a), RoundedCornerShape(Sizes.radiusCircle.dp))
+                .background(pillBg, RoundedCornerShape(Sizes.radiusCircle.dp))
+                .padding(vertical = Sizes.resizerPadV.dp)
         ) {
             repeat(3) {
                 Box(
                     modifier = Modifier
-                        .width(8.dp)
-                        .height(8.dp)
-                        .background(dotColor, RoundedCornerShape(67.dp))
+                        .width(Sizes.dotSize.dp)
+                        .height(Sizes.dotSize.dp)
+                        .background(dotColor, RoundedCornerShape(Sizes.radiusCircle.dp))
                 )
             }
         }

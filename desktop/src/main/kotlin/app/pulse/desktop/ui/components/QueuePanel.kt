@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.components.FontSizes
+import app.pulse.desktop.ui.components.Sizes
 import app.pulse.desktop.service.PlayerService
 
 @Composable
@@ -78,10 +79,10 @@ fun QueuePanel(
             // panel
             Column(
                 modifier = Modifier
-                    .widthIn(min = 300.dp, max = 400.dp)
+                    .widthIn(min = Sizes.queueMinWidth.dp, max = Sizes.queueMaxWidth.dp)
                     .fillMaxHeight()
                     .background(Color(0xFF141414))
-                    .padding(16.dp)
+                    .padding(Sizes.rightPanelPadding.dp)
             ) {
                 // header
                 Row(
@@ -100,7 +101,7 @@ fun QueuePanel(
                         color = Color(0xFFa8a39a),
                         fontSize = FontSizes.queueSub.sp
                     )
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(Sizes.queueSpacerMd.dp))
                     Icon(
                         painter = painterResource("/icons/close.svg"),
                         contentDescription = "Close",
@@ -115,9 +116,9 @@ fun QueuePanel(
                     )
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Sizes.queueSpacerMd.dp))
                 HorizontalDivider(color = Color(0xFF2a2a2a))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(Sizes.sidebarItemGap.dp))
 
                 if (queue.isEmpty()) {
                     Box(
@@ -181,14 +182,14 @@ private fun QueueItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(Sizes.radiusMd.dp))
             .background(bg)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .padding(horizontal = Sizes.sidebarOuterPadH.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         // reorder buttons
         Column(
@@ -219,21 +220,21 @@ private fun QueueItem(
             )
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(Sizes.sidebarItemGap.dp))
 
         // thumbnail
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(4.dp))
+                .size(Sizes.queueThumbSize.dp)
+                .clip(RoundedCornerShape(Sizes.queueThumbRadius.dp))
                 .background(Color(0xFF2a2a2a))
         ) {
             song.thumbnailUrl?.let { thumb ->
-                NetworkImage(url = thumb, modifier = Modifier.size(36.dp))
+                NetworkImage(url = thumb, modifier = Modifier.size(Sizes.queueThumbSize.dp))
             }
         }
 
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
 
         // info
         Column(modifier = Modifier.weight(1f)) {
