@@ -76,6 +76,7 @@ object Sizes {
     const val radiusMd = 8
     const val radiusLg = 12
     const val radiusPill = 16
+    const val radiusXL = 24
     const val resizerW = 16
     const val resizerHintH = 0.4f     // hint line height fraction
 

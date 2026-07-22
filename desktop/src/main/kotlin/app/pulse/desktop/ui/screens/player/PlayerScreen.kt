@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +64,7 @@ fun PlayerScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = (24 * s).dp, top = (24 * s).dp, end = (24 * s).dp, bottom = ((Sizes.miniPlayerH * s) + Sizes.miniPlayerBottomPad + Sizes.miniPlayerEndPad).dp)
-                .clip(RoundedCornerShape(Sizes.radiusLg.dp))
+                .clip(RoundedCornerShape(Sizes.radiusXL.dp)) // i changed it
                 .background(Color(0xFF1e1e1e))
                 .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusLg.dp))
         ) {
@@ -89,99 +87,56 @@ fun PlayerScreen(
                     .background(Color.Black.copy(alpha = 0.5f))
             )
 
-            // gradient overlay for bottom fade
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.3f)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Transparent,
-                            0.25f to Color.Transparent,
-                            0.6f to bg.copy(alpha = 0.8f),
-                            0.8f to bg
-                        )
-                    )
-            )
-
             // content on top
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // top bar area
-                Box(
+                // top bar row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height((Sizes.playerTopBarH * s).dp)
+                        .padding(horizontal = (12 * s).dp)
                 ) {
-                    // gradient overlay
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height((Sizes.playerTopBarH * s * 2f).dp)
-                            .background(
-                                Brush.verticalGradient(
-                                    0.0f to bg,
-                                    0.15f to bg,
-                                    0.25f to bg.copy(alpha = 0.9f),
-                                    0.35f to bg.copy(alpha = 0.75f),
-                                    0.45f to bg.copy(alpha = 0.6f),
-                                    0.55f to bg.copy(alpha = 0.45f),
-                                    0.65f to bg.copy(alpha = 0.3f),
-                                    0.75f to bg.copy(alpha = 0.2f),
-                                    1.0f to Color.Transparent
-                                )
-                            )
+                    Text(
+                        text = state.currentSong?.title ?: "Player",
+                        color = text,
+                        fontSize = (Sizes.playerTopTitleFont * s).sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
-
-                    // row content sits on top
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height((Sizes.playerTopBarH * s).dp)
-                            .padding(horizontal = (12 * s).dp)
-                    ) {
-                        Text(
-                            text = state.currentSong?.title ?: "Player",
-                            color = text,
-                            fontSize = (Sizes.playerTopTitleFont * s).sp,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width((8 * s).dp))
-                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                            Icon(painterResource("/icons/volume_up.svg"), "Notifications", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                        }
-                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                            Icon(painterResource("/icons/bookmark_outline.svg"), "Save", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                        }
-                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                            Icon(painterResource("/icons/person.svg"), "Profile", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                        }
-                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                            Icon(painterResource("/icons/ellipsis_horizontal.svg"), "Menu", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                        }
-                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                        IconButton(
-                            onClick = onBack,
-                            modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)
-                        ) {
-                            Icon(
-                                painter = painterResource("/icons/minimize.svg"),
-                                contentDescription = "Minimize",
-                                tint = text,
-                                modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f)
-                            )
-                        }
+                    Spacer(Modifier.width((8 * s).dp))
+                    IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                        Icon(painterResource("/icons/volume_up.svg"), "Notifications", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
                     }
-                } // end top bar gradient + row
+                    Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                    IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                        Icon(painterResource("/icons/bookmark_outline.svg"), "Save", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                    }
+                    Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                    IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                        Icon(painterResource("/icons/person.svg"), "Profile", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                    }
+                    Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                    IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                        Icon(painterResource("/icons/ellipsis_horizontal.svg"), "Menu", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                    }
+                    Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)
+                    ) {
+                        Icon(
+                            painter = painterResource("/icons/minimize.svg"),
+                            contentDescription = "Minimize",
+                            tint = text,
+                            modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f)
+                        )
+                    }
+                }
 
                 // center content
                 val song = state.currentSong
