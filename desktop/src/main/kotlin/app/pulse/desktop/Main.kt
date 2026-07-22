@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import app.pulse.desktop.ui.components.MiniPlayer
@@ -33,6 +36,28 @@ import app.pulse.desktop.ui.components.QueuePanel
 import app.pulse.desktop.ui.screens.player.PlayerScreen
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.Innertube.DiscoverPage
+
+/** detect UI scale — make effective resolution ~1920px wide */
+private fun detectDpiScale(): Float {
+    // env var override
+    System.getenv("PULSE_DPI_SCALE")?.toFloatOrNull()?.let { override ->
+        println("[DPI] using PULSE_DPI_SCALE=$override")
+        return override.coerceIn(1f, 3f)
+    }
+    // use AWT display mode width to compute scale (works on all platforms)
+    return try {
+        val dm = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+            .defaultScreenDevice.displayMode
+        val w = dm.width
+        val h = dm.height
+        val scale = (w / 1920f).coerceIn(1f, 3f)
+        println("[DPI] AWT display: ${w}x${h}, scale=${scale}")
+        scale
+    } catch (e: Exception) {
+        println("[DPI] detection failed: ${e.message}, scale=1.0")
+        1f
+    }
+}
 
 fun main() {
     val os = System.getProperty("os.name").lowercase()
@@ -70,6 +95,17 @@ fun main() {
             window.background = java.awt.Color(10, 10, 10)
             window.minimumSize = java.awt.Dimension(Sizes.windowMinW, Sizes.windowMinH)
 
+            // scale all UI by detected monitor DPI (fixes tiny UI on 4K/Linux)
+            val dpiScale = remember { detectDpiScale() }
+            val defaultDensity = LocalDensity.current
+            val scaledDensity = remember(defaultDensity, dpiScale) {
+                object : Density {
+                    override val density: Float get() = defaultDensity.density * dpiScale
+                    override val fontScale: Float get() = defaultDensity.fontScale
+                }
+            }
+
+            CompositionLocalProvider(LocalDensity provides scaledDensity) {
             Box(Modifier.fillMaxSize()) {
                 LayoutShell(
                     activeView = activeView,
@@ -127,6 +163,7 @@ fun main() {
                     )
                 }
             }
+            } // end CompositionLocalProvider
         }
     }
 }
