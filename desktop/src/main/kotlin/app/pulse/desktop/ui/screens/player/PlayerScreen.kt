@@ -59,206 +59,211 @@ fun PlayerScreen(
         modifier = modifier.fillMaxSize()
     ) {
         val s = adaptiveScale(maxWidth)
+        val maxW = maxWidth
 
-        // full background artwork
-        val songBg = state.currentSong
-        val density = LocalDensity.current
-        val maxPx = with(density) { maxWidth.toPx().toInt() }
-        songBg?.thumbnailUrl?.let { url ->
-            NetworkImage(
-                url = url,
-                modifier = Modifier.fillMaxSize().blur((30 * s).dp),
-                requestedSize = maxPx.coerceAtLeast(1920)
-            )
-        } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
-
-        // dim overlay for readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        )
-
-        // gradient overlay for bottom fade
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.3f)
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.25f to Color.Transparent,
-                        0.6f to bg.copy(alpha = 0.8f),
-                        0.8f to bg
-                    )
-                )
-        )
-
-        // content on top
-        Column(
-            modifier = Modifier.fillMaxSize()
+                .padding((24 * s).dp)
+                .clip(RoundedCornerShape(Sizes.radiusLg.dp))
         ) {
-            // top bar area
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height((Sizes.playerTopBarH * s).dp)
-            ) {
-                // gradient overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height((Sizes.playerTopBarH * s * 2f).dp)
-                        .background(
-                            Brush.verticalGradient(
-                                0.0f to bg,
-                                0.15f to bg,
-                                0.25f to bg.copy(alpha = 0.9f),
-                                0.35f to bg.copy(alpha = 0.75f),
-                                0.45f to bg.copy(alpha = 0.6f),
-                                0.55f to bg.copy(alpha = 0.45f),
-                                0.65f to bg.copy(alpha = 0.3f),
-                                0.75f to bg.copy(alpha = 0.2f),
-                                1.0f to Color.Transparent
-                            )
-                        )
+            // full background artwork
+            val songBg = state.currentSong
+            val density = LocalDensity.current
+            val maxPx = with(density) { maxW.toPx().toInt() }
+            songBg?.thumbnailUrl?.let { url ->
+                NetworkImage(
+                    url = url,
+                    modifier = Modifier.fillMaxSize().blur((67 * s).dp),
+                    requestedSize = maxPx.coerceAtLeast(1920)
                 )
+            } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
 
-                // Row content sits on top
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height((Sizes.playerTopBarH * s).dp)
-                        .padding(horizontal = (12 * s).dp)
-                ) {
-                Text(
-                    text = state.currentSong?.title ?: "Player",
-                    color = text,
-                    fontSize = (Sizes.playerTopTitleFont * s).sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(Modifier.width((8 * s).dp))
-                // right icons with gaps
-                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                    Icon(painterResource("/icons/volume_up.svg"), "Notifications", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                }
-                Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                    Icon(painterResource("/icons/bookmark_outline.svg"), "Save", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                }
-                Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                    Icon(painterResource("/icons/person.svg"), "Profile", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                }
-                Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
-                    Icon(painterResource("/icons/ellipsis_horizontal.svg"), "Menu", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
-                }
-                Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)
-                ) {
-                    Icon(
-                        painter = painterResource("/icons/minimize.svg"),
-                        contentDescription = "Minimize",
-                        tint = text,
-                        modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f)
-                    )
-                }
-            }
-            } // end top bar Box
-
-            // center content
-            val song = state.currentSong
-
+            // dim overlay for readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f)
+                    .background(Color.Black.copy(alpha = 0.5f))
+            )
+
+            // gradient overlay for bottom fade
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.3f)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            0.25f to Color.Transparent,
+                            0.6f to bg.copy(alpha = 0.8f),
+                            0.8f to bg
+                        )
+                    )
+            )
+
+            // content on top
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                if (song == null) {
+                // top bar area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height((Sizes.playerTopBarH * s).dp)
+                ) {
+                    // gradient overlay
                     Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height((Sizes.playerTopBarH * s * 2f).dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    0.0f to bg,
+                                    0.15f to bg,
+                                    0.25f to bg.copy(alpha = 0.9f),
+                                    0.35f to bg.copy(alpha = 0.75f),
+                                    0.45f to bg.copy(alpha = 0.6f),
+                                    0.55f to bg.copy(alpha = 0.45f),
+                                    0.65f to bg.copy(alpha = 0.3f),
+                                    0.75f to bg.copy(alpha = 0.2f),
+                                    1.0f to Color.Transparent
+                                )
+                            )
+                    )
+
+                    // row content sits on top
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height((Sizes.playerTopBarH * s).dp)
+                            .padding(horizontal = (12 * s).dp)
                     ) {
                         Text(
-                            text = "No song playing",
-                            color = dim,
-                            fontSize = (16 * s).sp
+                            text = state.currentSong?.title ?: "Player",
+                            color = text,
+                            fontSize = (Sizes.playerTopTitleFont * s).sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                } else {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = (Sizes.playerPad * s).dp)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Spacer(Modifier.width((8 * s).dp))
+                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                            Icon(painterResource("/icons/volume_up.svg"), "Notifications", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                        }
+                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                            Icon(painterResource("/icons/bookmark_outline.svg"), "Save", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                        }
+                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                            Icon(painterResource("/icons/person.svg"), "Profile", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                        }
+                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                        IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                            Icon(painterResource("/icons/ellipsis_horizontal.svg"), "Menu", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                        }
+                        Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)
                         ) {
-                            // artwork
-                            Card(
-                                shape = RoundedCornerShape(Sizes.playerCardRadius.dp),
-                                colors = CardDefaults.cardColors(containerColor = surface),
-                                modifier = Modifier
-                                    .sizeIn(
-                                        maxWidth = (Sizes.playerCardSize * s).dp,
-                                        maxHeight = (Sizes.playerCardSize * s).dp
-                                    )
-                                    .aspectRatio(1f)
+                            Icon(
+                                painter = painterResource("/icons/minimize.svg"),
+                                contentDescription = "Minimize",
+                                tint = text,
+                                modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f)
+                            )
+                        }
+                    }
+                } // end top bar gradient + row
+
+                // center content
+                val song = state.currentSong
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
+                    if (song == null) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "No song playing",
+                                color = dim,
+                                fontSize = (16 * s).sp
+                            )
+                        }
+                    } else {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = (Sizes.playerPad * s).dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    song.thumbnailUrl?.let { thumb ->
-                                        val cardPx = with(density) { (Sizes.playerCardSize * s).dp.toPx().toInt() }
-                                        NetworkImage(
-                                            url = thumb,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(RoundedCornerShape(Sizes.playerCardRadius.dp)),
-                                            requestedSize = cardPx
+                                // artwork
+                                Card(
+                                    shape = RoundedCornerShape(Sizes.playerCardRadius.dp),
+                                    colors = CardDefaults.cardColors(containerColor = surface),
+                                    modifier = Modifier
+                                        .sizeIn(
+                                            maxWidth = (Sizes.playerCardSize * s).dp,
+                                            maxHeight = (Sizes.playerCardSize * s).dp
                                         )
+                                        .aspectRatio(1f)
+                                ) {
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        song.thumbnailUrl?.let { thumb ->
+                                            val cardPx = with(density) { (Sizes.playerCardSize * s).dp.toPx().toInt() }
+                                            NetworkImage(
+                                                url = thumb,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(RoundedCornerShape(Sizes.playerCardRadius.dp)),
+                                                requestedSize = cardPx
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            Spacer(Modifier.height((Sizes.playerTitleGap * s).dp))
+                                Spacer(Modifier.height((Sizes.playerTitleGap * s).dp))
 
-                            // song info
-                            Text(
-                                text = song.title,
-                                color = text,
-                                fontSize = (Sizes.playerTitleFont * s).sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Spacer(Modifier.height((Sizes.playerArtistGap * s).dp))
-
-                            song.artistsText?.let { author ->
+                                // song info
                                 Text(
-                                    text = author,
-                                    color = dim,
-                                    fontSize = (Sizes.playerInfoFont * s).sp,
+                                    text = song.title,
+                                    color = text,
+                                    fontSize = (Sizes.playerTitleFont * s).sp,
+                                    fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+
+                                Spacer(Modifier.height((Sizes.playerArtistGap * s).dp))
+
+                                song.artistsText?.let { author ->
+                                    Text(
+                                        text = author,
+                                        color = dim,
+                                        fontSize = (Sizes.playerInfoFont * s).sp,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
-    }
+            } // end Column
+        } // end wrapping Box
+    } // end BoxWithConstraints
 }
-
-
