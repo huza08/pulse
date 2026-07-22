@@ -1,6 +1,7 @@
 package app.pulse.desktop.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -52,46 +54,51 @@ fun TopNavBar(
             .padding(horizontal = 16.dp)
     ) {
         // searchbar
-        OutlinedTextField(
-            value = query,
-            onValueChange = { onQueryChange(it) },
-            placeholder = {
-                Text(
-                    text = "What do you want to play?",
-                    color = fieldPlaceholder,
-                    fontSize = 14.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource("/icons/search.svg"),
-                    contentDescription = "Search",
-                    tint = dim,
-                    modifier = Modifier.size(20.dp)
-                )
-            },
-            singleLine = true,
-            textStyle = TextStyle(color = fieldText, fontSize = 14.sp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = { onNavigate(View.Search) }
-            ),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = fieldText,
-                unfocusedTextColor = fieldText,
-                cursorColor = text,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedContainerColor = surface,
-                unfocusedContainerColor = surface
-            ),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .weight(1f)
-        )
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { onQueryChange(it) },
+                placeholder = {
+                    Text(
+                        text = "What do you want to play?",
+                        color = fieldPlaceholder,
+                        fontSize = 14.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource("/icons/search.svg"),
+                        contentDescription = "Search",
+                        tint = dim,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                singleLine = true,
+                textStyle = TextStyle(color = fieldText, fontSize = 14.sp),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = { onNavigate(View.Search) }
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = fieldText,
+                    unfocusedTextColor = fieldText,
+                    cursorColor = text,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = surface,
+                    unfocusedContainerColor = surface
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .widthIn(max = 768.dp)
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+                    .align(Alignment.Center)
+            )
+        }
 
         Spacer(Modifier.width(16.dp))
 
