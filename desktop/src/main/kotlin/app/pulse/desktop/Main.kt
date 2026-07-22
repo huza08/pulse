@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +33,6 @@ import app.pulse.desktop.ui.LayoutShell
 import app.pulse.desktop.ui.View
 import app.pulse.desktop.ui.components.QueuePanel
 import app.pulse.desktop.ui.screens.player.PlayerScreen
-import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.Innertube.DiscoverPage
 
 /** detect UI scale — make effective resolution ~1920px wide */
