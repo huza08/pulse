@@ -1,53 +1,43 @@
 package app.pulse.desktop.ui.components
 
-// card size config — change numbers here to resize all home cards
+// Card size config — change numbers here to resize all home cards
+// Only constants actually referenced outside this file.
 object CardSizes {
     // unified card sizes
     const val cardW = 180
-    const val cardTextH = 90   // text area below thumbnail
+    const val cardTextH = 90
     const val cardThumbRadius = 8
+    const val cardEndPad = 24
 
-    // gap between adjacent cards in rows
-    const val cardGap = 24
-    const val cardEndPad = cardGap
+    // text area gaps
+    const val thumbTitleGap = 8
+    const val titleArtistGap = 4
 
-    // unified text area gaps for all cards
-    const val thumbTitleGap = 8   // thumbnail bottom to title text
-    const val titleArtistGap = 4   // title text to artist/author
-
-    // unified font sizes for all cards
-    const val cardTitleFont = 20
-    const val cardArtistFont = 18
-
-    // unified inner padding for all card text areas (horizontal)
+    // card inner padding (horizontal)
     const val cardInnerPad = 10
 
-    // compact songcard now use unified sizes above
+    // compact song card
     const val compactSongW = cardW
-    const val compactSongEndPad = cardGap
+    const val compactSongEndPad = cardEndPad
     const val compactSongInnerPad = cardInnerPad
-    const val compactSongTitle = cardTitleFont
-    const val compactSongArt = cardArtistFont
+    const val compactSongTitle = 20
+    const val compactSongArt = 18
 
-    // album card (new releases, related albums)
+    // album card
     const val albumW = cardW
-    const val albumEndPad = cardGap
+    const val albumEndPad = cardEndPad
     const val albumInnerPad = cardInnerPad
-    const val albumTitle = cardTitleFont
-    const val albumAuthor = cardArtistFont
+    const val albumTitle = 20
+    const val albumAuthor = 18
 
-    // artist card (similar artists)
-    const val artistW = cardW
-    const val artistEndPad = cardGap
-    const val artistName = cardTitleFont
+    // artist card
+    const val artistName = 20
     const val artistVertPad = cardInnerPad
 
-    // playlist card (recommended playlists)
-    const val playlistW = cardW
-    const val playlistEndPad = cardGap
+    // playlist card
     const val playlistInnerPad = cardInnerPad
-    const val playlistName = cardTitleFont
-    const val playlistCount = cardArtistFont
+    const val playlistName = 20
+    const val playlistCount = 18
 
     // mood/genre card
     const val moodW = 180
@@ -61,8 +51,8 @@ object CardSizes {
     const val trendingRowPad = 10
     const val trendingBottomPad = 6
     const val trendingGap = 12
-    const val trendingTitle = cardTitleFont
-    const val trendingSub = cardArtistFont
+    const val trendingTitle = 20
+    const val trendingSub = 18
     const val trendingDurStartPad = 8
 
     // section header
@@ -76,16 +66,12 @@ object CardSizes {
     const val gapXl = 20
 
     // trending grids
-    const val gridGap = cardGap
+    const val gridGap = 24
     const val gridMinCardW = cardW
-    const val gridMaxCols = 6
-    const val gridMinCols = 4
     const val gridThumbRadius = cardThumbRadius
-    const val gridTitleFont = cardTitleFont
-    const val gridArtistFont = cardArtistFont
-    const val gridTextAreaH = cardTextH
+    const val gridTitleFont = 20
+    const val gridArtistFont = 18
     const val gridTextGapSm = titleArtistGap
-    const val gridBottomPad = 2
 
     // skeleton — repeat counts
     const val skelMoodCount = 4
@@ -94,29 +80,20 @@ object CardSizes {
     const val skelQpSongCount = 5
     const val skelQpAlbumCount = 5
 
-    // skeleton — shimmer sizes (derived from real card sizes)
+    // skeleton — shimmer sizes
     const val skelSectionH = 18
-
-    const val skelMoodW = moodW
-    const val skelMoodH = moodH
-    const val skelMoodEndPad = moodEndPad
-
-    const val skelAlbumW = albumW
-    const val skelAlbumEndPad = albumEndPad
+    const val skelMoodW = 180
+    const val skelMoodH = 56
+    const val skelMoodEndPad = 8
+    const val skelAlbumW = 180
+    const val skelAlbumEndPad = 24
     const val skelAlbumNameH = 18
     const val skelAlbumAuthorH = 12
 
-    const val skelTrendingThumb = trendingThumb
-    const val skelTrendingBottomPad = trendingBottomPad
-    const val skelTrendingGap = trendingGap
-    const val skelTrendingTitleH = trendingTitle
-    const val skelTrendingSubH = trendingSub
-    const val skelTrendingDurStartPad = trendingDurStartPad
-
-    // skeleton — section title shimmer widths (derived from card sizes)
-    const val skelTitleWide = compactSongW
-    const val skelTitleMid = moodW
-    const val skelTitleNarrow = compactSongW
+    // skeleton — section title shimmer widths
+    const val skelTitleWide = 180
+    const val skelTitleMid = 180
+    const val skelTitleNarrow = 180
 
     // skeleton — text placeholder widths
     const val skelTrendingTitleW = 180
@@ -126,13 +103,11 @@ object CardSizes {
     const val skelAlbumAuthorW = 80
 
     // skeleton — gaps between text lines
-    const val skelTextGap = 6
     const val skelTextGapSm = 4
 
     // skeleton — thumbnail corner radiuses
     const val skelMoodRadius = 12
     const val skelAlbumRadius = 8
-    const val skelTrendingRadius = 6
 
     // skeleton — shimmer rounded default radius
     const val skelShimmerRadius = 4

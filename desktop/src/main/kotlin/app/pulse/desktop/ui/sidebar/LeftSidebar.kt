@@ -59,9 +59,7 @@ fun LeftSidebar(
     onNavigate: (View) -> Unit,
     isCollapsed: Boolean = false,
     onToggleCollapse: () -> Unit = {},
-    filterRevealed: Boolean = true,
-    searchRevealed: Boolean = true,
-    titleRevealed: Boolean = true,
+    isWide: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var filterTab by remember { mutableStateOf(0) }
@@ -72,17 +70,15 @@ fun LeftSidebar(
             modifier = modifier.requiredWidth(80.dp)
         )
     } else {
-        ExpandedSidebar(
-            activeView = activeView,
-            onNavigate = onNavigate,
-            onToggleCollapse = onToggleCollapse,
-            filterTab = filterTab,
-            onFilterTabChange = { filterTab = it },
-            filterRevealed = filterRevealed,
-            searchRevealed = searchRevealed,
-            titleRevealed = titleRevealed,
-            modifier = modifier
-        )
+    ExpandedSidebar(
+        activeView = activeView,
+        onNavigate = onNavigate,
+        onToggleCollapse = onToggleCollapse,
+        filterTab = filterTab,
+        onFilterTabChange = { filterTab = it },
+        isWide = isWide,
+        modifier = modifier
+    )
     }
 }
 
@@ -170,9 +166,7 @@ private fun ExpandedSidebar(
     onToggleCollapse: () -> Unit,
     filterTab: Int,
     onFilterTabChange: (Int) -> Unit,
-    filterRevealed: Boolean = true,
-    searchRevealed: Boolean = true,
-    titleRevealed: Boolean = true,
+    isWide: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val hoverSrc = remember { MutableInteractionSource() }
@@ -205,7 +199,7 @@ private fun ExpandedSidebar(
                 Spacer(Modifier.width(8.dp))
             }
             AnimatedVisibility(
-                visible = titleRevealed,
+                visible = isWide,
                 enter = expandHorizontally(tween(600)) + fadeIn(tween(600)),
                 exit = shrinkHorizontally(tween(600)) + fadeOut(tween(600))
             ) {
@@ -225,7 +219,7 @@ private fun ExpandedSidebar(
 
         // filter pills
         AnimatedVisibility(
-            visible = filterRevealed,
+            visible = isWide,
             enter = expandVertically(tween(600)) + fadeIn(tween(600)),
             exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {
@@ -250,7 +244,7 @@ private fun ExpandedSidebar(
 
         // search/sort row
         AnimatedVisibility(
-            visible = searchRevealed,
+            visible = isWide,
             enter = expandVertically(tween(600)) + fadeIn(tween(600)),
             exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {

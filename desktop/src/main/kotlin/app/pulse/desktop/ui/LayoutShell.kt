@@ -120,9 +120,7 @@ fun LayoutShell(
                         maxWidth = 400.dp,
                         handleIsStart = false
                     ) {
-                        val filterRevealed = sidebarWidth > 210.dp
-                        val searchRevealed = sidebarWidth > 230.dp
-                        val titleRevealed = sidebarWidth > 280.dp
+                        val isWide = sidebarWidth > 250.dp
                         LeftSidebar(
                             activeView = activeView,
                             onNavigate = onNavigate,
@@ -135,9 +133,7 @@ fun LayoutShell(
                                     targetSidebarWidth = 340.dp
                                 }
                             },
-                            filterRevealed = filterRevealed,
-                            searchRevealed = searchRevealed,
-                            titleRevealed = titleRevealed,
+                            isWide = isWide,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
