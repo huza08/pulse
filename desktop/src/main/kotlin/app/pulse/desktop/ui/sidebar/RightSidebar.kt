@@ -1,6 +1,7 @@
 package app.pulse.desktop.ui.sidebar
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -77,11 +78,63 @@ fun RightSidebar(
 
     val isFullyCollapsed = isCollapsed && !isHovered
 
+    val animSpec = remember { spring<Dp>(dampingRatio = 1f, stiffness = 300f) }
+
+    val density = LocalDensity.current
+    val fullW = with(density) { Sizes.panelMinWidth.dp.toPx().roundToInt() }
+    val peekOffsetXDp = ((Sizes.panelMinWidth - Sizes.rightIntermediateWidth) / 2).dp
+    val animateOffset by animateDpAsState(
+        targetValue = if (isCollapsed) peekOffsetXDp else 0.dp,
+        animationSpec = animSpec
+    )
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .hoverable(interactionSrc)
     ) {
+        // Expanded content — always in composition so artwork/images stay loaded
+        Box(
+            modifier = Modifier
+                .offset(x = animateOffset)
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(
+                        Constraints(
+                            minWidth = fullW.coerceAtLeast(constraints.maxWidth),
+                            maxWidth = fullW.coerceAtLeast(constraints.maxWidth),
+                            minHeight = constraints.minHeight,
+                            maxHeight = constraints.maxHeight
+                        )
+                    )
+                    layout(placeable.width, placeable.height) {
+                        placeable.placeRelative(0, 0)
+                    }
+                }
+        ) {
+            ExpandedRightSidebar(
+                song = song,
+                queue = queue,
+                currentIndex = currentIndex,
+                onCycleState = onCycleState
+            )
+        }
+
+        // Curtain overlay: unhovered=solid, peek=semi, expanded=gone
+        val curtainAlpha by animateFloatAsState(
+            targetValue = when {
+                isCollapsed && !isHovered -> 1f    // collapsed, not hovering = solid
+                isCollapsed && isHovered -> 0.8f   // peek = semi-transparent
+                else -> 0f                          // expanded = no overlay
+            },
+            animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0a0a0a).copy(alpha = curtainAlpha))
+        )
+
+        // Collapsed icon overlay — only on top when fully collapsed
         if (isFullyCollapsed) {
             Box(
                 modifier = Modifier
@@ -100,40 +153,6 @@ fun RightSidebar(
                             indication = null,
                             onClick = onCycleState
                         )
-                )
-            }
-        } else {
-            val density = LocalDensity.current
-            val fullW = with(density) { Sizes.panelMinWidth.dp.toPx().roundToInt() }
-            val peekOffsetXDp = ((Sizes.panelMinWidth - Sizes.rightIntermediateWidth) / 2).dp
-            val animSpec = remember { spring<Dp>(dampingRatio = 1f, stiffness = 300f) }
-            val animateOffset by animateDpAsState(
-                targetValue = if (isCollapsed) peekOffsetXDp else 0.dp,
-                animationSpec = animSpec
-            )
-
-            Box(
-                modifier = Modifier
-                    .offset(x = animateOffset)
-                    .layout { measurable, constraints ->
-                        val placeable = measurable.measure(
-                            Constraints(
-                                minWidth = fullW.coerceAtLeast(constraints.maxWidth),
-                                maxWidth = fullW.coerceAtLeast(constraints.maxWidth),
-                                minHeight = constraints.minHeight,
-                                maxHeight = constraints.maxHeight
-                            )
-                        )
-                        layout(placeable.width, placeable.height) {
-                            placeable.placeRelative(0, 0)
-                        }
-                    }
-            ) {
-                ExpandedRightSidebar(
-                    song = song,
-                    queue = queue,
-                    currentIndex = currentIndex,
-                    onCycleState = onCycleState
                 )
             }
         }
