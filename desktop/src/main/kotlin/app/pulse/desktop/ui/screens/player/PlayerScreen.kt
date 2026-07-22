@@ -65,7 +65,7 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding((24 * s).dp)
+                .padding(start = (24 * s).dp, top = (24 * s).dp, end = (24 * s).dp, bottom = ((Sizes.miniPlayerH * s) + Sizes.miniPlayerBottomPad + Sizes.miniPlayerEndPad).dp)
                 .clip(RoundedCornerShape(Sizes.radiusLg.dp))
                 .background(Color(0xFF1e1e1e))
                 .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusLg.dp))
