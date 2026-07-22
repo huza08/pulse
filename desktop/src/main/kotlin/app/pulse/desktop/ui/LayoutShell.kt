@@ -160,7 +160,7 @@ fun LayoutShell(
                 ResizableSidebar(
                     width = panelWidth,
                     onWidthChange = { targetPanelWidth = it },
-                    minWidth = Sizes.rightCollapsedWidth.dp,
+                    minWidth = if (panelState == RightPanelState.EXPANDED) Sizes.panelMinWidth.dp else Sizes.rightCollapsedWidth.dp,
                     maxWidth = Sizes.panelMaxWidth.dp,
                     handleIsStart = true
                 ) {
