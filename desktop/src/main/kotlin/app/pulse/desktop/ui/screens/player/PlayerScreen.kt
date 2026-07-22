@@ -136,10 +136,11 @@ fun PlayerScreen(
                     onClick = onBack,
                     modifier = Modifier.size((Sizes.playerBackIcon * s).dp)
                 ) {
-                    Text(
-                        text = "\u2190",
-                        color = text,
-                        fontSize = (Sizes.playerBackFont * s).sp
+                    Icon(
+                        painter = painterResource("/icons/panel-bottom-close.svg"),
+                        contentDescription = "Back",
+                        tint = text,
+                        modifier = Modifier.size((Sizes.playerBackIcon * s).dp * 0.75f)
                     )
                 }
                 Spacer(Modifier.width((8 * s).dp))
