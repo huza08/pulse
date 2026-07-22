@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -194,13 +195,14 @@ private fun ResizableSidebar(
     handleIsStart: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val handleOffsetDp = (Sizes.rightPanelPadding / 2 + 8).dp
     val (align, handleOffset, dragSign) = if (handleIsStart) Triple(
         Alignment.CenterStart,
-        (-Sizes.sidebarItemGap).dp,
+        -handleOffsetDp,
         -1f
     ) else Triple(
         Alignment.CenterEnd,
-        Sizes.sidebarItemGap.dp,
+        handleOffsetDp,
         1f
     )
 
