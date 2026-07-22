@@ -90,7 +90,7 @@ fun RightSidebar(
                 contentAlignment = Alignment.TopCenter
             ) {
                 Icon(
-                    painter = painterResource("/icons/panel-left-open.svg"),
+                    painter = painterResource("/icons/panel-right-open.svg"),
                     contentDescription = "Show panel",
                     tint = textColor,
                     modifier = Modifier
@@ -171,7 +171,7 @@ private fun ExpandedRightSidebar(
         ) {
             if (isHovered) {
                 Icon(
-                    painter = painterResource("/icons/panel-left-close.svg"),
+                    painter = painterResource("/icons/panel-right-close.svg"),
                     contentDescription = "Collapse panel",
                     tint = text,
                     modifier = Modifier
