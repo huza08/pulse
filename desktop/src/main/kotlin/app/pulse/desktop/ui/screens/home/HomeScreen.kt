@@ -535,7 +535,7 @@ private fun SectionHeader(title: String, onMore: () -> Unit) {
             fontSize = CardSizes.headerTitle.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Visible,
             modifier = Modifier.weight(1f)
         )
         TextButton(onClick = onMore) {
