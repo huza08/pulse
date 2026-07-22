@@ -6,25 +6,6 @@ object FontSizes {
     // searchbar
     const val searchbar = 18
 
-    // card titles
-    const val cardTitle = 20
-
-    // card subtitles (artists, counts)
-    const val cardSub = 18
-
-    // section headers
-    const val sectionTitle = 28
-
-    // "Show all" / "More" links
-    const val sectionMore = 18
-
-    // mood/genre labels
-    const val mood = 16
-
-    // mini-player & controls
-    const val miniTitle = 14
-    const val miniSub = 11
-
     // queue panel (matched to right sidebar sizes)
     const val queueTitle = 14
     const val queueSub = 16      // matches rightLabel
