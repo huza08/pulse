@@ -132,18 +132,6 @@ fun PlayerScreen(
                         .height((Sizes.playerTopBarH * s).dp)
                         .padding(horizontal = (12 * s).dp)
                 ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.size((Sizes.playerBackIcon * s).dp)
-                ) {
-                    Icon(
-                        painter = painterResource("/icons/panel-bottom-close.svg"),
-                        contentDescription = "Back",
-                        tint = text,
-                        modifier = Modifier.size((Sizes.playerBackIcon * s).dp * 0.75f)
-                    )
-                }
-                Spacer(Modifier.width((8 * s).dp))
                 Text(
                     text = state.currentSong?.title ?: "Player",
                     color = text,
@@ -155,15 +143,33 @@ fun PlayerScreen(
                 )
                 Spacer(Modifier.width((8 * s).dp))
                 // right icons with gaps
-                TopBarIcon("/icons/volume_up.svg", "Notifications", dim, s)
+                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                    Icon(painterResource("/icons/volume_up.svg"), "Notifications", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                }
                 Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                TopBarIcon("/icons/bookmark_outline.svg", "Save", dim, s)
+                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                    Icon(painterResource("/icons/bookmark_outline.svg"), "Save", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                }
                 Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                TopBarIcon("/icons/person.svg", "Profile", dim, s)
+                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                    Icon(painterResource("/icons/person.svg"), "Profile", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                }
                 Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                TopBarIcon("/icons/ellipsis_horizontal.svg", "Menu", dim, s)
+                IconButton(onClick = {}, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)) {
+                    Icon(painterResource("/icons/ellipsis_horizontal.svg"), "Menu", tint = dim, modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f))
+                }
                 Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
-                TopBarIcon("/icons/expand.svg", "Fullscreen", text, s)
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size((Sizes.playerTopIconSize * s).dp)
+                ) {
+                    Icon(
+                        painter = painterResource("/icons/minimize.svg"),
+                        contentDescription = "Minimize",
+                        tint = text,
+                        modifier = Modifier.size((Sizes.playerTopIconSize * s).dp * 0.75f)
+                    )
+                }
             }
             } // end top bar Box
 
@@ -254,22 +260,4 @@ fun PlayerScreen(
     }
 }
 
-@Composable
-private fun TopBarIcon(
-    iconPath: String,
-    desc: String,
-    tint: Color,
-    scale: Float
-) {
-    IconButton(
-        onClick = {},
-        modifier = Modifier.size((Sizes.playerTopIconSize * scale).dp)
-    ) {
-        Icon(
-            painter = painterResource(iconPath),
-            contentDescription = desc,
-            tint = tint,
-            modifier = Modifier.size((Sizes.playerTopIconSize * scale).dp * 0.75f)
-        )
-    }
-}
+

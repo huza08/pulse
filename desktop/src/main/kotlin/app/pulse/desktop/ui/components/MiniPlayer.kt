@@ -61,8 +61,10 @@ import app.pulse.core.data.utils.formatDuration
 @Composable
 fun MiniPlayer(
     player: PlayerService,
+    isPlayerOpen: Boolean = false,
     onClick: () -> Unit,
     onOpenPlayer: () -> Unit = onClick,
+    onClosePlayer: () -> Unit = {},
     onToggleQueue: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -354,15 +356,17 @@ fun MiniPlayer(
                 )
                 Spacer(Modifier.width((14 * s).dp))
                 Icon(
-                    painter = painterResource("/icons/expand.svg"),
-                    contentDescription = "Fullscreen",
+                    painter = painterResource(
+                        if (isPlayerOpen) "/icons/minimize.svg" else "/icons/expand.svg"
+                    ),
+                    contentDescription = if (isPlayerOpen) "Minimize" else "Fullscreen",
                     tint = text,
                     modifier = Modifier
                         .size((Sizes.miniPlayerIconSide * s).dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onOpenPlayer
+                            onClick = if (isPlayerOpen) onClosePlayer else onOpenPlayer
                         )
                 )
             }

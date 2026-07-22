@@ -104,8 +104,10 @@ fun main() {
                 if (playerState.currentSong != null) {
                     MiniPlayer(
                         player = player,
+                        isPlayerOpen = showPlayer,
                         onClick = {},
                         onOpenPlayer = { showPlayer = true },
+                        onClosePlayer = { showPlayer = false },
                         onToggleQueue = { showQueue = !showQueue },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)

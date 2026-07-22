@@ -113,8 +113,6 @@ object Sizes {
     const val playerCardRadius = 16
     const val playerCardSize = 400
     const val playerPad = 32
-    const val playerBackIcon = 44
-    const val playerBackFont = 22
     const val playerInfoFont = 20
     const val playerTitleFont = 26
     const val playerTitleGap = 16           // between content and title
