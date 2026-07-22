@@ -105,8 +105,8 @@ fun QueuePanel(
                         painter = painterResource("/icons/close.svg"),
                         contentDescription = "Close",
                         tint = Color(0xFFa8a39a),
-                        modifier = Modifier
-                            .size(24.dp)
+                modifier = Modifier
+                    .size(Sizes.queueCloseIcon.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -193,7 +193,7 @@ private fun QueueItem(
         // reorder buttons
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(20.dp)
+            modifier = Modifier.width(Sizes.queueReorderW.dp)
         ) {
             Text(
                 text = "\u25B2",
@@ -284,7 +284,7 @@ private fun QueueItem(
             contentDescription = "Remove",
             tint = dim.copy(alpha = 0.6f),
             modifier = Modifier
-                .size(18.dp)
+                .size(Sizes.queueRemoveIcon.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,

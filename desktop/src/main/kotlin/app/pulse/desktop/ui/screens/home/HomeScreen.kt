@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.components.CardSizes
+import app.pulse.desktop.ui.components.Sizes
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.ui.components.HomeCard
 import app.pulse.desktop.ui.components.MoodsSkeleton
@@ -287,9 +288,9 @@ fun HomeScreen(
         val scrollState = rememberScrollState()
         val sbStyle = remember {
             ScrollbarStyle(
-                minimalHeight = 16.dp,
-                thickness = 8.dp,
-                shape = RoundedCornerShape(4.dp),
+                minimalHeight = Sizes.scrollMinH.dp,
+                thickness = Sizes.scrollThickness.dp,
+                shape = RoundedCornerShape(Sizes.scrollRadius.dp),
                 hoverDurationMillis = 300,
                 unhoverColor = Color(0xFF5a5a5a).copy(alpha = 0.2f),
                 hoverColor = Color(0xFF8a8a8a).copy(alpha = 0.6f)
@@ -302,7 +303,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 100.dp)
+                    .padding(start = Sizes.homeColumnPad.dp, end = Sizes.homeColumnPad.dp, top = Sizes.homeColumnPad.dp, bottom = Sizes.homeColumnBottomPad.dp)
             ) {
             // quick picks
             relatedResult?.getOrNull()?.let { related ->
@@ -376,7 +377,7 @@ fun HomeScreen(
                             val moodColor = Color(mood.stripeColor)
                             val moodTextColor = if (moodColor.luminance() >= 0.5f) Color.Black else Color.White
                             Card(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(Sizes.radiusLg.dp),
                                 colors = CardDefaults.cardColors(containerColor = moodColor),
                                 modifier = Modifier
                                     .width(CardSizes.moodW.dp)
@@ -445,7 +446,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .fillMaxHeight()
-                .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
+                .padding(top = Sizes.scrollPad.dp, bottom = Sizes.scrollPad.dp, end = Sizes.scrollEndPad.dp)
                 .alpha(scrollbarAlpha),
             adapter = rememberScrollbarAdapter(scrollState),
             style = sbStyle
@@ -489,7 +490,7 @@ private fun CarouselRow(
                 .drawWithContent {
                     drawContent()
                     // INNER to horizontalScroll → content coords, use viewportWidth for right edge
-                    val fadeW = 80.dp.toPx()
+                    val fadeW = Sizes.homeFadeWidth.dp.toPx()
                     val scrollOff = scrollState.value.toFloat()
                     val vw = if (viewportWidth > 0f) viewportWidth else size.width
                     if (edgeFadeAlpha > 0.001f) {
@@ -558,8 +559,7 @@ private fun CompactSongCard(
         cardWidth = cardSize,
         cardHeight = cardH,
         horizontalPadding = CardSizes.compactSongInnerPad.dp,
-        endPad = CardSizes.cardEndPad.dp,
-        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         onClick = onClick,
         thumbnail = {
             song.thumbnailUrl?.let { thumb ->
@@ -600,8 +600,7 @@ private fun AlbumCard(
         cardWidth = cardSize,
         cardHeight = cardH,
         horizontalPadding = CardSizes.albumInnerPad.dp,
-        endPad = CardSizes.cardEndPad.dp,
-        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         thumbnail = {
             album.thumbnail?.let { thumb ->
                 NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
@@ -674,8 +673,7 @@ private fun PlaylistCard(
         cardWidth = cardSize,
         cardHeight = cardH,
         horizontalPadding = CardSizes.playlistInnerPad.dp,
-        endPad = CardSizes.cardEndPad.dp,
-        thumbClipShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+        endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         thumbnail = {
             playlist.thumbnail?.let { thumb ->
                 NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())

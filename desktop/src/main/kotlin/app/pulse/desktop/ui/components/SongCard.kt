@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.components.CardSizes
+import app.pulse.desktop.ui.components.Sizes
 
 @Composable
 fun SongCard(
@@ -49,7 +50,7 @@ fun SongCard(
                     url = thumb,
                     modifier = Modifier
                         .size((CardSizes.trendingThumb * scale).dp)
-                        .clip(RoundedCornerShape(6.dp))
+                        .clip(RoundedCornerShape(Sizes.radiusSm.dp))
                 )
                 Spacer(Modifier.width((CardSizes.trendingGap * scale).dp))
             }

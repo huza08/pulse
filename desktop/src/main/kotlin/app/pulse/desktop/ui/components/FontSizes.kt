@@ -31,11 +31,11 @@ object FontSizes {
     const val queueSmall = 10
 
     // left sidebar
-    const val sidebarSection = 16
-    const val sidebarItem = 14
-    const val sidebarChip = 13
-    const val sidebarSmall = 12
-    const val sidebarSub = 11
+    const val sidebarSection = 20
+    const val sidebarItem = 16
+    const val sidebarChip = 15
+    const val sidebarSmall = 14
+    const val sidebarSub = 14
 
     // right sidebar
     const val rightSection = 20

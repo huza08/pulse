@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.components.FontSizes
 import app.pulse.desktop.ui.components.NetworkImage
+import app.pulse.desktop.ui.components.Sizes
 
 @Composable
 fun RightSidebar(
@@ -64,8 +65,8 @@ fun RightSidebar(
             .then(modifier)
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(Sizes.rightPanelPadding.dp),
+        verticalArrangement = Arrangement.spacedBy(Sizes.rightPanelPadding.dp)
     ) {
         // header
         Row(
@@ -78,7 +79,7 @@ fun RightSidebar(
                     contentDescription = "Hide panel",
                     tint = text,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(Sizes.rightChevronIcon.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -99,7 +100,7 @@ fun RightSidebar(
                 painter = painterResource("/icons/ellipsis_horizontal.svg"),
                 contentDescription = "More",
                 tint = text,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(Sizes.rightEllipsisIcon.dp)
             )
         }
 
@@ -138,8 +139,8 @@ fun RightSidebar(
                 tint = Color.White.copy(alpha = 0.8f),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(10.dp)
-                    .size(18.dp)
+                    .padding(Sizes.sidebarItemPadH.dp)
+                    .size(Sizes.rightShareIcon.dp)
             )
 
         }
@@ -174,7 +175,7 @@ fun RightSidebar(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(cardBg)
-                .padding(16.dp)
+                .padding(Sizes.rightPanelPadding.dp)
         ) {
             Column {
                 Text(
@@ -193,7 +194,7 @@ fun RightSidebar(
                         painter = painterResource("/icons/person.svg"),
                         contentDescription = "Artist",
                         tint = dim,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(Sizes.rightCreditIcon.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
@@ -221,7 +222,7 @@ fun RightSidebar(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(cardBg)
-                    .padding(16.dp)
+                    .padding(Sizes.rightPanelPadding.dp)
             ) {
                 Column {
                     Text(
@@ -242,12 +243,12 @@ fun RightSidebar(
                             // mini thumb
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(Sizes.rightQueueThumb.dp)
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(Color(0xFF1a1a1a))
                             ) {
                                 nextSong.thumbnailUrl?.let { thumb ->
-                                    NetworkImage(url = thumb, modifier = Modifier.size(36.dp))
+                                    NetworkImage(url = thumb, modifier = Modifier.size(Sizes.rightQueueThumb.dp))
                                 }
                             }
                             Spacer(Modifier.width(10.dp))

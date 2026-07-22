@@ -47,6 +47,7 @@ import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.LeftSidebar
 import app.pulse.desktop.ui.sidebar.RightSidebar
 import app.pulse.desktop.ui.components.MiniPlayer
+import app.pulse.desktop.ui.components.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
 import app.pulse.providers.innertube.Innertube
@@ -68,22 +69,22 @@ fun LayoutShell(
     val bg = Color(0xFF0a0a0a)
 
     // sidebar widths — animated triggers smooth center content re-layout
-    var targetSidebarWidth by remember { mutableStateOf(340.dp) }
-    var targetPanelWidth by remember { mutableStateOf(400.dp) }
+    var targetSidebarWidth by remember { mutableStateOf(Sizes.sidebarTargetWidth.dp) }
+    var targetPanelWidth by remember { mutableStateOf(Sizes.panelTargetWidth.dp) }
     var showRightPanel by remember { mutableStateOf(true) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
 
     val hideAnim = spring<Dp>(dampingRatio = 1f, stiffness = 300f)
 
     // collapse/expand via drag:
-    if (targetSidebarWidth <= 80.dp) {
+    if (targetSidebarWidth <= Sizes.sidebarCollapsedDrag.dp) {
         sidebarCollapsed = true
     } else if (targetSidebarWidth >= 120.dp) {
         sidebarCollapsed = false
     }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (sidebarCollapsed) 80.dp else targetSidebarWidth,
+        targetValue = if (sidebarCollapsed) Sizes.sidebarCollapsedDrag.dp else targetSidebarWidth,
         animationSpec = hideAnim
     )
     val panelWidth by animateDpAsState(
@@ -116,8 +117,8 @@ fun LayoutShell(
                     ResizableSidebar(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
-                        minWidth = 320.dp,
-                        maxWidth = 400.dp,
+                        minWidth = Sizes.sidebarMinWidth.dp,
+                        maxWidth = Sizes.sidebarMaxWidth.dp,
                         handleIsStart = false
                     ) {
                         val isWide = sidebarWidth > 250.dp
@@ -130,7 +131,7 @@ fun LayoutShell(
                                 if (sidebarCollapsed) {
                                     targetSidebarWidth = 80.dp
                                 } else {
-                                    targetSidebarWidth = 340.dp
+                                    targetSidebarWidth = Sizes.sidebarRestoreWidth.dp
                                 }
                             },
                             isWide = isWide,
@@ -162,15 +163,15 @@ fun LayoutShell(
                     ResizableSidebar(
                         width = panelWidth,
                         onWidthChange = { targetPanelWidth = it },
-                        minWidth = 320.dp,
-                        maxWidth = 340.dp,
+                        minWidth = Sizes.panelMinWidth.dp,
+                        maxWidth = Sizes.panelMaxWidth.dp,
                         handleIsStart = true
                     ) {
                         RightSidebar(
                             player = player,
                             onHidePanel = {
                                 showRightPanel = false
-                                targetPanelWidth = 320.dp
+                                targetPanelWidth = Sizes.panelMinWidth.dp
                             },
                             modifier = Modifier.fillMaxSize()
                         )
@@ -200,7 +201,7 @@ fun LayoutShell(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 14.dp)
+                    .padding(start = Sizes.miniPlayerEndPad.dp, end = Sizes.miniPlayerEndPad.dp, bottom = Sizes.miniPlayerBottomPad.dp)
             )
         }
     }

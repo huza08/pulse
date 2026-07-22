@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.components.Sizes
 import app.pulse.core.data.utils.formatDuration
 
 @Composable
@@ -58,8 +59,8 @@ fun Controls(
             Text(
                 text = formatDuration(state.currentPositionMs),
                 color = dim,
-                fontSize = (11 * scale).sp,
-                modifier = Modifier.width((48 * scale).dp)
+                fontSize = (Sizes.controlsTimeFont * scale).sp,
+                modifier = Modifier.width((Sizes.controlsTimeW * scale).dp)
             )
 
             var isDragging by remember { mutableStateOf(false) }
@@ -84,18 +85,18 @@ fun Controls(
                     activeTrackColor = accent,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.weight(1f).height((4 * scale).dp)
+                modifier = Modifier.weight(1f).height((Sizes.controlsSliderH * scale).dp)
             )
 
             Text(
                 text = formatDuration(state.durationMs),
                 color = dim,
-                fontSize = (11 * scale).sp,
-                modifier = Modifier.width((48 * scale).dp)
+                fontSize = (Sizes.controlsTimeFont * scale).sp,
+                modifier = Modifier.width((Sizes.controlsTimeW * scale).dp)
             )
         }
 
-        Spacer(Modifier.height((12 * scale).dp))
+        Spacer(Modifier.height((Sizes.controlsSpacerH1 * scale).dp))
 
         // Playback buttons
         Row(
@@ -120,11 +121,11 @@ fun Controls(
                 onClick = { player.cycleLoopMode() },
                 contentDescription = "Repeat",
                 tint = text.copy(alpha = loopAlpha),
-                size = 18,
+                size = Sizes.controlsIconSm,
                 scale = scale
             )
 
-            Spacer(Modifier.width((16 * scale).dp))
+            Spacer(Modifier.width((Sizes.controlsSpacerSm * scale).dp))
 
             // Prev song
             MediaIconButton(
@@ -132,20 +133,20 @@ fun Controls(
                 onClick = { player.playPrevious() },
                 contentDescription = "Previous",
                 tint = text,
-                size = 22,
+                size = Sizes.controlsIconMd,
                 scale = scale
             )
 
-            Spacer(Modifier.width((44 * scale).dp))
+            Spacer(Modifier.width((Sizes.controlsSpacerLg * scale).dp))
 
             // Play/Pause
             if (state.isLoading) {
                 Box(
-                    modifier = Modifier.size((56 * scale).dp),
+                    modifier = Modifier.size((Sizes.controlsBtnLg * scale).dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size((28 * scale).dp),
+                        modifier = Modifier.size((Sizes.controlsLoadingSize * scale).dp),
                         color = text,
                         strokeWidth = (3 * scale).dp
                     )
@@ -158,13 +159,13 @@ fun Controls(
                     },
                     contentDescription = if (state.isPlaying) "Pause" else "Play",
                     tint = text,
-                    size = 32,
+                    size = Sizes.controlsIconLg,
                     isMain = true,
                     scale = scale
                 )
             }
 
-            Spacer(Modifier.width((44 * scale).dp))
+            Spacer(Modifier.width((Sizes.controlsSpacerLg * scale).dp))
 
             // Next song
             MediaIconButton(
@@ -172,14 +173,14 @@ fun Controls(
                 onClick = { player.playNext() },
                 contentDescription = "Next",
                 tint = text,
-                size = 22,
+                size = Sizes.controlsIconMd,
                 scale = scale
             )
 
             Spacer(Modifier.weight(1f))
         }
 
-        Spacer(Modifier.height((16 * scale).dp))
+        Spacer(Modifier.height((Sizes.controlsSpacerH2 * scale).dp))
 
         // Volume
         Row(
@@ -190,9 +191,9 @@ fun Controls(
                 painter = painterResource("/icons/volume_up.svg"),
                 contentDescription = "Volume",
                 tint = dim,
-                modifier = Modifier.size((14 * scale).dp)
+                modifier = Modifier.size((Sizes.controlsVolumeIcon * scale).dp)
             )
-            Spacer(Modifier.width((8 * scale).dp))
+            Spacer(Modifier.width((Sizes.controlsVolSpacer * scale).dp))
 
             var volume by remember { mutableFloatStateOf(state.volume) }
             Slider(
@@ -206,7 +207,7 @@ fun Controls(
                     activeTrackColor = dim,
                     inactiveTrackColor = Color(0xFF2a2a2a)
                 ),
-                modifier = Modifier.weight(1f).height(4.dp)
+                modifier = Modifier.weight(1f).height(Sizes.controlsSliderH.dp)
             )
         }
     }
@@ -222,8 +223,8 @@ private fun MediaIconButton(
     isMain: Boolean = false,
     scale: Float = 1f
 ) {
-    val btnSize = ((if (isMain) 56 else 40) * scale).dp
-    val iconSize = ((if (isMain) 28 else size) * scale).dp
+    val btnSize = ((if (isMain) Sizes.controlsBtnLg else Sizes.controlsBtnSm) * scale).dp
+    val iconSize = ((if (isMain) Sizes.controlsMainIcon else size) * scale).dp
 
     IconButton(
         onClick = onClick,

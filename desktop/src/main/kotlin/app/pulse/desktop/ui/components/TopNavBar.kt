@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
 import app.pulse.desktop.ui.components.FontSizes
+import app.pulse.desktop.ui.components.Sizes
 
 @Composable
 fun TopNavBar(
@@ -51,9 +52,9 @@ fun TopNavBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(Sizes.topBarHeight.dp)
             .background(bg)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = Sizes.rightPanelPadding.dp)
     ) {
         // searchbar
         Box(modifier = Modifier.weight(1f)) {
@@ -73,7 +74,7 @@ fun TopNavBar(
                         painter = painterResource("/icons/search.svg"),
                         contentDescription = "Search",
                         tint = dim,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(Sizes.searchIconSize.dp)
                     )
                 },
                 singleLine = true,
@@ -94,16 +95,16 @@ fun TopNavBar(
                     focusedContainerColor = surface,
                     unfocusedContainerColor = surface
                 ),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(Sizes.searchCornerRadius.dp),
                 modifier = Modifier
-                    .widthIn(max = 768.dp)
+                    .widthIn(max = Sizes.searchMaxWidth.dp)
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = Sizes.searchTopPad.dp)
                     .align(Alignment.Center)
             )
         }
 
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(Sizes.rightPanelPadding.dp))
 
         // dummy for now
         Icon(
@@ -111,10 +112,10 @@ fun TopNavBar(
             contentDescription = "Profile",
             tint = text,
             modifier = Modifier
-                .size(32.dp)
+                .size(Sizes.profileIconSize.dp)
                 .clip(CircleShape)
                 .background(Color(0xFF1e1e1e))
-                .padding(5.dp)
+                .padding(Sizes.topBarProfileBg.dp)
         )
     }
 }

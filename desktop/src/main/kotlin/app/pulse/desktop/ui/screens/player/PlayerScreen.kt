@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.NetworkImage
+import app.pulse.desktop.ui.components.Sizes
 
 @Composable
 fun PlayerScreen(
@@ -62,7 +63,7 @@ fun PlayerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding((32 * s).dp)
+                .padding((Sizes.playerPad * s).dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -70,9 +71,9 @@ fun PlayerScreen(
             ) {
                 IconButton(
                     onClick = onBack,
-                    modifier = Modifier.size((32 * s).dp)
+                    modifier = Modifier.size((Sizes.playerBackIcon * s).dp)
                 ) {
-                    Text("\u2190", color = text, fontSize = (18 * s).sp)
+                    Text("\u2190", color = text, fontSize = (Sizes.playerBackFont * s).sp)
                 }
                 Spacer(Modifier.width((8 * s).dp))
                 Text(
@@ -82,7 +83,7 @@ fun PlayerScreen(
                 )
             }
 
-            Spacer(Modifier.height((24 * s).dp))
+            Spacer(Modifier.height((Sizes.playerHeaderGap * s).dp))
 
             val song = state.currentSong
 
@@ -108,11 +109,11 @@ fun PlayerScreen(
                         .weight(1f)
                 ) {
                     Card(
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(Sizes.playerCardRadius.dp),
                     colors = CardDefaults.cardColors(containerColor = surface),
                     modifier = Modifier
                         .fillMaxHeight(0.6f)
-                        .sizeIn(maxWidth = (400 * s).dp, maxHeight = (400 * s).dp)
+                        .sizeIn(maxWidth = (Sizes.playerCardSize * s).dp, maxHeight = (Sizes.playerCardSize * s).dp)
                         .aspectRatio(1f)
                 ) {
                     Box(
@@ -124,40 +125,40 @@ fun PlayerScreen(
                                 url = thumb,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(RoundedCornerShape(16.dp))
+                                    .clip(RoundedCornerShape(Sizes.playerCardRadius.dp))
                             )
                         }
                     }
                 }
 
-                Spacer(Modifier.height((28 * s).dp))
+                Spacer(Modifier.height((Sizes.playerTitleGap * s).dp))
 
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = (20 * s).sp,
+                    fontSize = (Sizes.playerTitleFont * s).sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
-                        .widthIn(max = (420 * s).dp)
+                        .widthIn(max = (Sizes.playerTitleMaxW * s).dp)
                 )
 
-                Spacer(Modifier.height((6 * s).dp))
+                Spacer(Modifier.height((Sizes.playerArtistGap * s).dp))
 
                 song.artistsText?.let { author ->
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = (14 * s).sp,
+                        fontSize = (Sizes.playerInfoFont * s).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(Modifier.height((32 * s).dp))
+                Spacer(Modifier.height((Sizes.playerControlsGap * s).dp))
 
                 Controls(
                     player = player,
@@ -167,7 +168,7 @@ fun PlayerScreen(
                     scale = s,
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .widthIn(max = (500 * s).dp)
+                        .widthIn(max = (Sizes.playerControlsMaxW * s).dp)
                 )
                 }
             }
@@ -186,11 +187,11 @@ fun PlayerScreen(
             }
 
             state.error?.let { errorMsg ->
-                Spacer(Modifier.height((8 * s).dp))
+                Spacer(Modifier.height((Sizes.playerErrorGap * s).dp))
                 Text(
                     text = "Error: $errorMsg",
                     color = Color(0xFFe74c3c),
-                    fontSize = (12 * s).sp,
+                    fontSize = (Sizes.playerErrorFont * s).sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )

@@ -45,10 +45,12 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
 import app.pulse.desktop.ui.components.FontSizes
+import app.pulse.desktop.ui.components.Sizes
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
@@ -68,7 +70,7 @@ fun LeftSidebar(
     if (isCollapsed) {
         CollapsedSidebar(
             onToggleCollapse = onToggleCollapse,
-            modifier = modifier.requiredWidth(80.dp)
+            modifier = modifier.requiredWidth(Sizes.sidebarCollapsedWidth.dp)
         )
     } else {
     ExpandedSidebar(
@@ -91,7 +93,7 @@ private fun CollapsedSidebar(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = 16.dp),
+            .padding(vertical = Sizes.rightPanelPadding.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // header
@@ -100,21 +102,21 @@ private fun CollapsedSidebar(
             contentDescription = "Expand sidebar",
             tint = TextColor,
             modifier = Modifier
-                .size(32.dp)
-                .padding(6.dp)
+                .size(Sizes.sidebarIconLg.dp)
+                .padding(Sizes.sidebarItemGap.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = onToggleCollapse
                 )
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Sizes.sidebarItemGap.dp))
         Icon(
             painter = painterResource("/icons/add.svg"),
             contentDescription = "Create",
             tint = DimColor,
             modifier = Modifier
-                .size(32.dp)
+                .size(Sizes.sidebarIconLg.dp)
                 .padding(6.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -123,20 +125,20 @@ private fun CollapsedSidebar(
                 )
         )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Sizes.rightPanelPadding.dp))
 
         // icon-only items
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(Sizes.sidebarItemGap.dp)
         ) {
             // Liked Songs
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .size(Sizes.sidebarThumbSize.dp)
+                    .clip(RoundedCornerShape(Sizes.radiusSm.dp))
                     .background(Color(0xFFb02897)),
                 contentAlignment = Alignment.Center
             ) {
@@ -144,18 +146,18 @@ private fun CollapsedSidebar(
                     painter = painterResource("/icons/heart.svg"),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
             // playlist items
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFd4a373)))
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF444444)))
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF555555)))
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF8a5a44)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(RoundedCornerShape(Sizes.radiusSm.dp)).background(Color(0xFFd4a373)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(RoundedCornerShape(Sizes.radiusSm.dp)).background(Color(0xFF444444)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(RoundedCornerShape(Sizes.radiusSm.dp)).background(Color(0xFF555555)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(RoundedCornerShape(Sizes.radiusSm.dp)).background(Color(0xFF8a5a44)))
             // artist items
-            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF333333)))
-            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF444444)))
-            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF555555)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(CircleShape).background(Color(0xFF333333)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(CircleShape).background(Color(0xFF444444)))
+            Box(Modifier.size(Sizes.sidebarThumbSize.dp).clip(CircleShape).background(Color(0xFF555555)))
         }
     }
 }
@@ -190,14 +192,14 @@ private fun ExpandedSidebar(
                     contentDescription = "Collapse sidebar",
                     tint = TextColor,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(Sizes.sidebarIconSm.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = onToggleCollapse
                         )
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
             }
             AnimatedVisibility(
                 visible = isWide,
@@ -214,8 +216,8 @@ private fun ExpandedSidebar(
                 )
             }
             Spacer(Modifier.weight(1f))
-            HeaderIcon(painterResource("/icons/add.svg"), "Create")
-            HeaderIcon(painterResource("/icons/expand.svg"), "Expand library")
+            HeaderIcon(painterResource("/icons/add.svg"), "Create", Sizes.sidebarIconLg.dp)
+            HeaderIcon(painterResource("/icons/expand.svg"), "Expand library", Sizes.sidebarIconLg.dp)
         }
 
         // filter pills
@@ -254,15 +256,15 @@ private fun ExpandedSidebar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .height(36.dp)
+                    .padding(horizontal = Sizes.sidebarOuterPadH.dp)
+                    .height(Sizes.sidebarSearchRowH.dp)
             ) {
                 Icon(
                     painter = painterResource("/icons/search.svg"),
                     contentDescription = "Search",
                     tint = DimColor,
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(Sizes.sidebarIconMd.dp)
                         .padding(4.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -282,7 +284,7 @@ private fun ExpandedSidebar(
                     contentDescription = "Toggle view",
                     tint = DimColor,
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(Sizes.sidebarIconMd.dp)
                         .padding(4.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -317,10 +319,9 @@ private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit) {
                 painter = painterResource("/icons/heart.svg"),
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(Sizes.sidebarHeartIcon.dp)
             )
         },
-        iconPlaceholder = Color(0xFFb02897),
         name = "Liked Songs",
         subtitle = "Playlist • 27 songs",
         isActive = false,
@@ -387,13 +388,13 @@ private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit) {
 
 
 @Composable
-private fun HeaderIcon(painter: Painter, desc: String) {
+private fun HeaderIcon(painter: Painter, desc: String, size: Dp = 32.dp) {
     Icon(
         painter = painter,
         contentDescription = desc,
         tint = DimColor,
         modifier = Modifier
-            .size(32.dp)
+            .size(size)
             .padding(4.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -442,20 +443,20 @@ private fun LibraryItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-            .clip(RoundedCornerShape(6.dp))
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(Sizes.radiusSm.dp))
             .background(bgColor)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .padding(horizontal = Sizes.sidebarItemPadH.dp, vertical = Sizes.sidebarItemPadV.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(if (isCircular) CircleShape else RoundedCornerShape(4.dp))
+                .size(Sizes.sidebarThumbSize.dp)
+                .clip(if (isCircular) CircleShape else RoundedCornerShape(Sizes.radiusSm.dp))
                 .background(iconPlaceholder),
             contentAlignment = Alignment.Center
         ) {
@@ -464,7 +465,7 @@ private fun LibraryItem(
             }
         }
 
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -478,12 +479,12 @@ private fun LibraryItem(
                     modifier = Modifier.weight(1f, fill = false)
                 )
                 if (isPinned) {
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(Modifier.width(Sizes.sidebarItemGap.dp))
                     Icon(
                         painter = painterResource("/icons/heart.svg"),
                         contentDescription = null,
                         tint = GreenAccent,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(Sizes.sidebarPinnedIcon.dp)
                     )
                 }
             }
