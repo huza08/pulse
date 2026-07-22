@@ -93,7 +93,7 @@ fun QueuePanel(
                     Text(
                         text = "Queue",
                         color = Color(0xFFf2f0eb),
-                        fontSize = FontSizes.sectionMore.sp,
+                        fontSize = FontSizes.rightSection.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
@@ -258,7 +258,7 @@ private fun QueueItem(
                     Text(
                         text = "NOW • ",
                         color = Color(0xFF4CAF50),
-                        fontSize = FontSizes.miniSub.sp,
+                        fontSize = FontSizes.queueMeta.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -266,7 +266,7 @@ private fun QueueItem(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = FontSizes.miniSub.sp,
+                        fontSize = FontSizes.queueMeta.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -280,9 +280,8 @@ private fun QueueItem(
         song.durationText?.let { dur ->
             Text(
                 text = dur,
-                color = dim,
-                fontSize = FontSizes.miniSub.sp
-            )
+                color = dim,                        fontSize = FontSizes.queueMeta.sp
+                    )
             Spacer(Modifier.width(Sizes.queueItemSpacerSm.dp))
         }
 

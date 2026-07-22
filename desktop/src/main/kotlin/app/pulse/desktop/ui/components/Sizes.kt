@@ -31,29 +31,29 @@ object Sizes {
     const val sidebarHeaderBottom = 12 // header title bottom padding
     const val sidebarFilterPadH = 12  // filter row horizontal padding
 
-    // right sidebar
-    const val rightPanelPadding = 16
+    // right sidebar (matched to left sidebar sizes)
+    const val rightPanelPadding = 10    // matches sidebarItemPadH
     const val rightCardRadius = 12
-    const val rightQueueThumb = 36
-    const val rightCreditIcon = 16
-    const val rightEllipsisIcon = 18
-    const val rightShareIcon = 18
-    const val rightChevronIcon = 20
-    const val rightThumbRadius = 4
-    const val rightCardContentGap = 12    // spinner inside card
-    const val rightSongArtistGap = 4      // between title and artist
-    const val rightItemGap = 10           // between queue items
-    const val rightChevronSpacer = 8      // between chevron and Now Playing
+    const val rightQueueThumb = 64
+    const val rightCreditIcon = 24      // matches sidebarIconSm
+    const val rightEllipsisIcon = 24    // matches sidebarIconSm
+    const val rightShareIcon = 24       // matches sidebarIconSm
+    const val rightChevronIcon = 24     // matches sidebarIconSm
+    const val rightThumbRadius = 6
+    const val rightCardContentGap = 8   // matches sidebarItemGap
+    const val rightSongArtistGap = 4    // matches sidebarItemPadV
+    const val rightItemGap = 8          // matches sidebarItemGap
+    const val rightChevronSpacer = 8    // matches sidebarItemGap
 
     // queue
-    const val queueThumbSize = 36
+    const val queueThumbSize = 64
     const val queueCloseIcon = 24
     const val queueRemoveIcon = 18
     const val queueReorderW = 20
     const val queueMinWidth = 300
     const val queueMaxWidth = 400
-    const val queueThumbRadius = 4
-    const val queueItemPadV = 6           // item vertical padding
+    const val queueThumbRadius = 6  // matches rightThumbRadius
+    const val queueItemPadV = 8     // matches rightItemGap
     const val queueSpacerMd = 12          // header→close, header→divider etc.
     const val queueItemSpacerSm = 6       // info→duration, duration→remove
 

@@ -208,7 +208,7 @@ fun RightSidebar(
                     Text(
                         text = song?.artistsText ?: "Unknown",
                         color = text,
-                        fontSize = FontSizes.queueSub.sp,
+                        fontSize = FontSizes.rightCreditsArtist.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
