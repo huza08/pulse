@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,24 +54,70 @@ fun PlayerScreen(
     val dim = Color(0xFFa8a39a)
 
     BoxWithConstraints(
-        modifier = modifier
-            .fillMaxSize()
-            .background(bg)
+        modifier = modifier.fillMaxSize()
     ) {
         val s = adaptiveScale(maxWidth)
 
+        // full background artwork
+        val songBg = state.currentSong
+        songBg?.thumbnailUrl?.let { url ->
+            NetworkImage(url = url, modifier = Modifier.fillMaxSize())
+        } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
+
+        // gradient overlay for bottom fade
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.3f)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.25f to Color.Transparent,
+                        0.6f to bg.copy(alpha = 0.8f),
+                        0.8f to bg
+                    )
+                )
+        )
+
+        // content on top
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ── Top Bar ──
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            // top bar area
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(surface)
                     .height((Sizes.playerTopBarH * s).dp)
-                    .padding(horizontal = (12 * s).dp)
             ) {
+                // gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height((Sizes.playerTopBarH * s * 2f).dp)
+                        .background(
+                            Brush.verticalGradient(
+                                0.0f to bg,
+                                0.15f to bg,
+                                0.25f to bg.copy(alpha = 0.9f),
+                                0.35f to bg.copy(alpha = 0.75f),
+                                0.45f to bg.copy(alpha = 0.6f),
+                                0.55f to bg.copy(alpha = 0.45f),
+                                0.65f to bg.copy(alpha = 0.3f),
+                                0.75f to bg.copy(alpha = 0.2f),
+                                1.0f to Color.Transparent
+                            )
+                        )
+                )
+
+                // Row content sits on top
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height((Sizes.playerTopBarH * s).dp)
+                        .padding(horizontal = (12 * s).dp)
+                ) {
                 IconButton(
                     onClick = onBack,
                     modifier = Modifier.size((Sizes.playerBackIcon * s).dp)
@@ -102,8 +150,9 @@ fun PlayerScreen(
                 Spacer(Modifier.width((Sizes.playerTopIconGap * s).dp))
                 TopBarIcon("/icons/expand.svg", "Fullscreen", text, s)
             }
+            } // end top bar Box
 
-            // ── Center Content ──
+            // center content
             val song = state.currentSong
 
             Box(
@@ -132,7 +181,7 @@ fun PlayerScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // ── Artwork Card ──
+                            // artwork
                             Card(
                                 shape = RoundedCornerShape(Sizes.playerCardRadius.dp),
                                 colors = CardDefaults.cardColors(containerColor = surface),
@@ -157,7 +206,7 @@ fun PlayerScreen(
 
                             Spacer(Modifier.height((Sizes.playerTitleGap * s).dp))
 
-                            // ── Song Info ──
+                            // song info
                             Text(
                                 text = song.title,
                                 color = text,
