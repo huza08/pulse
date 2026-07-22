@@ -64,6 +64,13 @@ fun PlayerScreen(
             NetworkImage(url = url, modifier = Modifier.fillMaxSize())
         } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
 
+        // dim overlay for readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
+
         // gradient overlay for bottom fade
         Box(
             modifier = Modifier
