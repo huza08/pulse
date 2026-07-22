@@ -103,6 +103,18 @@ object Sizes {
     const val scrollPad = 8
     const val scrollEndPad = 2
 
+    // player screen
+    const val playerTopBarH = 80
+    const val playerTopIconSize = 36
+    const val playerTopTitleFont = 20
+    const val playerTopIconGap = 6
+    const val playerCreditsFont = 12
+    const val playerBadgeFont = 10
+    const val playerOverlayFont = 20
+    const val playerArtHeightF = 0.65f
+    const val playerOverlayPad = 12
+    const val playerCreditGap = 24
+
     // player / controls
     const val controlsSliderH = 4
     const val controlsTimeW = 48
@@ -124,14 +136,14 @@ object Sizes {
     const val playerTitleMaxW = 420
     const val playerControlsMaxW = 500
     const val playerPad = 32
-    const val playerBackIcon = 32
-    const val playerBackFont = 18
-    const val playerInfoFont = 14
-    const val playerTitleFont = 20
+    const val playerBackIcon = 44
+    const val playerBackFont = 22
+    const val playerInfoFont = 20
+    const val playerTitleFont = 26
     const val controlsMainIcon = 28        // icon inside main play button
     const val playerHeaderGap = 24         // between header and content
-    const val playerTitleGap = 28          // between content and title
-    const val playerArtistGap = 6          // between title and artist
+    const val playerTitleGap = 16           // between content and title
+    const val playerArtistGap = 4          // between title and artist
     const val playerControlsGap = 32       // between artist and controls
     const val playerErrorGap = 8           // before error text
     const val playerErrorFont = 12         // error text font
