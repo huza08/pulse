@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
+import androidx.compose.ui.platform.LocalDensity
 import app.pulse.desktop.ui.components.CardSizes
 import app.pulse.desktop.ui.components.Sizes
 
@@ -45,12 +46,15 @@ fun SongCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding((CardSizes.trendingRowPad * scale).dp)
         ) {
+            val density = LocalDensity.current
             song.thumbnailUrl?.let { thumb ->
+                val thumbPx = with(density) { (CardSizes.trendingThumb * scale).dp.toPx().toInt() }
                 NetworkImage(
                     url = thumb,
                     modifier = Modifier
                         .size((CardSizes.trendingThumb * scale).dp)
-                        .clip(RoundedCornerShape(Sizes.radiusSm.dp))
+                        .clip(RoundedCornerShape(Sizes.radiusSm.dp)),
+                    requestedSize = thumbPx
                 )
                 Spacer(Modifier.width((CardSizes.trendingGap * scale).dp))
             }

@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -60,8 +61,14 @@ fun PlayerScreen(
 
         // full background artwork
         val songBg = state.currentSong
+        val density = LocalDensity.current
+        val maxPx = with(density) { maxWidth.toPx().toInt() }
         songBg?.thumbnailUrl?.let { url ->
-            NetworkImage(url = url, modifier = Modifier.fillMaxSize())
+            NetworkImage(
+                url = url,
+                modifier = Modifier.fillMaxSize(),
+                requestedSize = maxPx.coerceAtLeast(1920)
+            )
         } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
 
         // dim overlay for readability
@@ -201,11 +208,13 @@ fun PlayerScreen(
                             ) {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     song.thumbnailUrl?.let { thumb ->
+                                        val cardPx = with(density) { (Sizes.playerCardSize * s).dp.toPx().toInt() }
                                         NetworkImage(
                                             url = thumb,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .clip(RoundedCornerShape(Sizes.playerCardRadius.dp))
+                                                .clip(RoundedCornerShape(Sizes.playerCardRadius.dp)),
+                                            requestedSize = cardPx
                                         )
                                     }
                                 }

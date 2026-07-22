@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -564,8 +565,14 @@ private fun CompactSongCard(
         endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         onClick = onClick,
         thumbnail = {
+            val density = LocalDensity.current
             song.thumbnailUrl?.let { thumb ->
-                NetworkImage(url = thumb, modifier = Modifier.fillMaxSize())
+                val thumbPx = with(density) { CardSizes.cardW.dp.toPx().toInt() }
+                NetworkImage(
+                    url = thumb,
+                    modifier = Modifier.fillMaxSize(),
+                    requestedSize = thumbPx
+                )
             }
         },
         title = {

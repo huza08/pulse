@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -76,7 +77,7 @@ fun MiniPlayer(
             .fillMaxWidth()
     ) {
         val s = adaptiveScale(maxWidth)
-
+        val density = LocalDensity.current
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -112,7 +113,12 @@ fun MiniPlayer(
                         .background(Color(0xFF141414))
                 ) {
                     song.thumbnailUrl?.let { thumb ->
-                        NetworkImage(url = thumb, modifier = Modifier.size((80 * s).dp))
+                        val thumbPx = with(density) { (Sizes.miniPlayerThumb * s).dp.toPx().toInt() }
+                        NetworkImage(
+                            url = thumb,
+                            modifier = Modifier.size((80 * s).dp),
+                            requestedSize = thumbPx
+                        )
                     }
                 }
                 Spacer(Modifier.width((Sizes.miniPlayerTextStart * s).dp))

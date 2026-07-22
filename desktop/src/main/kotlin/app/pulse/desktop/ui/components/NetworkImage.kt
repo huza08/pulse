@@ -19,24 +19,45 @@ import java.net.URL
 import java.security.MessageDigest
 
 private val imageCacheDir = File(System.getProperty("java.io.tmpdir"), "pulse-image-cache")
-private const val MAX_THUMB_SIZE = 9999
+private const val DEFAULT_THUMB_SIZE = 1080
 
 /**
- * Request highest available resolution for Google-hosted thumbnails.
- * Google's CDN caps at the original upload resolution.
+ * Transform Google-hosted thumbnail URLs to request a specific pixel size.
+ * Google CDN caps at original upload resolution.
+ * Supports both exact-starts-with and contains fuzzy matching (like Android).
  */
-private fun highResUrl(original: String): String = when {
-    original.startsWith("https://lh3.googleusercontent.com") ->
-        "${original.substringBeforeLast('=')}=w$MAX_THUMB_SIZE-h$MAX_THUMB_SIZE-p-rj-nu"
-    original.startsWith("https://yt3.ggpht.com") ->
-        "${original.substringBeforeLast('=')}=s$MAX_THUMB_SIZE-p-rj-nu"
-    else -> original
+private fun highResUrl(original: String, requestedSize: Int? = null): String {
+    val size = requestedSize ?: DEFAULT_THUMB_SIZE
+    return when {
+        original.startsWith("https://lh3.googleusercontent.com") ->
+            "${original.substringBeforeLast('=')}=w${size}-h${size}-p-rj-nu"
+        original.startsWith("https://yt3.ggpht.com") ->
+            "${original.substringBeforeLast('=')}=s${size}-p-rj-nu"
+        original.contains("googleusercontent.com") || original.contains("ggpht.com") -> {
+            val baseUrl = if (original.contains("=")) original.substringBeforeLast('=') else original
+            if (original.contains("googleusercontent.com")) {
+                "$baseUrl=w${size}-h${size}-p-rj-nu"
+            } else {
+                "$baseUrl=s${size}-p-rj-nu"
+            }
+        }
+        else -> original
+    }
 }
 
-/** load image from disk cache or download and cache it. */
+/**
+ * Load image from disk cache or download and cache it.
+ * @param requestedSize optional pixel size to request from Google CDN.
+ *   Pass the display size in pixels (dp × density) for optimal quality.
+ *   If null, defaults to 1080px.
+ */
 @Composable
-fun NetworkImage(url: String, modifier: Modifier = Modifier) {
-    val hiRes = remember(url) { highResUrl(url) }
+fun NetworkImage(
+    url: String,
+    modifier: Modifier = Modifier,
+    requestedSize: Int? = null
+) {
+    val hiRes = highResUrl(url, requestedSize)
     var bitmap by remember(hiRes) { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(hiRes) {
         bitmap = withContext(Dispatchers.IO) {

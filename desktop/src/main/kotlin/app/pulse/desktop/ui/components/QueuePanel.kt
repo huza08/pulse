@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -229,8 +230,14 @@ private fun QueueItem(
                 .clip(RoundedCornerShape(Sizes.queueThumbRadius.dp))
                 .background(Color(0xFF2a2a2a))
         ) {
+            val density = LocalDensity.current
             song.thumbnailUrl?.let { thumb ->
-                NetworkImage(url = thumb, modifier = Modifier.size(Sizes.queueThumbSize.dp))
+                val thumbPx = with(density) { Sizes.queueThumbSize.dp.toPx().toInt() }
+                NetworkImage(
+                    url = thumb,
+                    modifier = Modifier.size(Sizes.queueThumbSize.dp),
+                    requestedSize = thumbPx
+                )
             }
         }
 

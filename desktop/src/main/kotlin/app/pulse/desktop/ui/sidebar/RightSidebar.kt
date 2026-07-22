@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -124,7 +125,8 @@ fun RightSidebar(
                             url = thumb,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .alpha(0.88f)
+                                .alpha(0.88f),
+                            requestedSize = 1440
                         )
                     }
                 } else {
@@ -247,8 +249,14 @@ fun RightSidebar(
                                     .clip(RoundedCornerShape(Sizes.rightThumbRadius.dp))
                                     .background(Color(0xFF1a1a1a))
                             ) {
+                                val density = LocalDensity.current
                                 nextSong.thumbnailUrl?.let { thumb ->
-                                    NetworkImage(url = thumb, modifier = Modifier.size(Sizes.rightQueueThumb.dp))
+                                    val thumbPx = with(density) { Sizes.rightQueueThumb.dp.toPx().toInt() }
+                                    NetworkImage(
+                                        url = thumb,
+                                        modifier = Modifier.size(Sizes.rightQueueThumb.dp),
+                                        requestedSize = thumbPx
+                                    )
                                 }
                             }
                             Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
