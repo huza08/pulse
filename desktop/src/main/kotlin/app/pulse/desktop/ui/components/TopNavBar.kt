@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -63,7 +64,8 @@ fun TopNavBar(
                     Text(
                         text = "What do you want to play?",
                         color = fieldPlaceholder,
-                        fontSize = FontSizes.searchbar.sp
+                        fontSize = FontSizes.searchbar.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 },
                 leadingIcon = {
@@ -75,7 +77,7 @@ fun TopNavBar(
                     )
                 },
                 singleLine = true,
-                textStyle = TextStyle(color = fieldText, fontSize = FontSizes.searchbar.sp),
+                textStyle = TextStyle(color = fieldText, fontSize = FontSizes.searchbar.sp, fontWeight = FontWeight.Medium),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Search
