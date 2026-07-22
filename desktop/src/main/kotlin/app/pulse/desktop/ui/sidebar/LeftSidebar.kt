@@ -98,7 +98,7 @@ private fun CollapsedSidebar(
     ) {
         // header
         Icon(
-            painter = painterResource("/icons/chevron_forward.svg"),
+            painter = painterResource("/icons/panel-left-open.svg"),
             contentDescription = "Expand sidebar",
             tint = TextColor,
             modifier = Modifier
@@ -189,7 +189,7 @@ private fun ExpandedSidebar(
         ) {
             if (isHovered) {
                 Icon(
-                    painter = painterResource("/icons/chevron_back.svg"),
+                    painter = painterResource("/icons/panel-left-close.svg"),
                     contentDescription = "Collapse sidebar",
                     tint = TextColor,
                     modifier = Modifier
