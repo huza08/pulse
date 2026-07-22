@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
+import app.pulse.desktop.ui.components.FontSizes
 
 @Composable
 fun TopNavBar(
@@ -62,7 +63,7 @@ fun TopNavBar(
                     Text(
                         text = "What do you want to play?",
                         color = fieldPlaceholder,
-                        fontSize = 16.sp
+                        fontSize = FontSizes.searchbar.sp
                     )
                 },
                 leadingIcon = {
@@ -74,7 +75,7 @@ fun TopNavBar(
                     )
                 },
                 singleLine = true,
-                textStyle = TextStyle(color = fieldText, fontSize = 16.sp),
+                textStyle = TextStyle(color = fieldText, fontSize = FontSizes.searchbar.sp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Search

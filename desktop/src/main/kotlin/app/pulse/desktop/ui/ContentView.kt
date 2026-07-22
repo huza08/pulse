@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import app.pulse.desktop.ui.components.FontSizes
 import app.pulse.desktop.ui.screens.home.HomeScreen
 import app.pulse.desktop.ui.screens.search.SearchScreen
 import app.pulse.core.data.models.Song
@@ -49,7 +50,7 @@ private fun PlaceholderView(title: String) {
         Text(
             text = "$title — coming soon",
             color = Color(0xFF686868),
-            fontSize = 16.sp
+            fontSize = FontSizes.searchbar.sp
         )
     }
 }

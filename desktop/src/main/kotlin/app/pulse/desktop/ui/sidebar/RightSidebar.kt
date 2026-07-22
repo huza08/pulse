@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
+import app.pulse.desktop.ui.components.FontSizes
 import app.pulse.desktop.ui.components.NetworkImage
 
 @Composable
@@ -89,7 +90,7 @@ fun RightSidebar(
             Text(
                 text = "Now Playing",
                 color = text,
-                fontSize = 20.sp,
+                fontSize = FontSizes.rightSection.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
@@ -149,7 +150,7 @@ fun RightSidebar(
                 Text(
                     text = song.title,
                     color = text,
-                    fontSize = 28.sp,
+                    fontSize = FontSizes.rightSongTitle.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -159,7 +160,7 @@ fun RightSidebar(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = 18.sp,
+                        fontSize = FontSizes.rightArtist.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -179,7 +180,7 @@ fun RightSidebar(
                 Text(
                     text = "CREDITS",
                     color = dim,
-                    fontSize = 11.sp,
+                    fontSize = FontSizes.rightCredit.sp,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp
                 )
@@ -198,13 +199,13 @@ fun RightSidebar(
                     Text(
                         text = "Main Artist",
                         color = dim,
-                        fontSize = 12.sp
+                        fontSize = FontSizes.rightLabel.sp
                     )
                     Spacer(Modifier.weight(1f))
                     Text(
                         text = song?.artistsText ?: "Unknown",
                         color = text,
-                        fontSize = 13.sp,
+                        fontSize = FontSizes.queueSub.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -226,7 +227,7 @@ fun RightSidebar(
                     Text(
                         text = "NEXT IN QUEUE",
                         color = dim,
-                        fontSize = 11.sp,
+                        fontSize = FontSizes.rightCredit.sp,
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 1.sp
                     )
@@ -254,7 +255,7 @@ fun RightSidebar(
                                 Text(
                                     text = nextSong.title,
                                     color = text,
-                                    fontSize = 12.sp,
+                                    fontSize = FontSizes.rightLabel.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -262,7 +263,7 @@ fun RightSidebar(
                                     Text(
                                         text = author,
                                         color = dim,
-                                        fontSize = 11.sp,
+                                        fontSize = FontSizes.rightNextSub.sp,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )

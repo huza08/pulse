@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
+import app.pulse.desktop.ui.components.FontSizes
 import app.pulse.desktop.service.PlayerService
 
 @Composable
@@ -90,14 +91,14 @@ fun QueuePanel(
                     Text(
                         text = "Queue",
                         color = Color(0xFFf2f0eb),
-                        fontSize = 18.sp,
+                        fontSize = FontSizes.sectionMore.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
                         text = "${queue.size} songs",
                         color = Color(0xFFa8a39a),
-                        fontSize = 13.sp
+                        fontSize = FontSizes.queueSub.sp
                     )
                     Spacer(Modifier.width(12.dp))
                     Icon(
@@ -128,7 +129,7 @@ fun QueuePanel(
                         Text(
                             text = "Queue is empty",
                             color = Color(0xFFa8a39a),
-                            fontSize = 14.sp
+                            fontSize = FontSizes.queueTitle.sp
                         )
                     }
                 } else {
@@ -197,7 +198,7 @@ private fun QueueItem(
             Text(
                 text = "\u25B2",
                 color = if (isFirst) dim.copy(alpha = 0.3f) else dim,
-                fontSize = 10.sp,
+                fontSize = FontSizes.queueSmall.sp,
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -208,7 +209,7 @@ private fun QueueItem(
             Text(
                 text = "\u25BC",
                 color = if (isLast) dim.copy(alpha = 0.3f) else dim,
-                fontSize = 10.sp,
+                fontSize = FontSizes.queueSmall.sp,
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -239,7 +240,7 @@ private fun QueueItem(
             Text(
                 text = song.title,
                 color = text,
-                fontSize = 13.sp,
+                fontSize = FontSizes.queueSub.sp,
                 fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -249,7 +250,7 @@ private fun QueueItem(
                     Text(
                         text = "NOW • ",
                         color = Color(0xFF4CAF50),
-                        fontSize = 11.sp,
+                        fontSize = FontSizes.miniSub.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -257,7 +258,7 @@ private fun QueueItem(
                     Text(
                         text = author,
                         color = dim,
-                        fontSize = 11.sp,
+                        fontSize = FontSizes.miniSub.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -272,7 +273,7 @@ private fun QueueItem(
             Text(
                 text = dur,
                 color = dim,
-                fontSize = 11.sp
+                fontSize = FontSizes.miniSub.sp
             )
             Spacer(Modifier.width(6.dp))
         }

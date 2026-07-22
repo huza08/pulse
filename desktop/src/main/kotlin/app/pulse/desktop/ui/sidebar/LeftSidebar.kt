@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
+import app.pulse.desktop.ui.components.FontSizes
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)
@@ -206,7 +207,7 @@ private fun ExpandedSidebar(
                 Text(
                     text = "Your Library",
                     color = TextColor,
-                    fontSize = 16.sp,
+                    fontSize = FontSizes.sidebarSection.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -273,7 +274,7 @@ private fun ExpandedSidebar(
                 Text(
                     text = "Recents",
                     color = DimColor,
-                    fontSize = 12.sp,
+                    fontSize = FontSizes.sidebarSmall.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Icon(
@@ -418,7 +419,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
         Text(
             text = label,
             color = if (selected) TextColor else DimColor,
-            fontSize = 13.sp,
+            fontSize = FontSizes.sidebarChip.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -470,7 +471,7 @@ private fun LibraryItem(
                 Text(
                     text = name,
                     color = if (isActive) GreenAccent else TextColor,
-                    fontSize = 14.sp,
+                    fontSize = FontSizes.sidebarItem.sp,
                     fontWeight = FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -489,7 +490,7 @@ private fun LibraryItem(
             Text(
                 text = subtitle,
                 color = DimColor,
-                fontSize = 11.sp,
+                fontSize = FontSizes.sidebarSub.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
