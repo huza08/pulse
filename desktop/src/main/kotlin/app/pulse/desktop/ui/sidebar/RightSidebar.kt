@@ -38,9 +38,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.components.FontSizes
+import app.pulse.desktop.ui.constants.fonts.FontSizes
 import app.pulse.desktop.ui.components.NetworkImage
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 
 @Composable
 fun RightSidebar(

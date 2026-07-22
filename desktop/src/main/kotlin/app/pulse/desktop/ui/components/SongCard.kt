@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import androidx.compose.ui.platform.LocalDensity
-import app.pulse.desktop.ui.components.CardSizes
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.CardSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 
 @Composable
 fun SongCard(

@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
-import app.pulse.desktop.ui.components.FontSizes
+import app.pulse.desktop.ui.constants.fonts.FontSizes
 import app.pulse.desktop.ui.screens.home.HomeScreen
 import app.pulse.desktop.ui.screens.search.SearchScreen
 import app.pulse.core.data.models.Song

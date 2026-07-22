@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.adaptiveScale
 import app.pulse.desktop.ui.components.NetworkImage
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 
 @Composable
 fun PlayerScreen(

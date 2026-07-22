@@ -43,8 +43,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
-import app.pulse.desktop.ui.components.FontSizes
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.fonts.FontSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.service.PlayerService
 
 @Composable

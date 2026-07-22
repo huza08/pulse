@@ -20,6 +20,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.pulse.desktop.ui.constants.sizes.CardSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 
 // reusable card wrapper, card, thumb + title/subtitle text area
 @Composable

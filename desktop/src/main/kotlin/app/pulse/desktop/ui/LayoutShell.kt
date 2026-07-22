@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.LeftSidebar
 import app.pulse.desktop.ui.sidebar.RightSidebar
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
 import app.pulse.providers.innertube.Innertube

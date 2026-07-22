@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.pulse.desktop.ui.constants.sizes.CardSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 
 private val shimmerBase = Color(0xFF1a1a1a)
 private val shimmerHighlight = Color(0xFF2a2a2a)

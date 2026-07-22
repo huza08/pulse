@@ -51,8 +51,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
-import app.pulse.desktop.ui.components.CardSizes
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.CardSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.ui.components.HomeCard
 import app.pulse.desktop.ui.components.MoodsSkeleton

@@ -49,8 +49,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
-import app.pulse.desktop.ui.components.FontSizes
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.fonts.FontSizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 private val TextColor = Color(0xFFf2f0eb)
 private val DimColor = Color(0xFF686868)
 private val ActiveBg = Color(0xFF2a2a2a)

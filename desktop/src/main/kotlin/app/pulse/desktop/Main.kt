@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import app.pulse.desktop.ui.components.MiniPlayer
-import app.pulse.desktop.ui.components.Sizes
+import app.pulse.desktop.ui.constants.sizes.Sizes
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import app.pulse.desktop.service.PlayerService
