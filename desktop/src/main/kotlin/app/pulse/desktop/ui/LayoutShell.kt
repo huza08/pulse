@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.LeftSidebar
 import app.pulse.desktop.ui.sidebar.RightSidebar
-import app.pulse.desktop.ui.components.MiniPlayer
 import app.pulse.desktop.ui.components.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
@@ -62,9 +60,7 @@ fun LayoutShell(
     homePage: Innertube.DiscoverPage?,
     onPageLoaded: (Result<Innertube.DiscoverPage>) -> Unit,
     onPlaySong: (Song) -> Unit,
-    player: PlayerService,
-    onOpenPlayer: () -> Unit,
-    onToggleQueue: () -> Unit
+    player: PlayerService
 ) {
     val bg = Color(0xFF0a0a0a)
 
@@ -187,21 +183,6 @@ fun LayoutShell(
                 icon = "/icons/chevron_back.svg",
                 desc = "Show panel",
                 onClick = { showRightPanel = true }
-            )
-        }
-
-        // compact miniplayer
-        val ps by player.state.collectAsState()
-        if (ps.currentSong != null) {
-            MiniPlayer(
-                player = player,
-                onClick = {},
-                onOpenPlayer = onOpenPlayer,
-                onToggleQueue = onToggleQueue,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(start = Sizes.miniPlayerEndPad.dp, end = Sizes.miniPlayerEndPad.dp, bottom = Sizes.miniPlayerBottomPad.dp)
             )
         }
     }
