@@ -32,7 +32,8 @@ object Sizes {
     const val sidebarFilterPadH = 12  // filter row horizontal padding
 
     // right sidebar (matched to left sidebar sizes)
-    const val rightPanelPadding = 10    // matches sidebarItemPadH
+    const val rightPanelPadding = 24    // matches sidebarItemPadH (outer + section spacing)
+    const val rightCardInnerPad = 16    // inner padding for credit/queue cards
     const val rightCardRadius = 12
     const val rightQueueThumb = 64
     const val rightCreditIcon = 24      // matches sidebarIconSm

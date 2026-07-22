@@ -177,7 +177,7 @@ fun RightSidebar(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
                 .background(cardBg)
-                .padding(Sizes.rightPanelPadding.dp)
+                .padding(Sizes.rightCardInnerPad.dp)
         ) {
             Column {
                 Text(
@@ -224,7 +224,7 @@ fun RightSidebar(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(Sizes.rightCardRadius.dp))
                     .background(cardBg)
-                    .padding(Sizes.rightPanelPadding.dp)
+                    .padding(Sizes.rightCardInnerPad.dp)
             ) {
                 Column {
                     Text(
