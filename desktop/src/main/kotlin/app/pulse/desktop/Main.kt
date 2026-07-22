@@ -59,6 +59,7 @@ fun main() {
             // idk about others DE
             // lemme know pls if someone knows how to fix this
             window.background = java.awt.Color(10, 10, 10)
+            window.minimumSize = java.awt.Dimension(Sizes.windowMinW, Sizes.windowMinH)
 
             LayoutShell(
                 activeView = activeView,

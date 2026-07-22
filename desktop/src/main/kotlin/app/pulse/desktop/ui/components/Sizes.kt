@@ -87,6 +87,8 @@ object Sizes {
     const val centerMinWidth = 128
     const val windowDefaultW = 1280
     const val windowDefaultH = 720
+    const val windowMinW = 1280
+    const val windowMinH = 720
 
     // shimmer
     const val shimmerRadiusXs = 6         // text placeholder lines
