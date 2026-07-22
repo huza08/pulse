@@ -89,7 +89,7 @@ fun MiniPlayer(
                 .align(Alignment.Center)
                 .fillMaxWidth(0.96f)
                 .height((Sizes.miniPlayerH * s).dp)
-                .shadow(Sizes.miniPlayerShadow.dp, RoundedCornerShape(Sizes.miniPlayerCardRadius.dp))
+                .shadow(if (isPlayerOpen) 0.dp else Sizes.miniPlayerShadow.dp, RoundedCornerShape(Sizes.miniPlayerCardRadius.dp))
                 .clip(RoundedCornerShape(Sizes.miniPlayerCardRadius.dp))
                 .background(bg, RoundedCornerShape(Sizes.miniPlayerCardRadius.dp))
                 .clickable(

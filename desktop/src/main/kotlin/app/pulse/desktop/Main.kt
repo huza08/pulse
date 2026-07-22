@@ -3,6 +3,9 @@ package app.pulse.desktop
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import app.pulse.desktop.ui.components.MiniPlayer
@@ -85,7 +89,10 @@ fun main() {
                     exit = fadeOut(),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize().background(Color(0xFF1e1e1e)).clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { }) {
                         PlayerScreen(
                             player = player,
                             onBack = { showPlayer = false }

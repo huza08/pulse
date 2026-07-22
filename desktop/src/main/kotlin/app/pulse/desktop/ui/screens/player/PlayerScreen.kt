@@ -1,6 +1,7 @@
 package app.pulse.desktop.ui.screens.player
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,8 @@ fun PlayerScreen(
                 .fillMaxSize()
                 .padding((24 * s).dp)
                 .clip(RoundedCornerShape(Sizes.radiusLg.dp))
+                .background(Color(0xFF1e1e1e))
+                .border(1.dp, Color(0xFF2a2a2a), RoundedCornerShape(Sizes.radiusLg.dp))
         ) {
             // full background artwork
             val songBg = state.currentSong
