@@ -236,7 +236,7 @@ fun RightSidebar(
                     )
                     Spacer(Modifier.height(Sizes.rightCardContentGap.dp))
 
-                    val upcoming = queue.drop(currentIndex + 1).take(3)
+                    val upcoming = queue.drop(currentIndex + 1).take(1)
                     upcoming.forEachIndexed { i, nextSong ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
