@@ -139,14 +139,11 @@ fun RightSidebar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = Sizes.sidebarPad.dp),
-                contentAlignment = Alignment.TopCenter
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(
-                        if (isHovered) "/icons/panel-right-close.svg"
-                        else "/icons/panel-right-open.svg"
-                    ),
-                    contentDescription = if (isHovered) "Collapse panel" else "Show panel",
+                    painter = painterResource("/icons/panel-right-open.svg"),
+                    contentDescription = "Show panel",
                     tint = textColor,
                     modifier = Modifier
                         .size(Sizes.sidebarIconSm.dp)
