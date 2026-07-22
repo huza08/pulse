@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.core.data.utils.toSong
-import app.pulse.desktop.ui.adaptiveScale
+import app.pulse.desktop.ui.utils.adaptiveScale
 import app.pulse.desktop.ui.components.SongCard
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.SearchBody

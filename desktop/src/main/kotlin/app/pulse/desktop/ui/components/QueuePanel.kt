@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.constants.fonts.FontSizes
 import app.pulse.desktop.ui.constants.sizes.Sizes
+import app.pulse.desktop.ui.utils.NetworkImage
 import app.pulse.desktop.service.PlayerService
 
 @Composable

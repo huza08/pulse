@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.constants.fonts.FontSizes
-import app.pulse.desktop.ui.components.NetworkImage
+import app.pulse.desktop.ui.utils.NetworkImage
 import app.pulse.desktop.ui.constants.sizes.Sizes
 
 @Composable

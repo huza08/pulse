@@ -56,11 +56,11 @@ import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.core.data.utils.toSong
 import app.pulse.desktop.ui.components.HomeCard
 import app.pulse.desktop.ui.components.MoodsSkeleton
-import app.pulse.desktop.ui.components.NetworkImage
+import app.pulse.desktop.ui.utils.NetworkImage
 import app.pulse.desktop.ui.components.NewReleasesSkeleton
 import app.pulse.desktop.ui.components.QuickPicksSkeleton
 import app.pulse.desktop.ui.components.TrendingSkeleton
-import app.pulse.desktop.ui.components.log
+import app.pulse.desktop.ui.utils.log
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.NextBody
 import app.pulse.providers.innertube.requests.discoverPage

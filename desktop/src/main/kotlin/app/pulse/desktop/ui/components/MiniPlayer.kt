@@ -52,7 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.LoopMode
 import app.pulse.desktop.service.PlayerService
-import app.pulse.desktop.ui.adaptiveScale
+import app.pulse.desktop.ui.utils.NetworkImage
+import app.pulse.desktop.ui.utils.adaptiveScale
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.core.data.utils.formatDuration
 

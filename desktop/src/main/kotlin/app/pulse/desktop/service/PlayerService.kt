@@ -5,7 +5,7 @@ import app.pulse.core.data.models.LoopMode
 import app.pulse.core.data.repository.QueueDatabase
 import app.pulse.core.data.utils.NativeBinaries
 import app.pulse.core.data.utils.toSong
-import app.pulse.desktop.ui.components.log as sharedLog
+import app.pulse.desktop.ui.utils.log as sharedLog
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.PlayerResponse
 import app.pulse.providers.innertube.models.bodies.NextBody
