@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -66,7 +67,7 @@ fun PlayerScreen(
         songBg?.thumbnailUrl?.let { url ->
             NetworkImage(
                 url = url,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().blur((30 * s).dp),
                 requestedSize = maxPx.coerceAtLeast(1920)
             )
         } ?: Box(modifier = Modifier.fillMaxSize().background(bg))
