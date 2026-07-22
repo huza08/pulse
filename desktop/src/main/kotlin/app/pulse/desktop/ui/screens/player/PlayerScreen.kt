@@ -97,7 +97,7 @@ fun PlayerScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height((Sizes.playerTopBarH * s).dp)
-                        .padding(horizontal = (12 * s).dp)
+                        .padding(horizontal = (40 * s).dp)
                 ) {
                     Text(
                         text = state.currentSong?.title ?: "Player",
