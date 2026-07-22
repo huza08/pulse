@@ -103,7 +103,7 @@ fun PlayerScreen(
                         text = state.currentSong?.title ?: "Player",
                         color = text,
                         fontSize = (Sizes.playerTopTitleFont * s).sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)

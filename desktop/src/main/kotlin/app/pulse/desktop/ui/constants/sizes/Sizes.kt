@@ -109,7 +109,7 @@ object Sizes {
     // player screen
     const val playerTopBarH = 80
     const val playerTopIconSize = 36
-    const val playerTopTitleFont = 20
+    const val playerTopTitleFont = 24
     const val playerTopIconGap = 14
     const val playerCardRadius = 16
     const val playerCardSize = 400
