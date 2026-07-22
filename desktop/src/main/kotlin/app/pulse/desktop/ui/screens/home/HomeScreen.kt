@@ -605,7 +605,7 @@ private fun AlbumCard(
         endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         thumbnail = {
             album.thumbnail?.let { thumb ->
-                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
+                NetworkImage(url = thumb.url, modifier = Modifier.fillMaxSize())
             }
         },
         title = {
@@ -646,7 +646,7 @@ private fun ArtistCard(
         thumbClipShape = CircleShape,
         thumbnail = {
             artist.thumbnail?.let { thumb ->
-                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
+                NetworkImage(url = thumb.url, modifier = Modifier.fillMaxSize())
             }
         },
         title = {
@@ -678,7 +678,7 @@ private fun PlaylistCard(
         endPad = CardSizes.cardEndPad.dp,                        thumbClipShape = RoundedCornerShape(topStart = Sizes.radiusMd.dp, topEnd = Sizes.radiusMd.dp),
         thumbnail = {
             playlist.thumbnail?.let { thumb ->
-                NetworkImage(url = thumb.size(200), modifier = Modifier.fillMaxSize())
+                NetworkImage(url = thumb.url, modifier = Modifier.fillMaxSize())
             }
         },
         title = {
