@@ -93,7 +93,7 @@ private fun CollapsedSidebar(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = Sizes.rightPanelPadding.dp),
+            .padding(vertical = Sizes.sidebarPad.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // header
@@ -125,7 +125,7 @@ private fun CollapsedSidebar(
                 )
         )
 
-        Spacer(Modifier.height(Sizes.rightPanelPadding.dp))
+        Spacer(Modifier.height(Sizes.sidebarPad.dp))
 
         // icon-only items
         Column(
@@ -178,13 +178,15 @@ private fun ExpandedSidebar(
     Column(
         modifier = modifier
             .hoverable(hoverSrc)
+            .fillMaxSize()
+            .padding(horizontal = Sizes.sidebarPad.dp)
     ) {
         // header
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = Sizes.rightPanelPadding.dp, end = Sizes.rightPanelPadding.dp, top = Sizes.sidebarHeaderTop.dp, bottom = Sizes.sidebarHeaderBottom.dp)
+                .padding(top = Sizes.sidebarHeaderTop.dp, bottom = Sizes.sidebarHeaderBottom.dp)
         ) {
             if (isHovered) {
                 Icon(
@@ -229,7 +231,6 @@ private fun ExpandedSidebar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Sizes.sidebarFilterPadH.dp)
             ) {
                 FilterChip(
                     label = "Playlists",
@@ -245,18 +246,21 @@ private fun ExpandedSidebar(
             }
         }
 
+        // gap between filter pills and search row
+        if (isWide) {
+            Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
+        }
+
         // search/sort row
         AnimatedVisibility(
             visible = isWide,
             enter = expandVertically(tween(600)) + fadeIn(tween(600)),
             exit = shrinkVertically(tween(600)) + fadeOut(tween(600))
         ) {
-            Spacer(Modifier.height(Sizes.sidebarItemGap.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Sizes.sidebarOuterPadH.dp)
                     .height(Sizes.sidebarSearchRowH.dp)
             ) {
                 Icon(
@@ -301,7 +305,7 @@ private fun ExpandedSidebar(
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(top = Sizes.sidebarItemPadV.dp)
+                .padding(top = Sizes.sidebarSectionGap.dp)
         ) {
             when (filterTab) {
                 0 -> PlaylistItems(activeView, onNavigate)
@@ -443,7 +447,6 @@ private fun LibraryItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Sizes.sidebarOuterPadH.dp)
             .clip(RoundedCornerShape(Sizes.radiusSm.dp))
             .background(bgColor)
             .clickable(
@@ -451,7 +454,7 @@ private fun LibraryItem(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = Sizes.sidebarItemPadH.dp, vertical = Sizes.sidebarItemPadV.dp)
+            .padding(vertical = Sizes.sidebarItemPadV.dp)
     ) {
         Box(
             modifier = Modifier

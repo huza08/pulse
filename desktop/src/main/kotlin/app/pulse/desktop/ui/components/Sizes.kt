@@ -17,7 +17,7 @@ object Sizes {
     const val sidebarCollapsedWidth = 96
     const val sidebarThumbSize = 64
     const val sidebarIconLg = 36      // header icons, collapsed icons
-    const val sidebarIconMd = 32      // search/list icons
+    const val sidebarIconMd = 38     // search/list icons
     const val sidebarIconSm = 24      // expand/collapse toggle
     const val sidebarHeartIcon = 22   // liked songs in thumb
     const val sidebarPinnedIcon = 14  // pinned heart in list
@@ -26,10 +26,12 @@ object Sizes {
     const val sidebarItemPadV = 4     // inner vertical padding
     const val sidebarItemPadH = 10    // inner horizontal padding
     const val sidebarOuterPadH = 8    // outer horizontal padding
+    const val sidebarPad = 24          // dedicated sidebar panel padding (outer, gaps)
     const val sidebarIconPad = 6      // create icon padding
     const val sidebarHeaderTop = 20   // header title top padding
-    const val sidebarHeaderBottom = 12 // header title bottom padding
-    const val sidebarFilterPadH = 12  // filter row horizontal padding
+    const val sidebarHeaderBottom = 16 // top section bottom padding
+    const val sidebarSectionGap = 16  // vertical gap between sidebar sections
+    const val sidebarFilterPadH = 16  // filter row horizontal padding
 
     // right sidebar (matched to left sidebar sizes)
     const val rightPanelPadding = 24    // matches sidebarItemPadH (outer + section spacing)

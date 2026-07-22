@@ -35,7 +35,7 @@ object FontSizes {
     const val sidebarSection = 20
     const val sidebarItem = 16
     const val sidebarChip = 15
-    const val sidebarSmall = 14
+    const val sidebarSmall = 16
     const val sidebarSub = 14
 
     // right sidebar (matched to left sidebar sizes)
