@@ -102,8 +102,7 @@ private fun CollapsedSidebar(
             contentDescription = "Expand sidebar",
             tint = TextColor,
             modifier = Modifier
-                .size(Sizes.sidebarIconLg.dp)
-                .padding(Sizes.sidebarItemGap.dp)
+                .size(Sizes.sidebarIconSm.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
