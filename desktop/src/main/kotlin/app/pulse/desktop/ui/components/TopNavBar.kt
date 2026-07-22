@@ -49,7 +49,7 @@ fun TopNavBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(72.dp)
             .background(bg)
             .padding(horizontal = 16.dp)
     ) {
@@ -62,7 +62,7 @@ fun TopNavBar(
                     Text(
                         text = "What do you want to play?",
                         color = fieldPlaceholder,
-                        fontSize = 14.sp
+                        fontSize = 16.sp
                     )
                 },
                 leadingIcon = {
@@ -74,7 +74,7 @@ fun TopNavBar(
                     )
                 },
                 singleLine = true,
-                textStyle = TextStyle(color = fieldText, fontSize = 14.sp),
+                textStyle = TextStyle(color = fieldText, fontSize = 16.sp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Search
