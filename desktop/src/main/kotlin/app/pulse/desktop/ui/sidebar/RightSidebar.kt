@@ -76,8 +76,6 @@ fun RightSidebar(
 
     LaunchedEffect(isHovered) { onPeekChange(isHovered) }
 
-    val isFullyCollapsed = isCollapsed && !isHovered
-
     val animSpec = remember { spring<Dp>(dampingRatio = 1f, stiffness = 300f) }
 
     val density = LocalDensity.current
@@ -115,7 +113,8 @@ fun RightSidebar(
                 song = song,
                 queue = queue,
                 currentIndex = currentIndex,
-                onCycleState = onCycleState
+                onCycleState = onCycleState,
+                showCloseIcon = !isCollapsed
             )
         }
 
@@ -134,8 +133,8 @@ fun RightSidebar(
                 .background(Color(0xFF0a0a0a).copy(alpha = curtainAlpha))
         )
 
-        // Collapsed icon overlay — only on top when fully collapsed
-        if (isFullyCollapsed) {
+        // Collapsed icon overlay — always on top of curtain
+        if (isCollapsed) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -143,8 +142,11 @@ fun RightSidebar(
                 contentAlignment = Alignment.TopCenter
             ) {
                 Icon(
-                    painter = painterResource("/icons/panel-right-open.svg"),
-                    contentDescription = "Show panel",
+                    painter = painterResource(
+                        if (isHovered) "/icons/panel-right-close.svg"
+                        else "/icons/panel-right-open.svg"
+                    ),
+                    contentDescription = if (isHovered) "Collapse panel" else "Show panel",
                     tint = textColor,
                     modifier = Modifier
                         .size(Sizes.sidebarIconSm.dp)
@@ -165,6 +167,7 @@ private fun ExpandedRightSidebar(
     queue: List<Song>,
     currentIndex: Int,
     onCycleState: () -> Unit,
+    showCloseIcon: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val text = Color(0xFFf2f0eb)
@@ -188,7 +191,7 @@ private fun ExpandedRightSidebar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (isHovered) {
+            if (isHovered && showCloseIcon) {
                 Icon(
                     painter = painterResource("/icons/panel-right-close.svg"),
                     contentDescription = "Collapse panel",
