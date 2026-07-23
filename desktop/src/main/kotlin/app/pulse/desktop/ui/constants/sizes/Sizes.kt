@@ -7,14 +7,13 @@ object Sizes {
     const val sidebarTargetWidth = 380
     const val sidebarMinWidth = 360
     const val sidebarMaxWidth = 400
-    const val sidebarCollapsedDrag = 80  // drag threshold for collapse
+    const val sidebarCollapsedDrag = 96  // drag threshold for collapse / collapsed width
     const val sidebarRestoreWidth = 340 // width when uncollapsing, same looks
     const val panelTargetWidth = sidebarTargetWidth
     const val panelMinWidth = sidebarMinWidth
     const val panelMaxWidth = sidebarMaxWidth
 
     // left sidebar
-    const val sidebarCollapsedWidth = 96
     const val sidebarThumbSize = 64
     const val sidebarIconLg = 36      // header icons, collapsed icons
     const val sidebarIconMd = 38     // search/list icons

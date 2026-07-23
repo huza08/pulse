@@ -23,11 +23,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,14 +68,26 @@ fun LayoutShell(
     var panelState by remember { mutableStateOf(RightPanelState.EXPANDED) }
     var isPeeking by remember { mutableStateOf(false) }
     var sidebarCollapsed by remember { mutableStateOf(false) }
+    var sidebarFadeOut by remember { mutableStateOf(false) }
 
     val hideAnim = spring<Dp>(dampingRatio = 1f, stiffness = 300f)
 
     // collapse/expand via drag:
     if (targetSidebarWidth <= Sizes.sidebarCollapsedDrag.dp) {
         sidebarCollapsed = true
+        sidebarFadeOut = false
     } else if (targetSidebarWidth >= Sizes.sidebarUncollapseThreshold.dp) {
         sidebarCollapsed = false
+    }
+
+    // Delay width collapse to let fade animations play first
+    LaunchedEffect(sidebarFadeOut) {
+        if (sidebarFadeOut) {
+            delay(300L)
+            sidebarCollapsed = true
+            sidebarFadeOut = false
+            targetSidebarWidth = Sizes.sidebarCollapsedDrag.dp
+        }
     }
 
     val sidebarWidth by animateDpAsState(
@@ -123,12 +137,22 @@ fun LayoutShell(
                             activeView = activeView,
                             onNavigate = onNavigate,
                             isCollapsed = sidebarCollapsed,
+                            isFadeOut = sidebarFadeOut,
                             onToggleCollapse = {
-                                sidebarCollapsed = !sidebarCollapsed
-                                if (sidebarCollapsed) {
-                                    targetSidebarWidth = Sizes.sidebarCollapsedDrag.dp
-                                } else {
+                                println("[LayoutShell] onToggleCollapse: sidebarCollapsed=$sidebarCollapsed, sidebarFadeOut=$sidebarFadeOut, targetWidth=$targetSidebarWidth")
+                                if (!sidebarCollapsed && !sidebarFadeOut) {
+                                    println("[LayoutShell] Branch: START FADE")
+                                    sidebarFadeOut = true
+                                } else if (sidebarFadeOut) {
+                                    println("[LayoutShell] Branch: CANCEL FADE")
+                                    sidebarFadeOut = false
+                                } else if (sidebarCollapsed) {
+                                    println("[LayoutShell] Branch: EXPAND")
+                                    sidebarCollapsed = false
+                                    sidebarFadeOut = false
                                     targetSidebarWidth = Sizes.sidebarRestoreWidth.dp
+                                } else {
+                                    println("[LayoutShell] Branch: NONE MATCHED! collapsed=$sidebarCollapsed fadeOut=$sidebarFadeOut")
                                 }
                             },
                             isWide = isWide,
