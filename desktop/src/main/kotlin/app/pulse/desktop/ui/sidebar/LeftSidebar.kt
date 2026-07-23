@@ -272,14 +272,16 @@ private fun ExpandedSidebar(
                     Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
                 }
             }
-        }
-
-        // Scrollable library list
+        }  // scrollable library list
+        val listPadStart by animateDpAsState(
+            targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarOuterPadH.dp else fixedOffset,
+            animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(horizontal = Sizes.sidebarOuterPadH.dp)
+                .padding(start = listPadStart, end = Sizes.sidebarOuterPadH.dp)
                 .verticalScroll(scrollState)
         ) {
             when (filterTab) {
