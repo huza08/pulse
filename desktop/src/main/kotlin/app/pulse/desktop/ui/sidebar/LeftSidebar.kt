@@ -95,7 +95,7 @@ fun LeftSidebar(
             isFadeOut = isFadeOut
         )
 
-        // Toggle overlay — absolutely positioned at same Y as "Your Library"
+        // toggle overlay
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -148,7 +148,7 @@ private fun ExpandedSidebar(
 ) {
     val scrollState = rememberScrollState()
 
-    // Scroll list to top when fade starts — prevents layout jump during shrink
+    // scroll list to top when fade starts
     LaunchedEffect(isFadeOut) {
         if (isFadeOut) scrollState.scrollTo(0)
     }
@@ -165,7 +165,7 @@ private fun ExpandedSidebar(
         val density = LocalDensity.current
         var sectionHeightPx by remember { mutableStateOf(0) }
 
-        // Spacer for overlay toggle + + icon when collapsed
+        // spacer for overlay toggle + icon when collapsed
         val toggleAreaHeight by animateDpAsState(
             targetValue = if (isFadeOut || isCollapsed) Sizes.sidebarOverlayH.dp
             else 0.dp,
@@ -173,16 +173,13 @@ private fun ExpandedSidebar(
         )
         Spacer(Modifier.height(toggleAreaHeight))
 
-        // Section height: 0 when collapsed, full content H when expanded
-        // Same spring spec as toggleAreaHeight so total height moves in one direction
+        // section height animates same speed as spacer so total moves one direction
         val sectionHeight by animateDpAsState(
             targetValue = if (isFadeOut || isCollapsed) 0.dp
                          else with(density) { sectionHeightPx.toDp() },
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
         )
-        // Custom Layout: measures content at full height for accuracy,
-        // but reports only sectionHeight (animated) to the parent Column
-        // so total (spacer + section) height moves in one direction — no bounce
+        // custom layout measures full content height, reports animated height to parent
         val sectionHeightPxAnim = with(density) { sectionHeight.toPx() }.toInt()
         Layout(
             modifier = Modifier.fillMaxWidth().clipToBounds(),
@@ -198,7 +195,7 @@ private fun ExpandedSidebar(
                         .fillMaxWidth()
                         .padding(bottom = Sizes.sidebarHeaderBottom.dp)
                 ) {
-                    // Offset spacer matching toggle width + gap above
+                    // offset spacer clears toggle icon
                     Spacer(Modifier.width(Sizes.sidebarIconSm.dp + Sizes.sidebarItemPadH.dp))
                     Row {
                         AnimatedVisibility(
@@ -221,7 +218,7 @@ private fun ExpandedSidebar(
                     }
                 }
 
-                // Filter pills
+                // filter pills
                 if (isWide) {
                     Row(
                         modifier = Modifier
@@ -241,7 +238,7 @@ private fun ExpandedSidebar(
                         )
                     }
 
-                    // Search/sort row
+                    // search/sort row
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -279,15 +276,14 @@ private fun ExpandedSidebar(
                     Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
                 }
             }
-        }  // end content lambda
+        }  // end content
     ) { measurables, constraints ->
-        // Measure content at full height (no height constraint from parent)
+        // measure at full height, report animated height to parent
         val placeable = measurables.first().measure(constraints)
-        // But report only the animated height to the parent Column
         layout(placeable.width, sectionHeightPxAnim) {
             placeable.placeRelative(0, 0)
         }
-    }  // end Layout
+    }  // end layout
         val listPadStart by animateDpAsState(
             targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarOuterPadH.dp else fixedOffset,
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
@@ -468,7 +464,7 @@ private fun LibraryItem(
             }
         }
 
-        // Text column — fades out when collapsed
+        // text column fades when collapsed
         Spacer(Modifier.width(Sizes.sidebarItemPadH.dp))
         Column(
             modifier = Modifier
