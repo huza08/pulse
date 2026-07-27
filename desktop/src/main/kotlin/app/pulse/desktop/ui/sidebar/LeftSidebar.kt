@@ -41,6 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -59,6 +63,12 @@ private val ActiveBg = Color(0xFF2a2a2a)
 private val GreenAccent = Color(0xFF1ed760)
 
 @Composable
+private fun Modifier.noRippleClick(onClick: () -> Unit): Modifier {
+    val source = remember { MutableInteractionSource() }
+    return clickable(interactionSource = source, indication = null, onClick = onClick)
+}
+
+@Composable
 fun LeftSidebar(
     activeView: View,
     onNavigate: (View) -> Unit,
@@ -70,7 +80,7 @@ fun LeftSidebar(
 ) {
     var filterTab by remember { mutableStateOf(0) }
 
-    val fixedOffset = ((Sizes.sidebarCollapsedDrag - 2 * Sizes.sidebarOuterPadH - Sizes.sidebarIconSm) / 2).dp
+    val fixedOffset = Sizes.sidebarFixedOffset.dp
     val toggleTop = Sizes.sidebarHeaderTop.dp + Sizes.sidebarItemPadV.dp
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -101,11 +111,7 @@ fun LeftSidebar(
                 tint = TextColor,
                 modifier = Modifier
                     .size(Sizes.sidebarIconSm.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onToggleCollapse
-                    )
+                    .noRippleClick(onToggleCollapse)
             )
             AnimatedVisibility(
                 visible = isFadeOut || isCollapsed,
@@ -120,11 +126,7 @@ fun LeftSidebar(
                         tint = DimColor,
                         modifier = Modifier
                             .size(Sizes.sidebarIconSm.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = { /* todo */ }
-                            )
+                            .noRippleClick { /* todo */ }
                     )
                 }
             }
@@ -158,25 +160,38 @@ private fun ExpandedSidebar(
             .padding(top = Sizes.sidebarHeaderTop.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        val fixedOffset = ((Sizes.sidebarCollapsedDrag - 2 * Sizes.sidebarOuterPadH - Sizes.sidebarIconSm) / 2).dp
+        val fixedOffset = Sizes.sidebarFixedOffset.dp
 
-        // Collapsed spacer — makes room for overlay toggle + + icon
+        val density = LocalDensity.current
+        var sectionHeightPx by remember { mutableStateOf(0) }
+
+        // Spacer for overlay toggle + + icon when collapsed
         val toggleAreaHeight by animateDpAsState(
-            targetValue = if (isFadeOut || isCollapsed)
-                Sizes.sidebarItemPadV.dp + Sizes.sidebarIconSm.dp + Sizes.sidebarSectionGap.dp + Sizes.sidebarIconSm.dp + Sizes.sidebarSectionGap.dp
+            targetValue = if (isFadeOut || isCollapsed) Sizes.sidebarOverlayH.dp
             else 0.dp,
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
         )
         Spacer(Modifier.height(toggleAreaHeight))
 
-        // Expanded section — shrinks smoothly as one unit when collapsing
-        AnimatedVisibility(
-            visible = !isFadeOut && !isCollapsed,
-            exit = shrinkVertically(tween(300)) + fadeOut(tween(300))
-        ) {
-            Column(
-                modifier = Modifier.padding(start = fixedOffset, end = 16.dp)
-            ) {
+        // Section height: 0 when collapsed, full content H when expanded
+        // Same spring spec as toggleAreaHeight so total height moves in one direction
+        val sectionHeight by animateDpAsState(
+            targetValue = if (isFadeOut || isCollapsed) 0.dp
+                         else with(density) { sectionHeightPx.toDp() },
+            animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
+        )
+        // Custom Layout: measures content at full height for accuracy,
+        // but reports only sectionHeight (animated) to the parent Column
+        // so total (spacer + section) height moves in one direction — no bounce
+        val sectionHeightPxAnim = with(density) { sectionHeight.toPx() }.toInt()
+        Layout(
+            modifier = Modifier.fillMaxWidth().clipToBounds(),
+            content = {
+                Column(
+                    modifier = Modifier
+                        .padding(start = fixedOffset, end = Sizes.sidebarSectionEndPad.dp)
+                        .onSizeChanged { sectionHeightPx = it.height }
+                ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -241,11 +256,7 @@ private fun ExpandedSidebar(
                             modifier = Modifier
                                 .size(Sizes.sidebarIconMd.dp)
                                 .padding(Sizes.sidebarItemPadV.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = { /* todo */ }
-                                )
+                                .noRippleClick { /* todo */ }
                         )
                         Spacer(Modifier.weight(1f))
                         Text(
@@ -261,18 +272,22 @@ private fun ExpandedSidebar(
                             modifier = Modifier
                                 .size(Sizes.sidebarIconMd.dp)
                                 .padding(Sizes.sidebarItemPadV.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = { /* todo */ }
-                                )
+                                .noRippleClick { /* todo */ }
                         )
                     }
 
                     Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
                 }
             }
-        }  // scrollable library list
+        }  // end content lambda
+    ) { measurables, constraints ->
+        // Measure content at full height (no height constraint from parent)
+        val placeable = measurables.first().measure(constraints)
+        // But report only the animated height to the parent Column
+        layout(placeable.width, sectionHeightPxAnim) {
+            placeable.placeRelative(0, 0)
+        }
+    }  // end Layout
         val listPadStart by animateDpAsState(
             targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarOuterPadH.dp else fixedOffset,
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
@@ -384,20 +399,15 @@ private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit, isCollapse
 }
 
 @Composable
-private fun HeaderIcon(painter: Painter, desc: String, size: Dp = Sizes.sidebarIconMd.dp) {
-    Icon(
-        painter = painter,
-        contentDescription = desc,
-        tint = DimColor,
-        modifier = Modifier
-            .size(size)
-            .padding(Sizes.sidebarItemPadV.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = { /* todo */ }
-            )
-    )
+private fun HeaderIcon(painter: Painter, desc: String, size: Dp = Sizes.sidebarIconMd.dp) {        Icon(
+            painter = painter,
+            contentDescription = desc,
+            tint = DimColor,
+            modifier = Modifier
+                .size(size)
+                .padding(Sizes.sidebarItemPadV.dp)
+                .noRippleClick { /* todo */ }
+        )
 }
 
 @Composable
@@ -406,11 +416,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(Sizes.radiusPill.dp))
             .background(if (selected) Color(0xFF2a2a2a) else Color(0xFF141414))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
+            .noRippleClick(onClick)
             .padding(horizontal = Sizes.sidebarFilterPadH.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         Text(
@@ -447,11 +453,7 @@ private fun LibraryItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(Sizes.radiusSm.dp))
             .background(bgColor)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
+            .noRippleClick(onClick)
             .padding(vertical = Sizes.sidebarItemPadV.dp)
     ) {
         Box(

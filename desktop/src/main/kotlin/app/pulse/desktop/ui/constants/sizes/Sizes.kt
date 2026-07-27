@@ -31,6 +31,9 @@ object Sizes {
     const val sidebarHeaderBottom = 16 // top section bottom padding
     const val sidebarSectionGap = 16  // vertical gap between sidebar sections
     const val sidebarFilterPadH = 16  // filter row horizontal padding
+    const val sidebarOverlayH = 84    // collapsed spacer height (4+24+16+24+16)
+    const val sidebarFixedOffset = 28 // collapsed offset (96-2*8-24)/2
+    const val sidebarSectionEndPad = 16 // section end padding
 
     // right sidebar (matched to left sidebar sizes)
     const val rightCollapsedWidth = 48
