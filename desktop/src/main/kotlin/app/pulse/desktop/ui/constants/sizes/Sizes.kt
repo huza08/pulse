@@ -40,7 +40,7 @@ object Sizes {
     const val sidebarIconMd = 38
     // toggle, +, expand, and collapsed overlay icons
     // update sidebarOverlayH + sidebarFixedOffset when this changes
-    const val sidebarIconSm = 24
+    const val sidebarIconSm = 28
     // liked songs heart inside thumbnail
     const val sidebarHeartIcon = 22
     // pinned heart next to playlist name
@@ -65,13 +65,15 @@ object Sizes {
     const val sidebarFilterPadH = 16
     // create (+) icon padding
     const val sidebarIconPad = 6
+    // gap between toggle icon and header text
+    const val sidebarHeaderTextStart = 14
 
     // section spacing
 
     // top padding of your library header
     const val sidebarHeaderTop = 28
     // space below your library header
-    const val sidebarHeaderBottom = 16
+    const val sidebarHeaderBottom = 32
     // gap between sections
     const val sidebarSectionGap = 16
     // outer sidebar padding

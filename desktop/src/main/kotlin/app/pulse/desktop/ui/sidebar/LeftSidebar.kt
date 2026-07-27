@@ -196,8 +196,8 @@ private fun ExpandedSidebar(
                         .padding(bottom = Sizes.sidebarHeaderBottom.dp)
                 ) {
                     // offset spacer clears toggle icon
-                    Spacer(Modifier.width(Sizes.sidebarIconSm.dp + Sizes.sidebarItemPadH.dp))
-                    Row {
+                    Spacer(Modifier.width(Sizes.sidebarIconSm.dp + Sizes.sidebarHeaderTextStart.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         AnimatedVisibility(
                             visible = isWide,
                             enter = expandHorizontally(tween(300)) + fadeIn(tween(300)),
@@ -223,7 +223,7 @@ private fun ExpandedSidebar(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = Sizes.sidebarPad.dp)
+                            .padding(bottom = Sizes.sidebarSectionGap.dp)
                     ) {
                         FilterChip(
                             label = "Playlists",
@@ -244,7 +244,6 @@ private fun ExpandedSidebar(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(Sizes.sidebarSearchRowH.dp)
-                            .padding(bottom = Sizes.sidebarSectionGap.dp)
                     ) {
                         Icon(
                             painter = painterResource("/icons/search.svg"),
