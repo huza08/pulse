@@ -27,7 +27,7 @@ object Sizes {
     const val sidebarOuterPadH = 8    // outer horizontal padding
     const val sidebarPad = 24          // dedicated sidebar panel padding (outer, gaps)
     const val sidebarIconPad = 6      // create icon padding
-    const val sidebarHeaderTop = 20   // header title top padding
+    const val sidebarHeaderTop = 28   // header title top padding
     const val sidebarHeaderBottom = 16 // top section bottom padding
     const val sidebarSectionGap = 16  // vertical gap between sidebar sections
     const val sidebarFilterPadH = 16  // filter row horizontal padding
