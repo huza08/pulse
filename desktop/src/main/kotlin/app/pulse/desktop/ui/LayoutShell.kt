@@ -140,20 +140,14 @@ fun LayoutShell(
                             isCollapsed = sidebarCollapsed,
                             isFadeOut = sidebarFadeOut,
                             onToggleCollapse = {
-                                println("[LayoutShell] onToggleCollapse: sidebarCollapsed=$sidebarCollapsed, sidebarFadeOut=$sidebarFadeOut, targetWidth=$targetSidebarWidth")
                                 if (!sidebarCollapsed && !sidebarFadeOut) {
-                                    println("[LayoutShell] Branch: START FADE")
                                     sidebarFadeOut = true
                                 } else if (sidebarFadeOut) {
-                                    println("[LayoutShell] Branch: CANCEL FADE")
                                     sidebarFadeOut = false
                                 } else if (sidebarCollapsed) {
-                                    println("[LayoutShell] Branch: EXPAND")
                                     sidebarCollapsed = false
                                     sidebarFadeOut = false
                                     targetSidebarWidth = Left.restoreWidth.dp
-                                } else {
-                                    println("[LayoutShell] Branch: NONE MATCHED! collapsed=$sidebarCollapsed fadeOut=$sidebarFadeOut")
                                 }
                             },
                             isWide = isWide,
