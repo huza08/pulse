@@ -112,9 +112,9 @@ fun NewReleasesSkeleton() {
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
                     Spacer(Modifier.height(CardSizes.gapSm.dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = Sizes.radiusSm.dp)
                     Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = Sizes.radiusSm.dp)
                 }
             }
         }
@@ -141,9 +141,9 @@ fun QuickPicksSkeleton() {
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
                     Spacer(Modifier.height(CardSizes.gapSm.dp))
-                    ShimmerRounded(width = (CardSizes.compactSongW * 0.7).dp, height = (CardSizes.compactSongTitle * 0.7).dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = (CardSizes.compactSongW * 0.7).dp, height = (CardSizes.compactSongTitle * 0.7).dp, radius = Sizes.radiusSm.dp)
                     Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
-                    ShimmerRounded(width = (CardSizes.compactSongW * 0.4).dp, height = (CardSizes.compactSongArt * 0.6).dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = (CardSizes.compactSongW * 0.4).dp, height = (CardSizes.compactSongArt * 0.6).dp, radius = Sizes.radiusSm.dp)
                 }
             }
         }
@@ -169,9 +169,9 @@ fun QuickPicksSkeleton() {
                             .clip(RoundedCornerShape(CardSizes.skelAlbumRadius.dp))
                     )
                     Spacer(Modifier.height(CardSizes.gapSm.dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = CardSizes.skelAlbumNameW.dp, height = CardSizes.skelAlbumNameH.dp, radius = Sizes.radiusSm.dp)
                     Spacer(Modifier.height(CardSizes.skelTextGapSm.dp))
-                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = CardSizes.skelAlbumAuthorW.dp, height = CardSizes.skelAlbumAuthorH.dp, radius = Sizes.radiusSm.dp)
                 }
             }
         }
@@ -198,9 +198,9 @@ fun TrendingSkeleton() {
                             .clip(RoundedCornerShape(CardSizes.gridThumbRadius.dp))
                     )
                     Spacer(Modifier.height(CardSizes.gridTextGapSm.dp))
-                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.8).dp, height = CardSizes.gridTitleFont.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.8).dp, height = CardSizes.gridTitleFont.dp, radius = Sizes.radiusSm.dp)
                     Spacer(Modifier.height(CardSizes.gridTextGapSm.dp))
-                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.5).dp, height = CardSizes.gridArtistFont.dp, radius = Sizes.shimmerRadiusXs.dp)
+                    ShimmerRounded(width = (CardSizes.gridMinCardW * 0.5).dp, height = CardSizes.gridArtistFont.dp, radius = Sizes.radiusSm.dp)
                 }
             }
         }

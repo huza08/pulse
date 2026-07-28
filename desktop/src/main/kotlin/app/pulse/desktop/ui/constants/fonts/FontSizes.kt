@@ -10,15 +10,15 @@ object FontSizes {
     // left sidebar
 
     // your library section title
-    const val sidebarSection = 20
+    const val sidebarSection = 22
     // playlist/artist name in list rows
-    const val sidebarItem = 16
+    const val sidebarItem = 19
     // filter chip label
-    const val sidebarChip = 15
+    const val sidebarChip = 17
     // search row recents label
-    const val sidebarSmall = 16
+    const val sidebarSmall = 18
     // list row subtitle
-    const val sidebarSub = 14
+    const val sidebarSub = 16
 
     // right sidebar
 

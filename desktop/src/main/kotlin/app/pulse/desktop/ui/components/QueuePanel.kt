@@ -191,12 +191,12 @@ private fun QueueItem(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = Sizes.sidebarOuterPadH.dp, vertical = Sizes.queueItemPadV.dp)
+            .padding(horizontal = Sizes.sidebarCollapsedPad.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         // reorder buttons
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(Sizes.queueReorderW.dp)
+            modifier = Modifier.width(20.dp)
         ) {
             Text(
                 text = "\u25B2",
@@ -292,7 +292,7 @@ private fun QueueItem(
             contentDescription = "Remove",
             tint = dim.copy(alpha = 0.6f),
             modifier = Modifier
-                .size(Sizes.queueRemoveIcon.dp)
+                .size(18.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,

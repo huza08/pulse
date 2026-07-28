@@ -447,7 +447,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .fillMaxHeight()
-                .padding(top = Sizes.scrollPad.dp, bottom = Sizes.scrollPad.dp, end = Sizes.scrollEndPad.dp)
+                .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
                 .alpha(scrollbarAlpha),
             adapter = rememberScrollbarAdapter(scrollState),
             style = sbStyle

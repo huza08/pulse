@@ -43,6 +43,7 @@ import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.LeftSidebar
 import app.pulse.desktop.ui.sidebar.RightPanelState
 import app.pulse.desktop.ui.sidebar.RightSidebar
+import app.pulse.desktop.ui.constants.sidebar.Left
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
@@ -63,7 +64,7 @@ fun LayoutShell(
     val bg = Color(0xFF0a0a0a)
 
     // sidebar widths — animated triggers smooth center content re-layout
-    var targetSidebarWidth by remember { mutableStateOf(Sizes.sidebarTargetWidth.dp) }
+    var targetSidebarWidth by remember { mutableStateOf(Left.targetWidth.dp) }
     var targetPanelWidth by remember { mutableStateOf(Sizes.panelTargetWidth.dp) }
     var panelState by remember { mutableStateOf(RightPanelState.EXPANDED) }
     var isPeeking by remember { mutableStateOf(false) }
@@ -73,10 +74,10 @@ fun LayoutShell(
     val hideAnim = spring<Dp>(dampingRatio = 1f, stiffness = 300f)
 
     // collapse/expand via drag:
-    if (targetSidebarWidth <= Sizes.sidebarCollapsedDrag.dp) {
+    if (targetSidebarWidth <= Left.collapsedDrag.dp) {
         sidebarCollapsed = true
         sidebarFadeOut = false
-    } else if (targetSidebarWidth >= Sizes.sidebarUncollapseThreshold.dp) {
+    } else if (targetSidebarWidth >= Left.uncollapseThreshold.dp) {
         sidebarCollapsed = false
     }
 
@@ -86,12 +87,12 @@ fun LayoutShell(
             delay(300L)
             sidebarCollapsed = true
             sidebarFadeOut = false
-            targetSidebarWidth = Sizes.sidebarCollapsedDrag.dp
+            targetSidebarWidth = Left.collapsedDrag.dp
         }
     }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (sidebarCollapsed) Sizes.sidebarCollapsedDrag.dp else targetSidebarWidth,
+        targetValue = if (sidebarCollapsed) Left.collapsedDrag.dp else targetSidebarWidth,
         animationSpec = hideAnim
     )
     val panelWidth by animateDpAsState(
@@ -128,11 +129,11 @@ fun LayoutShell(
                     ResizableSidebar(
                         width = sidebarWidth,
                         onWidthChange = { targetSidebarWidth = it },
-                        minWidth = Sizes.sidebarMinWidth.dp,
-                        maxWidth = Sizes.sidebarMaxWidth.dp,
+                        minWidth = Left.minWidth.dp,
+                        maxWidth = Left.maxWidth.dp,
                         handleIsStart = false
                     ) {
-                        val isWide = sidebarWidth > Sizes.sidebarWideThreshold.dp
+                        val isWide = sidebarWidth > Left.wideThreshold.dp
                         LeftSidebar(
                             activeView = activeView,
                             onNavigate = onNavigate,
@@ -150,7 +151,7 @@ fun LayoutShell(
                                     println("[LayoutShell] Branch: EXPAND")
                                     sidebarCollapsed = false
                                     sidebarFadeOut = false
-                                    targetSidebarWidth = Sizes.sidebarRestoreWidth.dp
+                                    targetSidebarWidth = Left.restoreWidth.dp
                                 } else {
                                     println("[LayoutShell] Branch: NONE MATCHED! collapsed=$sidebarCollapsed fadeOut=$sidebarFadeOut")
                                 }

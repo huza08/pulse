@@ -115,7 +115,7 @@ fun TopNavBar(
                 .size(Sizes.profileIconSize.dp)
                 .clip(CircleShape)
                 .background(Color(0xFF1e1e1e))
-                .padding(Sizes.topBarProfileBg.dp)
+                .padding(5.dp)
         )
     }
 }

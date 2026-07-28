@@ -4,89 +4,28 @@ package app.pulse.desktop.ui.constants.sizes
 // change related constants together when resizing.
 object Sizes {
 
-    // layout shell - sidebar / panel containers
-
-    // left sidebar expanded width
-    const val sidebarTargetWidth = 380
-    // left sidebar minimum resize width
-    const val sidebarMinWidth = 360
-    // left sidebar maximum resize width
-    const val sidebarMaxWidth = 400
-    // collapsed sidebar width, also drag threshold
-    const val sidebarCollapsedDrag = 96
-    // width when expanding from collapsed
-    const val sidebarRestoreWidth = 340
     // right panel default width
-    const val panelTargetWidth = sidebarTargetWidth
-    const val panelMinWidth = sidebarMinWidth
-    const val panelMaxWidth = sidebarMaxWidth
+    const val panelTargetWidth = 380
+    const val panelMinWidth = 360
+    const val panelMaxWidth = 400
 
     // responsive thresholds
 
-    // drag distance before uncollapsing
-    const val sidebarUncollapseThreshold = 120
-    // min width to show your library text + filter pills
-    const val sidebarWideThreshold = 250
     // min center content width
     const val centerMinWidth = 128
 
-    // left sidebar - icons, thumbnails, spacing
+    // shared constants (used by right sidebar and queue panel)
 
-    // playlist/artist thumbnail size
-    const val sidebarThumbSize = 64
-    // large header icons
-    const val sidebarIconLg = 36
-    // search + list icons
-    const val sidebarIconMd = 38
-    // toggle, +, expand, and collapsed overlay icons
-    // update sidebarOverlayH + sidebarFixedOffset when this changes
+    // icon shared with right sidebar
     const val sidebarIconSm = 28
-    // liked songs heart inside thumbnail
-    const val sidebarHeartIcon = 22
-    // pinned heart next to playlist name
-    const val sidebarPinnedIcon = 14
-
-    // row heights
-
-    // search + recents + sort row height
-    const val sidebarSearchRowH = 40
-
-    // spacing & padding
-
-    // horizontal gap between items
+    // thin base margin (queue panel reuses this)
+    const val sidebarCollapsedPad = 8
+    // item spacing (right sidebar references these)
     const val sidebarItemGap = 8
-    // vertical padding inside clickable items
     const val sidebarItemPadV = 4
-    // horizontal padding between icon and label
     const val sidebarItemPadH = 10
-    // outer horizontal padding of sidebar content
-    const val sidebarOuterPadH = 8
-    // filter-chip horizontal padding
-    const val sidebarFilterPadH = 16
-    // create (+) icon padding
-    const val sidebarIconPad = 6
-    // gap between toggle icon and header text
-    const val sidebarHeaderTextStart = 14
-
-    // section spacing
-
-    // top padding of your library header
-    const val sidebarHeaderTop = 28
-    // space below your library header
-    const val sidebarHeaderBottom = 32
-    // gap between sections
-    const val sidebarSectionGap = 16
-    // outer sidebar padding
+    // right sidebar vertical section padding
     const val sidebarPad = 24
-
-    // derived layout offsets (update when icon sizes change)
-
-    // collapsed spacer height = itemPadV + iconSm + sectionGap + iconSm + sectionGap = 84dp
-    const val sidebarOverlayH = 84
-    // horizontal offset for overlay alignment = (collapsedDrag - 2*outerPadH - iconSm) / 2 = 28dp
-    const val sidebarFixedOffset = 28
-    // end padding of section content column
-    const val sidebarSectionEndPad = 16
 
     // right sidebar
 
@@ -109,21 +48,16 @@ object Sizes {
     const val rightChevronIcon = 24
     // thumbnail radius
     const val rightThumbRadius = 6
-    // reuses sidebar item gap
-    const val rightCardContentGap = sidebarItemGap
-    // gap between song title and artist
-    const val rightSongArtistGap = sidebarItemPadV
-    // item-to-item gap
-    const val rightItemGap = sidebarItemGap
-    // chevron spacer
-    const val rightChevronSpacer = sidebarItemGap
+    const val rightCardContentGap = 8
+    const val rightSongArtistGap = 4
+    const val rightItemGap = 8
+    const val rightChevronSpacer = 8
 
     // queue panel
 
     const val queueThumbSize = 64
     const val queueCloseIcon = 24
-    const val queueRemoveIcon = 18
-    const val queueReorderW = 20
+
     const val queueMinWidth = 300
     const val queueMaxWidth = 400
     const val queueThumbRadius = 6
@@ -141,16 +75,13 @@ object Sizes {
     const val searchIconSize = 20
     const val searchCornerRadius = 20
     const val searchTopPad = 16
-    // profile avatar background inset
-    const val topBarProfileBg = 5
-
     // common corners & resize handle
 
     const val radiusSm = 6     // list rows, thumbnails
     const val radiusMd = 8     // sidebar cards, center content
-    const val radiusLg = 12    // reserved
+    const val radiusLg = 12    // cards, moods
     const val radiusPill = 16  // filter chips, search bar
-    const val radiusXL = 24    // reserved
+    const val radiusXL = 24    // player screen
     const val resizerW = 16    // resize handle hit area
     const val resizerHintH = 0.4f  // handle hint line height fraction
 
@@ -166,11 +97,6 @@ object Sizes {
     const val windowMinW = 1280
     const val windowMinH = 720
 
-    // shimmer (loading placeholders)
-
-    // text placeholder line radius
-    const val shimmerRadiusXs = 6
-
     // home screen
 
     // main column padding
@@ -183,8 +109,6 @@ object Sizes {
     const val scrollMinH = 16
     const val scrollThickness = 8
     const val scrollRadius = 4
-    const val scrollPad = 8
-    const val scrollEndPad = 2
 
     // player screen
 

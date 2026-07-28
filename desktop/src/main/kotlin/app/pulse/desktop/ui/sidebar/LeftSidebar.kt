@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
 import app.pulse.desktop.ui.constants.fonts.FontSizes
+import app.pulse.desktop.ui.constants.sidebar.Left
 import app.pulse.desktop.ui.constants.sizes.Sizes
 
 private val TextColor = Color(0xFFf2f0eb)
@@ -80,8 +81,8 @@ fun LeftSidebar(
 ) {
     var filterTab by remember { mutableStateOf(0) }
 
-    val fixedOffset = Sizes.sidebarFixedOffset.dp
-    val toggleTop = Sizes.sidebarHeaderTop.dp + Sizes.sidebarItemPadV.dp
+    val fixedOffset = Left.fixedOffset.dp
+    val toggleTop = Left.headerTop.dp + Sizes.sidebarItemPadV.dp
 
     Box(modifier = modifier.fillMaxSize()) {
         ExpandedSidebar(
@@ -99,7 +100,7 @@ fun LeftSidebar(
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(start = Sizes.sidebarOuterPadH.dp + fixedOffset, top = toggleTop),
+                .padding(start = Sizes.sidebarCollapsedPad.dp + fixedOffset, top = toggleTop),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
@@ -110,7 +111,7 @@ fun LeftSidebar(
                 contentDescription = if (isCollapsed || isFadeOut) "Expand sidebar" else "Collapse sidebar",
                 tint = TextColor,
                 modifier = Modifier
-                    .size(Sizes.sidebarIconSm.dp)
+                    .size(Left.toggleIcon.dp)
                     .noRippleClick(onToggleCollapse)
             )
             AnimatedVisibility(
@@ -119,13 +120,13 @@ fun LeftSidebar(
                 exit = fadeOut(tween(300)) + shrinkVertically(tween(300))
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
+                    Spacer(Modifier.height(Left.collapsedGap.dp))
                     Icon(
                         painter = painterResource("/icons/add.svg"),
                         contentDescription = "Create",
                         tint = DimColor,
                         modifier = Modifier
-                            .size(Sizes.sidebarIconSm.dp)
+                            .size(Left.addIcon.dp)
                             .noRippleClick { /* todo */ }
                     )
                 }
@@ -156,18 +157,16 @@ private fun ExpandedSidebar(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = Sizes.sidebarOuterPadH.dp)
-            .padding(top = Sizes.sidebarHeaderTop.dp),
+            .padding(horizontal = Sizes.sidebarCollapsedPad.dp)
+            .padding(top = Left.headerTop.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        val fixedOffset = Sizes.sidebarFixedOffset.dp
-
         val density = LocalDensity.current
         var sectionHeightPx by remember { mutableStateOf(0) }
 
         // spacer for overlay toggle + icon when collapsed
         val toggleAreaHeight by animateDpAsState(
-            targetValue = if (isFadeOut || isCollapsed) Sizes.sidebarOverlayH.dp
+            targetValue = if (isFadeOut || isCollapsed) Left.overlayH.dp
             else 0.dp,
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
         )
@@ -186,17 +185,17 @@ private fun ExpandedSidebar(
             content = {
                 Column(
                     modifier = Modifier
-                        .padding(start = fixedOffset, end = Sizes.sidebarSectionEndPad.dp)
+                        .padding(start = Left.expandedPad.dp, end = Left.expandedPad.dp)
                         .onSizeChanged { sectionHeightPx = it.height }
                 ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = Sizes.sidebarHeaderBottom.dp)
+                        .padding(bottom = Left.headerBottom.dp)
                 ) {
                     // offset spacer clears toggle icon
-                    Spacer(Modifier.width(Sizes.sidebarIconSm.dp + Sizes.sidebarHeaderTextStart.dp))
+                    Spacer(Modifier.width(Left.toggleIcon.dp + Left.headerTextStart.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         AnimatedVisibility(
                             visible = isWide,
@@ -213,8 +212,7 @@ private fun ExpandedSidebar(
                             )
                         }
                         Spacer(Modifier.weight(1f))
-                        HeaderIcon(painterResource("/icons/add.svg"), "Create", Sizes.sidebarIconSm.dp)
-                        HeaderIcon(painterResource("/icons/expand.svg"), "Expand library", Sizes.sidebarIconSm.dp)
+                        HeaderIcon(painterResource("/icons/add.svg"), "Create", Left.addIcon.dp)
                     }
                 }
 
@@ -223,7 +221,7 @@ private fun ExpandedSidebar(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = Sizes.sidebarSectionGap.dp)
+                            .padding(bottom = Left.sectionGap.dp)
                     ) {
                         FilterChip(
                             label = "Playlists",
@@ -243,36 +241,39 @@ private fun ExpandedSidebar(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(Sizes.sidebarSearchRowH.dp)
+                            .height(Left.searchRowH.dp)
                     ) {
                         Icon(
                             painter = painterResource("/icons/search.svg"),
                             contentDescription = "Search",
                             tint = DimColor,
                             modifier = Modifier
-                                .size(Sizes.sidebarIconMd.dp)
-                                .padding(Sizes.sidebarItemPadV.dp)
+                                .size(Left.searchIcon.dp)
                                 .noRippleClick { /* todo */ }
                         )
                         Spacer(Modifier.weight(1f))
-                        Text(
-                            text = "Recents",
-                            color = DimColor,
-                            fontSize = FontSizes.sidebarSmall.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Box(
+                            modifier = Modifier.height(Left.listIcon.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Recents",
+                                color = DimColor,
+                                fontSize = FontSizes.sidebarSmall.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                         Icon(
                             painter = painterResource("/icons/list.svg"),
                             contentDescription = "Toggle view",
                             tint = DimColor,
                             modifier = Modifier
-                                .size(Sizes.sidebarIconMd.dp)
-                                .padding(Sizes.sidebarItemPadV.dp)
+                                .size(Left.listIcon.dp)
                                 .noRippleClick { /* todo */ }
                         )
                     }
 
-                    Spacer(Modifier.height(Sizes.sidebarSectionGap.dp))
+                    Spacer(Modifier.height(Left.sectionGap.dp))
                 }
             }
         }  // end content
@@ -284,14 +285,18 @@ private fun ExpandedSidebar(
         }
     }  // end layout
         val listPadStart by animateDpAsState(
-            targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarOuterPadH.dp else fixedOffset,
+            targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarCollapsedPad.dp else Left.expandedPad.dp,
+            animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
+        )
+        val listPadEnd by animateDpAsState(
+            targetValue = if (isCollapsed || isFadeOut) Sizes.sidebarCollapsedPad.dp else Left.expandedPad.dp,
             animationSpec = spring(dampingRatio = 1f, stiffness = 300f)
         )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(start = listPadStart, end = Sizes.sidebarOuterPadH.dp)
+                .padding(start = listPadStart, end = listPadEnd)
                 .verticalScroll(scrollState)
         ) {
             when (filterTab) {
@@ -310,7 +315,7 @@ private fun PlaylistItems(activeView: View, onNavigate: (View) -> Unit, isCollap
                 painter = painterResource("/icons/heart.svg"),
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(Sizes.sidebarHeartIcon.dp)
+                modifier = Modifier.size(Left.heartIcon.dp)
             )
         },
         name = "Liked Songs",
@@ -394,13 +399,12 @@ private fun ArtistItems(activeView: View, onNavigate: (View) -> Unit, isCollapse
 }
 
 @Composable
-private fun HeaderIcon(painter: Painter, desc: String, size: Dp = Sizes.sidebarIconMd.dp) {        Icon(
+private fun HeaderIcon(painter: Painter, desc: String, size: Dp = Left.iconMd.dp) {        Icon(
             painter = painter,
             contentDescription = desc,
             tint = DimColor,
             modifier = Modifier
                 .size(size)
-                .padding(Sizes.sidebarItemPadV.dp)
                 .noRippleClick { /* todo */ }
         )
 }
@@ -412,7 +416,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
             .clip(RoundedCornerShape(Sizes.radiusPill.dp))
             .background(if (selected) Color(0xFF2a2a2a) else Color(0xFF141414))
             .noRippleClick(onClick)
-            .padding(horizontal = Sizes.sidebarFilterPadH.dp, vertical = Sizes.queueItemPadV.dp)
+            .padding(horizontal = Left.filterPadH.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         Text(
             text = label,
@@ -453,7 +457,7 @@ private fun LibraryItem(
     ) {
         Box(
             modifier = Modifier
-                .size(Sizes.sidebarThumbSize.dp)
+                .size(Left.thumbSize.dp)
                 .clip(if (isCircular) CircleShape else RoundedCornerShape(Sizes.radiusSm.dp))
                 .background(iconPlaceholder),
             contentAlignment = Alignment.Center
@@ -486,7 +490,7 @@ private fun LibraryItem(
                         painter = painterResource("/icons/heart.svg"),
                         contentDescription = null,
                         tint = GreenAccent,
-                        modifier = Modifier.size(Sizes.sidebarPinnedIcon.dp)
+                        modifier = Modifier.size(Left.pinnedIcon.dp)
                     )
                 }
             }
