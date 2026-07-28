@@ -39,7 +39,6 @@ import app.pulse.providers.innertube.Innertube.DiscoverPage
 private fun detectDpiScale(): Float {
     // env var override
     System.getenv("PULSE_DPI_SCALE")?.toFloatOrNull()?.let { override ->
-        println("[DPI] using PULSE_DPI_SCALE=$override")
         return override.coerceIn(1f, 3f)
     }
     // use AWT display mode width to compute scale (works on all platforms)
@@ -48,11 +47,8 @@ private fun detectDpiScale(): Float {
             .defaultScreenDevice.displayMode
         val w = dm.width
         val h = dm.height
-        val scale = (w / 1920f).coerceIn(1f, 3f)
-        println("[DPI] AWT display: ${w}x${h}, scale=${scale}")
-        scale
-    } catch (e: Exception) {
-        println("[DPI] detection failed: ${e.message}, scale=1.0")
+        (w / 1920f).coerceIn(1f, 3f)
+    } catch (_: Exception) {
         1f
     }
 }

@@ -58,7 +58,6 @@ object NativeBinaries {
             ?: NativeBinaries::class.java.classLoader.getResource(resourcePath.removePrefix("/"))
 
         if (resourceUrl != null) {
-            println("[NativeBinaries] found resource at $resourceUrl")
             if (resourceUrl.protocol == "file") {
                 val resourceFile = File(resourceUrl.toURI())
                 if (isExecutable(resourceFile)) return resourceFile.absolutePath
@@ -67,7 +66,6 @@ object NativeBinaries {
         }
 
         // 4. System PATH fallback
-        println("[NativeBinaries] fallback to system PATH for $name")
         return binName
     }
 
