@@ -18,11 +18,8 @@ object Sizes {
 
     // icon shared with right sidebar
     const val sidebarIconSm = 28
-    // thin base margin (queue panel reuses this)
-    const val sidebarCollapsedPad = 8
     // item spacing (right sidebar references these)
     const val sidebarItemGap = 8
-    const val sidebarItemPadV = 4
     const val sidebarItemPadH = 10
     // right sidebar vertical section padding
     const val sidebarPad = 24
@@ -84,11 +81,6 @@ object Sizes {
     const val radiusXL = 24    // player screen
     const val resizerW = 16    // resize handle hit area
     const val resizerHintH = 0.4f  // handle hint line height fraction
-
-    // re-show button (appears when collapsed)
-
-    const val reShowBtnSize = 40
-    const val reShowIconSize = 18
 
     // window constraints
 

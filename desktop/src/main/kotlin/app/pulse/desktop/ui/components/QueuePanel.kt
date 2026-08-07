@@ -191,7 +191,7 @@ private fun QueueItem(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = Sizes.sidebarCollapsedPad.dp, vertical = Sizes.queueItemPadV.dp)
+            .padding(horizontal = 8.dp, vertical = Sizes.queueItemPadV.dp)
     ) {
         // reorder buttons
         Column(
