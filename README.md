@@ -70,7 +70,7 @@ align="center">](https://github.com/khuza08/Pulse/releases/latest)
 
 ## Disclaimer
 
-Pulse is a based from [ViTune](https://github.com/bartoostveen/ViTune) and [ViMusic](https://github.com/vfsfitvnm/ViMusic).
+Pulse is a based on [ViTune](https://github.com/bartoostveen/ViTune) and [ViMusic](https://github.com/vfsfitvnm/ViMusic).
 
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
 

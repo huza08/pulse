@@ -347,7 +347,7 @@ private fun Header(
                     contentDescription = "Search library",
                     tint = DimColor,
                     modifier = Modifier
-                        .size(LeftSidebar.iconMd.dp)
+                        .size(LeftSidebar.searchIcon.dp)
                         .noRippleClick(onSearch)
                 )
                 Box(
