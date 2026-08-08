@@ -1,7 +1,10 @@
 package app.pulse.desktop.ui.sidebar
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,13 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.ResizableHandle
@@ -58,6 +62,7 @@ private val BorderColor = Color(0xFF2a2a2a)
 private val Accent = Color(0xFF4CAF50)
 private val AccentDark = Color(0xFF1B5E20)
 private val ChipBg = Color(0xFF232323)
+private val ChipActiveBg = Color(0xFF2a2a2a) // dark gray app theme (border tone)
 private val ThumbBg = Color(0xFF282828)
 private val RowHover = Color.White.copy(alpha = 0.06f)
 
@@ -73,8 +78,7 @@ data class LibraryItem(
     val musicIcon: Boolean = false
 )
 
-// ponytail: static mock matching the TSX design; real library items can be
-// passed in via the items param once the desktop library data exists.
+// use dummy thumbs from my mockup
 private val mockLibraryItems = listOf(
     LibraryItem("Liked Songs", "Playlist • 29 songs", LibraryKind.PLAYLIST, liked = true),
     LibraryItem(
@@ -113,16 +117,21 @@ private val mockLibraryItems = listOf(
 )
 
 @Composable
-private fun Modifier.noRippleClick(onClick: () -> Unit): Modifier {
+private fun Modifier.noRippleClick(onClick: () -> Unit): Modifier =
+    noRippleClick(true, onClick)
+
+@Composable
+private fun Modifier.noRippleClick(enabled: Boolean, onClick: () -> Unit): Modifier {
     val source = remember { MutableInteractionSource() }
-    return clickable(interactionSource = source, indication = null, onClick = onClick)
+    return clickable(
+        interactionSource = source,
+        indication = null,
+        enabled = enabled,
+        onClick = onClick
+    )
 }
 
-/**
- * Port of the TSX `SidebarLeft` component. All state is internal:
- * collapse/expand with width memory, hover-reveal toggle, drag resize
- * (uncollapses on drag, clamped to [LeftSidebar.minWidth, maxWidth]).
- */
+
 @Composable
 fun SidebarLeft(
     items: List<LibraryItem> = mockLibraryItems,
@@ -138,9 +147,25 @@ fun SidebarLeft(
     val hoverSrc = remember { MutableInteractionSource() }
     val isHovered by hoverSrc.collectIsHoveredAsState()
 
+    // shared collapse progress (0 expanded → 1 collapsed)  same spring as the
+    // width, so the toggle/+ bubble/thumbs glide to the collapsed x-center in
+    // sync with the closing box instead of riding the shrinking center.
+    val collapse by animateFloatAsState(
+        targetValue = if (isCollapsed) 1f else 0f,
+        animationSpec = spring(dampingRatio = 1f, stiffness = 1200f)
+    )
+
+    // chips/bubble crossfade, independent of the width spring. Fade-out on
+    // collapse is snappier than fade-in on expand (which feels right).
+    val chipAlpha by animateFloatAsState(
+        targetValue = if (isCollapsed) 0f else 1f,
+        animationSpec = if (isCollapsed) tween(60) else tween(150)
+    )
+
+    // width transition same spring as collapse so both move in sync
     val width by animateDpAsState(
         targetValue = if (isCollapsed) LeftSidebar.collapsedWidth.dp else sidebarWidth,
-        animationSpec = tween(LeftSidebar.widthAnimMs)
+        animationSpec = spring(dampingRatio = 1f, stiffness = 1200f)
     )
 
     val filteredItems = items.filter { it.kind == activeFilter }
@@ -172,30 +197,55 @@ fun SidebarLeft(
             Column(modifier = Modifier.fillMaxSize()) {
                 Header(
                     isCollapsed = isCollapsed,
+                    collapse = collapse,
                     showToggle = isCollapsed || isHovered,
                     onToggle = toggleCollapsed,
-                    onAdd = { onNavigate(View.Playlists) }
+                    onAdd = { onNavigate(View.Playlists) },
+                    onSearch = { onNavigate(View.Search) }
                 )
-                if (!isCollapsed) {
-                    FilterChips(active = activeFilter, onSelect = { activeFilter = it })
+                // second row  the chips row is ALWAYS composed so its height is
+                // reserved; the list never shifts when chips appear on expand.
+                // Collapsed mode shows the + bubble over the invisible chips.
+                // Height is PINNED to chipsRowH (44) so both states occupy an
+                // identical slot regardless of font-metric rounding.
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(LeftSidebar.chipsRowH.dp)
+                ) {
+                    // chips fade in/out via chipAlpha (fast tween) instead of
+                    // snapping on/off — the "bounce" was the instant alpha
+                    // flip while the box was still narrow.
+                    FilterChips(
+                        active = activeFilter,
+                        onSelect = { activeFilter = it },
+                        enabled = !isCollapsed,
+                        modifier = Modifier.alpha(chipAlpha)
+                    )
+                    // + bubble crossfades out as the chips fade in  kept
+                    // composed until the width settles
+                    if (collapse > 0.01f) {
+                        AddBubble(
+                            collapse = collapse,
+                            onAdd = { onNavigate(View.Playlists) },
+                            modifier = Modifier.alpha(1f - chipAlpha)
+                        )
+                    }
                 }
-                SearchRow(
-                    isCollapsed = isCollapsed,
-                    onSearch = { onNavigate(View.Search) },
-                    onAdd = { onNavigate(View.Playlists) }
-                )
 
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = if (isCollapsed) LeftSidebar.listPadCollapsedH.dp else LeftSidebar.listPadH.dp)
+                        .padding(horizontal = LeftSidebar.listPadH.dp)
                 ) {
                     filteredItems.forEach { item ->
                         SidebarItem(
                             item = item,
                             isCollapsed = isCollapsed,
+                            collapse = collapse,
+                            contentWidth = width,
                             isActive = item.active || selected == item.title,
                             onClick = {
                                 selected = item.title
@@ -207,14 +257,14 @@ fun SidebarLeft(
             }
         }
 
-        // resize handle — straddles the card's right edge
+        // resize handle straddles the card's right edge
         ResizableHandle(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .offset(x = (Sizes.resizerW / 2).dp),
             onDrag = { delta ->
                 if (isCollapsed) {
-                    // dragging the handle uncollapses (TSX startResizing)
+                    // dragging the handle uncollapses
                     isCollapsed = false
                     sidebarWidth = lastExpandedWidth
                 } else {
@@ -233,15 +283,18 @@ fun SidebarLeft(
 @Composable
 private fun Header(
     isCollapsed: Boolean,
+    collapse: Float,
     showToggle: Boolean,
     onToggle: () -> Unit,
-    onAdd: () -> Unit
+    onAdd: () -> Unit,
+    onSearch: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isCollapsed) Arrangement.Center else Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
+            .height(LeftSidebar.headerH.dp)
             .padding(
                 start = LeftSidebar.headerPad.dp,
                 end = LeftSidebar.headerPad.dp,
@@ -251,7 +304,13 @@ private fun Header(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = if (isCollapsed) Modifier else Modifier.weight(1f)
+            // collapse: glide the toggle from its expanded left position to
+            // the collapsed x-center (offset animated with the width spring)
+            modifier = if (isCollapsed) {
+                Modifier.offset(x = (collapse * LeftSidebar.toggleCollapseOffset).dp)
+            } else {
+                Modifier.weight(1f)
+            }
         ) {
             Icon(
                 painter = painterResource(
@@ -279,57 +338,77 @@ private fun Header(
             }
         }
         if (!isCollapsed) {
-            Box(
-                modifier = Modifier
-                    .size(LeftSidebar.addBtnSize.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .noRippleClick(onAdd),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(LeftSidebar.chipGap.dp)
             ) {
                 Icon(
-                    painter = painterResource("/icons/add.svg"),
-                    contentDescription = "Add",
+                    painter = painterResource("/icons/search.svg"),
+                    contentDescription = "Search library",
                     tint = DimColor,
-                    modifier = Modifier.size(LeftSidebar.iconLg.dp)
+                    modifier = Modifier
+                        .size(LeftSidebar.iconMd.dp)
+                        .noRippleClick(onSearch)
                 )
+                Box(
+                    modifier = Modifier
+                        .size(LeftSidebar.addBtnSize.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .noRippleClick(onAdd),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource("/icons/add.svg"),
+                        contentDescription = "Add",
+                        tint = DimColor,
+                        modifier = Modifier.size(LeftSidebar.iconLg.dp)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun FilterChips(active: LibraryKind, onSelect: (LibraryKind) -> Unit) {
+private fun FilterChips(
+    active: LibraryKind,
+    onSelect: (LibraryKind) -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(LeftSidebar.chipGap.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             .padding(horizontal = LeftSidebar.headerPad.dp)
-            .padding(bottom = LeftSidebar.headerBottom.dp)
     ) {
-        FilterChip("Playlists", active == LibraryKind.PLAYLIST) { onSelect(LibraryKind.PLAYLIST) }
-        FilterChip("Artists", active == LibraryKind.ARTIST) { onSelect(LibraryKind.ARTIST) }
+        FilterChip("Playlists", active == LibraryKind.PLAYLIST, enabled) { onSelect(LibraryKind.PLAYLIST) }
+        FilterChip("Artists", active == LibraryKind.ARTIST, enabled) { onSelect(LibraryKind.ARTIST) }
     }
 }
 
 @Composable
-private fun FilterChip(label: String, isActive: Boolean, onClick: () -> Unit) {
-    val bg = if (isActive) Accent else ChipBg
-    val fg = if (isActive) {
-        if (Accent.luminance() >= 0.5f) Color.Black else Color.White
-    } else {
-        TextColor
-    }
+private fun FilterChip(
+    label: String,
+    isActive: Boolean,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    // dark gray app theme — active chip is a step lighter than inactive
+    val bg = if (isActive) ChipActiveBg else ChipBg
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(Sizes.radiusPill.dp))
             .background(bg, RoundedCornerShape(Sizes.radiusPill.dp))
-            .noRippleClick(onClick)
+            .noRippleClick(enabled, onClick)
             .padding(horizontal = LeftSidebar.chipPadH.dp, vertical = LeftSidebar.chipPadV.dp)
     ) {
         Text(
             text = label,
-            color = fg,
+            color = TextColor,
             fontSize = FontSizes.sidebarChip.sp,
             fontWeight = FontWeight.Medium
         )
@@ -337,62 +416,30 @@ private fun FilterChip(label: String, isActive: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SearchRow(
-    isCollapsed: Boolean,
-    onSearch: () -> Unit,
-    onAdd: () -> Unit
-) {
+private fun AddBubble(collapse: Float, onAdd: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isCollapsed) Arrangement.Center else Arrangement.SpaceBetween,
-        modifier = Modifier
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             .padding(horizontal = LeftSidebar.headerPad.dp)
-            .padding(bottom = LeftSidebar.headerBottom.dp)
     ) {
-        if (isCollapsed) {
-            // collapsed: plus bubble
-            Box(
-                modifier = Modifier
-                    .size(LeftSidebar.plusBubble.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.10f))
-                    .noRippleClick(onAdd),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource("/icons/add.svg"),
-                    contentDescription = "Add",
-                    tint = TextColor,
-                    modifier = Modifier.size(LeftSidebar.iconMd.dp)
-                )
-            }
-        } else {
+        Box(
+            modifier = Modifier
+                .offset(x = (collapse * LeftSidebar.plusBubbleOffset).dp)
+                .size(LeftSidebar.plusBubble.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.10f))
+                .noRippleClick(onAdd),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(
-                painter = painterResource("/icons/search.svg"),
-                contentDescription = "Search library",
-                tint = DimColor,
-                modifier = Modifier
-                    .size(LeftSidebar.iconMd.dp)
-                    .noRippleClick(onSearch)
+                painter = painterResource("/icons/add.svg"),
+                contentDescription = "Add",
+                tint = TextColor,
+                modifier = Modifier.size(LeftSidebar.iconMd.dp)
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(LeftSidebar.chipGap.dp)
-            ) {
-                Text(
-                    text = "Recents",
-                    color = DimColor,
-                    fontSize = FontSizes.sidebarSmall.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Icon(
-                    painter = painterResource("/icons/list.svg"),
-                    contentDescription = "Sort",
-                    tint = DimColor,
-                    modifier = Modifier.size(LeftSidebar.iconSm.dp)
-                )
-            }
         }
     }
 }
@@ -401,26 +448,43 @@ private fun SearchRow(
 private fun SidebarItem(
     item: LibraryItem,
     isCollapsed: Boolean,
+    collapse: Float,
+    contentWidth: Dp,
     isActive: Boolean,
     onClick: () -> Unit
 ) {
     val rowSrc = remember { MutableInteractionSource() }
     val isRowHovered by rowSrc.collectIsHoveredAsState()
 
+    // text box width = rows remaining space, computed directly from the
+    // animated sidebar width (no onSizeChanged, no frame-lag, no wobble).
+    // Matches the list column + row paddings exactly.
+    val textBoxW = if (isCollapsed) {
+        0.dp
+    } else {
+        (contentWidth - LeftSidebar.listPadH.dp * 2 - LeftSidebar.rowPadH.dp * 2 - LeftSidebar.thumbSize.dp)
+            .coerceAtLeast(0.dp)
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isCollapsed) Arrangement.Center else Arrangement.Start,
+        horizontalArrangement = Arrangement.Start,
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Sizes.radiusSm.dp))
-            .background(if (isRowHovered) RowHover else Color.Transparent)
+            .background(
+                // active item gets a persistent subtle bg (was accent-green title)
+                if (isActive || isRowHovered) RowHover else Color.Transparent
+            )
             .hoverable(rowSrc)
             .noRippleClick(onClick)
             .padding(horizontal = LeftSidebar.rowPadH.dp, vertical = LeftSidebar.rowPadV.dp)
     ) {
-        // thumbnail
+        // thumbnail  glides from expanded left position to the collapsed
+        // x-center (offset animated with the width spring)
         Box(
             modifier = Modifier
+                .offset(x = (collapse * LeftSidebar.thumbCollapseOffset).dp)
                 .size(LeftSidebar.thumbSize.dp)
                 .clip(RoundedCornerShape(LeftSidebar.thumbRadius.dp))
                 .background(ThumbBg, RoundedCornerShape(LeftSidebar.thumbRadius.dp)),
@@ -459,12 +523,23 @@ private fun SidebarItem(
             }
         }
 
-        if (!isCollapsed) {
-            Spacer(Modifier.width(LeftSidebar.rowGap.dp))
-            Column(modifier = Modifier.weight(1f)) {
+        // text  always composed so it can slide under the thumb; its width
+        // animates to 0 on collapse so the thumbnail ends up centered
+        Box(
+            modifier = Modifier
+                .width(textBoxW)
+                .clipToBounds()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = LeftSidebar.rowGap.dp)
+                    .offset(x = (-collapse * LeftSidebar.textSlideD).dp)
+                    .alpha(1f - collapse)
+            ) {
                 Text(
                     text = item.title,
-                    color = if (isActive) Accent else TextColor,
+                    color = TextColor,
                     fontSize = FontSizes.sidebarItem.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
