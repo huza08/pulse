@@ -34,7 +34,7 @@ object LeftSidebar {
     const val chipPadV = 8          // py-1.5 chips
 
     // buttons
-    const val toggleSize = 32       // w-7 h-7
+    const val toggleSize = 28       // w-7 h-7
     const val addBtnSize = 36       // w-8 h-8 header add
     const val plusBubble = 36       // w-8 h-8 collapsed add
 

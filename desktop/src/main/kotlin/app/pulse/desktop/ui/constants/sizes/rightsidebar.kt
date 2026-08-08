@@ -1,8 +1,8 @@
 package app.pulse.desktop.ui.constants.sizes
 
-// sizes for the right sidebar/panel — own constants object (like LeftSidebar),
+// sizes for the right sidebar — own constants object (like LeftSidebar),
 // so resizing the right panel doesn't touch the shared Sizes object.
-object RightPanel {
+object RightSidebar {
 
     // panel widths
     const val targetWidth = 380
@@ -31,5 +31,5 @@ object RightPanel {
     const val creditIcon = 24
     const val ellipsisIcon = 24
     const val shareIcon = 24
-    const val chevronIcon = 24
+    const val chevronIcon = 28
 }

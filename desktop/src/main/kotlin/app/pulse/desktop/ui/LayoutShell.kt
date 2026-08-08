@@ -41,7 +41,7 @@ import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.RightPanelState
 import app.pulse.desktop.ui.sidebar.RightSidebar
 import app.pulse.desktop.ui.sidebar.SidebarLeft
-import app.pulse.desktop.ui.constants.sizes.RightPanel
+import app.pulse.desktop.ui.constants.sizes.RightSidebar as RightSidebarSizes
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
@@ -62,7 +62,7 @@ fun LayoutShell(
     val bg = Color(0xFF0a0a0a)
 
     // right panel width — animated triggers smooth center content re-layout
-    var targetPanelWidth by remember { mutableStateOf(RightPanel.targetWidth.dp) }
+    var targetPanelWidth by remember { mutableStateOf(RightSidebarSizes.targetWidth.dp) }
     var panelState by remember { mutableStateOf(RightPanelState.EXPANDED) }
     var isPeeking by remember { mutableStateOf(false) }
 
@@ -71,8 +71,8 @@ fun LayoutShell(
     val panelWidth by animateDpAsState(
         targetValue = when {
             panelState == RightPanelState.EXPANDED -> targetPanelWidth
-            isPeeking -> RightPanel.intermediateWidth.dp
-            else -> RightPanel.collapsedWidth.dp
+            isPeeking -> RightSidebarSizes.intermediateWidth.dp
+            else -> RightSidebarSizes.collapsedWidth.dp
         },
         animationSpec = hideAnim
     )
@@ -95,8 +95,8 @@ fun LayoutShell(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(RightPanel.padding.dp),
-                horizontalArrangement = Arrangement.spacedBy(RightPanel.padding.dp)
+                    .padding(RightSidebarSizes.padding.dp),
+                horizontalArrangement = Arrangement.spacedBy(RightSidebarSizes.padding.dp)
             ) {
                 // left sidebar
                 SidebarLeft(
@@ -127,15 +127,15 @@ fun LayoutShell(
                 ResizableSidebar(
                     width = panelWidth,
                     onWidthChange = { targetPanelWidth = it },
-                    minWidth = if (panelState == RightPanelState.EXPANDED) RightPanel.minWidth.dp else RightPanel.collapsedWidth.dp,
-                    maxWidth = RightPanel.maxWidth.dp
+                    minWidth = if (panelState == RightPanelState.EXPANDED) RightSidebarSizes.minWidth.dp else RightSidebarSizes.collapsedWidth.dp,
+                    maxWidth = RightSidebarSizes.maxWidth.dp
                 ) {
                     RightSidebar(
                         player = player,
                         panelState = panelState,
                         onCycleState = {
                             if (panelState == RightPanelState.COLLAPSED) {
-                                targetPanelWidth = RightPanel.minWidth.dp
+                                targetPanelWidth = RightSidebarSizes.minWidth.dp
                             }
                             panelState = if (panelState == RightPanelState.EXPANDED)
                                 RightPanelState.COLLAPSED
@@ -160,7 +160,7 @@ private fun ResizableSidebar(
     maxWidth: Dp,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val handleOffsetDp = (RightPanel.padding / 2 + 8).dp
+    val handleOffsetDp = (RightSidebarSizes.padding / 2 + 8).dp
 
     Box(
         modifier = Modifier

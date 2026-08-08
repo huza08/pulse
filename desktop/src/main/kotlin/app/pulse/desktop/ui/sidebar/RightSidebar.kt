@@ -50,7 +50,7 @@ import app.pulse.core.data.models.Song
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.constants.fonts.FontSizes
 import app.pulse.desktop.ui.utils.NetworkImage
-import app.pulse.desktop.ui.constants.sizes.RightPanel
+import app.pulse.desktop.ui.constants.sizes.RightSidebar as RightSidebarSizes
 import app.pulse.desktop.ui.constants.sizes.Sizes
 
 enum class RightPanelState { COLLAPSED, EXPANDED }
@@ -79,8 +79,8 @@ fun RightSidebar(
     val animSpec = remember { spring<Dp>(dampingRatio = 1f, stiffness = 300f) }
 
     val density = LocalDensity.current
-    val fullW = with(density) { RightPanel.minWidth.dp.toPx().roundToInt() }
-    val peekOffsetXDp = ((RightPanel.minWidth - RightPanel.intermediateWidth) / 2).dp
+    val fullW = with(density) { RightSidebarSizes.minWidth.dp.toPx().roundToInt() }
+    val peekOffsetXDp = ((RightSidebarSizes.minWidth - RightSidebarSizes.intermediateWidth) / 2).dp
     val animateOffset by animateDpAsState(
         targetValue = if (isCollapsed) peekOffsetXDp else 0.dp,
         animationSpec = animSpec
@@ -138,7 +138,7 @@ fun RightSidebar(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(vertical = RightPanel.sectionPad.dp),
+                    .padding(vertical = RightSidebarSizes.sectionPad.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -146,7 +146,7 @@ fun RightSidebar(
                     contentDescription = "Show panel",
                     tint = textColor,
                     modifier = Modifier
-                        .size(RightPanel.iconSm.dp)
+                        .size(RightSidebarSizes.iconSm.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -180,8 +180,8 @@ private fun ExpandedRightSidebar(
             .then(modifier)
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(RightPanel.padding.dp),
-        verticalArrangement = Arrangement.spacedBy(RightPanel.padding.dp)
+            .padding(RightSidebarSizes.padding.dp),
+        verticalArrangement = Arrangement.spacedBy(RightSidebarSizes.padding.dp)
     ) {
         // header
         Row(
@@ -194,14 +194,14 @@ private fun ExpandedRightSidebar(
                     contentDescription = "Collapse panel",
                     tint = text,
                     modifier = Modifier
-                        .size(RightPanel.chevronIcon.dp)
+                        .size(RightSidebarSizes.chevronIcon.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = onCycleState
                         )
                 )
-                Spacer(Modifier.width(RightPanel.chevronSpacer.dp))
+                Spacer(Modifier.width(RightSidebarSizes.chevronSpacer.dp))
             }
             Text(
                 text = "Now Playing",
@@ -215,7 +215,7 @@ private fun ExpandedRightSidebar(
                 painter = painterResource("/icons/ellipsis_horizontal.svg"),
                 contentDescription = "More",
                 tint = text,
-                modifier = Modifier.size(RightPanel.ellipsisIcon.dp)
+                modifier = Modifier.size(RightSidebarSizes.ellipsisIcon.dp)
             )
         }
 
@@ -223,7 +223,7 @@ private fun ExpandedRightSidebar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(RightPanel.cardRadius.dp))
+                .clip(RoundedCornerShape(RightSidebarSizes.cardRadius.dp))
                 .background(Color(0xFFD946EF))
         ) {
             Box(
@@ -254,7 +254,7 @@ private fun ExpandedRightSidebar(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(Sizes.sidebarItemPadH.dp)
-                    .size(RightPanel.shareIcon.dp)
+                    .size(RightSidebarSizes.shareIcon.dp)
             )
         }
 
@@ -269,7 +269,7 @@ private fun ExpandedRightSidebar(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(RightPanel.songArtistGap.dp))
+                Spacer(Modifier.height(RightSidebarSizes.songArtistGap.dp))
                 song.artistsText?.let { author ->
                     Text(
                         text = author,
@@ -286,9 +286,9 @@ private fun ExpandedRightSidebar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(RightPanel.cardRadius.dp))
+                .clip(RoundedCornerShape(RightSidebarSizes.cardRadius.dp))
                 .background(cardBg)
-                .padding(RightPanel.cardInnerPad.dp)
+                .padding(RightSidebarSizes.cardInnerPad.dp)
         ) {
             Column {
                 Text(
@@ -298,7 +298,7 @@ private fun ExpandedRightSidebar(
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp
                 )
-                Spacer(Modifier.height(RightPanel.cardContentGap.dp))
+                Spacer(Modifier.height(RightSidebarSizes.cardContentGap.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -307,9 +307,9 @@ private fun ExpandedRightSidebar(
                         painter = painterResource("/icons/person.svg"),
                         contentDescription = "Artist",
                         tint = dim,
-                        modifier = Modifier.size(RightPanel.creditIcon.dp)
+                        modifier = Modifier.size(RightSidebarSizes.creditIcon.dp)
                     )
-                    Spacer(Modifier.width(RightPanel.chevronSpacer.dp))
+                    Spacer(Modifier.width(RightSidebarSizes.chevronSpacer.dp))
                     Text(
                         text = "Main Artist",
                         color = dim,
@@ -333,9 +333,9 @@ private fun ExpandedRightSidebar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(RightPanel.cardRadius.dp))
+                    .clip(RoundedCornerShape(RightSidebarSizes.cardRadius.dp))
                     .background(cardBg)
-                    .padding(RightPanel.cardInnerPad.dp)
+                    .padding(RightSidebarSizes.cardInnerPad.dp)
             ) {
                 Column {
                     Text(
@@ -345,7 +345,7 @@ private fun ExpandedRightSidebar(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 1.sp
                     )
-                    Spacer(Modifier.height(RightPanel.cardContentGap.dp))
+                    Spacer(Modifier.height(RightSidebarSizes.cardContentGap.dp))
 
                     val upcoming = queue.drop(currentIndex + 1).take(1)
                     upcoming.forEachIndexed { i, nextSong ->
@@ -355,16 +355,16 @@ private fun ExpandedRightSidebar(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(RightPanel.queueThumb.dp)
-                                    .clip(RoundedCornerShape(RightPanel.thumbRadius.dp))
+                                    .size(RightSidebarSizes.queueThumb.dp)
+                                    .clip(RoundedCornerShape(RightSidebarSizes.thumbRadius.dp))
                                     .background(Color(0xFF1a1a1a))
                             ) {
                                 val density = LocalDensity.current
                                 nextSong.thumbnailUrl?.let { thumb ->
-                                    val thumbPx = with(density) { RightPanel.queueThumb.dp.toPx().toInt() }
+                                    val thumbPx = with(density) { RightSidebarSizes.queueThumb.dp.toPx().toInt() }
                                     NetworkImage(
                                         url = thumb,
-                                        modifier = Modifier.size(RightPanel.queueThumb.dp),
+                                        modifier = Modifier.size(RightSidebarSizes.queueThumb.dp),
                                         requestedSize = thumbPx
                                     )
                                 }
@@ -390,7 +390,7 @@ private fun ExpandedRightSidebar(
                             }
                         }
                         if (i < upcoming.lastIndex) {
-                            Spacer(Modifier.height(RightPanel.itemGap.dp))
+                            Spacer(Modifier.height(RightSidebarSizes.itemGap.dp))
                         }
                     }
                 }
