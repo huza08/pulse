@@ -45,6 +45,7 @@ inline fun <T : Innertube.Item> ItemsPage(
     initialPlaceholderCount: Int = 8,
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(R.string.no_items_found),
+    stickyHeader: Boolean = false,
     noinline provider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null
 ) = ItemsPage(
     tag = tag,
@@ -55,6 +56,7 @@ inline fun <T : Innertube.Item> ItemsPage(
     initialPlaceholderCount = initialPlaceholderCount,
     continuationPlaceholderCount = continuationPlaceholderCount,
     emptyItemsText = emptyItemsText,
+    stickyHeader = stickyHeader,
     provider = provider
 )
 
@@ -71,6 +73,7 @@ inline fun <T : Innertube.Item> ItemsPage(
     initialPlaceholderCount: Int = 8,
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(R.string.no_items_found),
+    stickyHeader: Boolean = false,
     noinline provider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null
 ) {
     val (_, typography) = LocalAppearance.current
@@ -103,11 +106,30 @@ inline fun <T : Innertube.Item> ItemsPage(
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
-                .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
+                .only(
+                    // ponytail: sticky wrapper supplies top inset; keeping it here too would double it
+                    WindowInsetsSides.End +
+                        if (stickyHeader) WindowInsetsSides.Bottom else WindowInsetsSides.Vertical
+                )
                 .asPaddingValues(),
             modifier = Modifier.fillMaxSize()
         ) {
-            item(
+            if (stickyHeader) stickyHeader(
+                key = "header",
+                contentType = "header"
+            ) {
+                // sticky ignores contentPadding (sticks at viewport top) — re-apply status bar
+                // inset so pinned bar never slides under OS status bar on any device
+                Box(
+                    modifier = Modifier.padding(
+                        LocalPlayerAwareWindowInsets.current
+                            .only(WindowInsetsSides.Top)
+                            .asPaddingValues()
+                    )
+                ) {
+                    header(null, null)
+                }
+            } else item(
                 key = "header",
                 contentType = "header"
             ) {

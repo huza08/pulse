@@ -1,20 +1,29 @@
 package app.pulse.android.ui.screens.searchresult
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.preferences.UIStatePreferences
 import app.pulse.android.ui.components.LocalMenuState
-import app.pulse.android.ui.components.themed.Header
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.Scaffold
 import app.pulse.android.ui.items.AlbumItem
@@ -34,11 +43,13 @@ import app.pulse.android.ui.screens.artistRoute
 import app.pulse.android.ui.screens.playlistRoute
 import app.pulse.android.utils.asMediaItem
 import app.pulse.android.utils.forcePlay
+import app.pulse.android.utils.medium
 import app.pulse.android.utils.playingSong
 import app.pulse.compose.persist.LocalPersistMap
 import app.pulse.compose.persist.PersistMapCleanup
 import app.pulse.compose.routing.RouteHandler
 import app.pulse.core.ui.Dimensions
+import app.pulse.core.ui.LocalAppearance
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.ContinuationBody
 import app.pulse.providers.innertube.models.bodies.SearchBody
@@ -64,15 +75,40 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
 
         Content {
             val headerContent: @Composable (textButton: (@Composable () -> Unit)?) -> Unit = {
-                Header(
-                    title = query,
-                    modifier = Modifier.pointerInput(Unit) {
-                        detectTapGestures {
-                            persistMap?.clean("searchResults/$query/")
-                            onSearchAgain()
+                val (colorPalette, typography) = LocalAppearance.current
+                val pillShape = RoundedCornerShape(percent = 50)
+
+                // no Header wrapper, its 16.dp top padding was the dead gap above the pill
+                // make it tuff and clean
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth()
+                        .clip(pillShape)
+                        .background(colorPalette.background1)
+                        .border(
+                            width = 0.5.dp,
+                            color = colorPalette.textSecondary.copy(alpha = 0.35f),
+                            shape = pillShape
+                        )
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                persistMap?.clean("searchResults/$query/")
+                                onSearchAgain()
+                            }
                         }
-                    }
-                )
+                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                ) {
+                    BasicText(
+                        text = query,
+                        style = typography.l.medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             Scaffold(
@@ -107,6 +143,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             },
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
+                            stickyHeader = true,
                             itemContent = { song ->
                                 SongItem(
                                     song = song,
@@ -154,6 +191,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             },
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
+                            stickyHeader = true,
                             itemContent = { album ->
                                 AlbumItem(
                                     album = album,
@@ -186,6 +224,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             },
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
+                            stickyHeader = true,
                             itemContent = { artist ->
                                 ArtistItem(
                                     artist = artist,
@@ -215,6 +254,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             },
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
+                            stickyHeader = true,
                             itemContent = { video ->
                                 VideoItem(
                                     video = video,
@@ -261,6 +301,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             },
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
+                            stickyHeader = true,
                             itemContent = { playlist ->
                                 PlaylistItem(
                                     playlist = playlist,
