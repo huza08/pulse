@@ -11,7 +11,7 @@ data class Track(
     val id: Int,
     val trackName: String,
     val artistName: String,
-    val duration: Double,
+    val duration: Double? = null, // lrclib.net returns null for some entries
     val plainLyrics: String?,
     val syncedLyrics: String?
 ) {
@@ -19,5 +19,5 @@ data class Track(
 }
 
 internal fun List<Track>.bestMatchingFor(title: String, duration: Duration) =
-    firstOrNull { it.duration.toLong() == duration.inWholeSeconds }
+    firstOrNull { it.duration?.toLong() == duration.inWholeSeconds }
         ?: minByOrNull { abs(it.trackName.length - title.length) }
