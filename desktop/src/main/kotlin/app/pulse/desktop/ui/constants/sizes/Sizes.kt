@@ -1,13 +1,9 @@
 package app.pulse.desktop.ui.constants.sizes
 
 // unified layout sizes for the desktop module.
+// right sidebar/panel sizes live in RightPanel; left sidebar in LeftSidebar.
 // change related constants together when resizing.
 object Sizes {
-
-    // right panel default width
-    const val panelTargetWidth = 380
-    const val panelMinWidth = 360
-    const val panelMaxWidth = 400
 
     // responsive thresholds
 
@@ -16,39 +12,9 @@ object Sizes {
 
     // shared constants (used by right sidebar and queue panel)
 
-    // icon shared with right sidebar
-    const val sidebarIconSm = 28
-    // item spacing (right sidebar references these)
+    // item spacing shared by right sidebar and queue panel
     const val sidebarItemGap = 8
     const val sidebarItemPadH = 10
-    // right sidebar vertical section padding
-    const val sidebarPad = 24
-
-    // right sidebar
-
-    // collapsed width (thin strip)
-    const val rightCollapsedWidth = 48
-    // peeked width
-    const val rightIntermediateWidth = 140
-    // outer/section padding
-    const val rightPanelPadding = 24
-    // inner card padding
-    const val rightCardInnerPad = 16
-    // card corner radius
-    const val rightCardRadius = 12
-    // queue thumbnail size
-    const val rightQueueThumb = 64
-    // icon sizes
-    const val rightCreditIcon = 24
-    const val rightEllipsisIcon = 24
-    const val rightShareIcon = 24
-    const val rightChevronIcon = 24
-    // thumbnail radius
-    const val rightThumbRadius = 6
-    const val rightCardContentGap = 8
-    const val rightSongArtistGap = 4
-    const val rightItemGap = 8
-    const val rightChevronSpacer = 8
 
     // queue panel
 

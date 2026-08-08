@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.core.data.models.Song
 import app.pulse.desktop.ui.constants.fonts.FontSizes
+import app.pulse.desktop.ui.constants.sizes.RightPanel
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.utils.NetworkImage
 import app.pulse.desktop.service.PlayerService
@@ -84,7 +85,7 @@ fun QueuePanel(
                     .widthIn(min = Sizes.queueMinWidth.dp, max = Sizes.queueMaxWidth.dp)
                     .fillMaxHeight()
                     .background(Color(0xFF141414))
-                    .padding(Sizes.rightPanelPadding.dp)
+                    .padding(RightPanel.padding.dp)
             ) {
                 // header
                 Row(

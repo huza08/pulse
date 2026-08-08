@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.pulse.desktop.ui.View
 import app.pulse.desktop.ui.constants.fonts.FontSizes
+import app.pulse.desktop.ui.constants.sizes.RightPanel
 import app.pulse.desktop.ui.constants.sizes.Sizes
 
 @Composable
@@ -54,7 +55,7 @@ fun TopNavBar(
             .fillMaxWidth()
             .height(Sizes.topBarHeight.dp)
             .background(bg)
-            .padding(horizontal = Sizes.rightPanelPadding.dp)
+            .padding(horizontal = RightPanel.padding.dp)
     ) {
         // searchbar
         Box(modifier = Modifier.weight(1f)) {
@@ -104,7 +105,7 @@ fun TopNavBar(
             )
         }
 
-        Spacer(Modifier.width(Sizes.rightPanelPadding.dp))
+        Spacer(Modifier.width(RightPanel.padding.dp))
 
         // dummy for now
         Icon(
