@@ -15,8 +15,6 @@ object FontSizes {
     const val sidebarItem = 19
     // filter chip label
     const val sidebarChip = 17
-    // search row recents label
-    const val sidebarSmall = 18
     // list row subtitle
     const val sidebarSub = 16
 
