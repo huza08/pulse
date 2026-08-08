@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import app.pulse.desktop.service.PlayerService
 import app.pulse.desktop.ui.sidebar.RightPanelState
 import app.pulse.desktop.ui.sidebar.RightSidebar
+import app.pulse.desktop.ui.sidebar.SidebarLeft
 import app.pulse.desktop.ui.constants.sizes.Sizes
 import app.pulse.desktop.ui.components.TopNavBar
 import app.pulse.core.data.models.Song
@@ -96,6 +97,12 @@ fun LayoutShell(
                     .padding(Sizes.rightPanelPadding.dp),
                 horizontalArrangement = Arrangement.spacedBy(Sizes.rightPanelPadding.dp)
             ) {
+                // Left sidebar
+                SidebarLeft(
+                    onNavigate = onNavigate,
+                    modifier = Modifier.fillMaxHeight()
+                )
+
                 // Center content area
                 Box(
                     modifier = Modifier
@@ -182,7 +189,7 @@ private fun ResizableSidebar(
 
 // drag hint
 @Composable
-private fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Unit) {
+internal fun ResizableHandle(modifier: Modifier = Modifier, onDrag: (Float) -> Unit) {
     val s = LocalDensity.current.density
     val currentOnDrag by rememberUpdatedState(onDrag)
     val interactionSource = remember { MutableInteractionSource() }
