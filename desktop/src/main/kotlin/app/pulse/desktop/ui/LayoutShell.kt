@@ -97,7 +97,7 @@ fun LayoutShell(
                     .padding(Sizes.rightPanelPadding.dp),
                 horizontalArrangement = Arrangement.spacedBy(Sizes.rightPanelPadding.dp)
             ) {
-                // Left sidebar
+                // left sidebar
                 SidebarLeft(
                     onNavigate = onNavigate,
                     modifier = Modifier.fillMaxHeight()
