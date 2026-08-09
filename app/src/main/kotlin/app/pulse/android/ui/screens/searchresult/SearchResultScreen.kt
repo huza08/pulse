@@ -6,8 +6,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -16,10 +21,13 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.preferences.UIStatePreferences
@@ -74,6 +82,8 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
         GlobalRoutes()
 
         Content {
+            val (colorPalette) = LocalAppearance.current
+
             val headerContent: @Composable (textButton: (@Composable () -> Unit)?) -> Unit = {
                 val (colorPalette, typography) = LocalAppearance.current
                 val pillShape = RoundedCornerShape(percent = 50)
@@ -111,6 +121,31 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                 }
             }
 
+            val backdropContent: @Composable () -> Unit = {
+                val topInset = LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Top)
+                    .asPaddingValues()
+                    .calculateTopPadding()
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        // ends just below the pill (inset + 52 + 16 tail) so
+                        // first results stay visible at rest; fades items as
+                        // they scroll under pill/status bar
+                        .height(68.dp + topInset)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    colorPalette.background0,
+                                    colorPalette.background0.copy(alpha = 0.8f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+            }
+
             Scaffold(
                 key = "searchresult",
                 topIconButtonId = R.drawable.chevron_back,
@@ -144,6 +179,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
                             stickyHeader = true,
+                            backdrop = backdropContent,
                             itemContent = { song ->
                                 SongItem(
                                     song = song,
@@ -192,6 +228,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
                             stickyHeader = true,
+                            backdrop = backdropContent,
                             itemContent = { album ->
                                 AlbumItem(
                                     album = album,
@@ -225,6 +262,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
                             stickyHeader = true,
+                            backdrop = backdropContent,
                             itemContent = { artist ->
                                 ArtistItem(
                                     artist = artist,
@@ -255,6 +293,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
                             stickyHeader = true,
+                            backdrop = backdropContent,
                             itemContent = { video ->
                                 VideoItem(
                                     video = video,
@@ -302,6 +341,7 @@ fun SearchResultScreen(query: String, onSearchAgain: () -> Unit) {
                             emptyItemsText = stringResource(R.string.no_search_results),
                             header = headerContent,
                             stickyHeader = true,
+                            backdrop = backdropContent,
                             itemContent = { playlist ->
                                 PlaylistItem(
                                     playlist = playlist,
