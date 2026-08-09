@@ -1,16 +1,19 @@
 package app.pulse.android.ui.screens.searchresult
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +49,7 @@ inline fun <T : Innertube.Item> ItemsPage(
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(R.string.no_items_found),
     stickyHeader: Boolean = false,
+    noinline backdrop: (@Composable () -> Unit)? = null,
     noinline provider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null
 ) = ItemsPage(
     tag = tag,
@@ -57,6 +61,7 @@ inline fun <T : Innertube.Item> ItemsPage(
     continuationPlaceholderCount = continuationPlaceholderCount,
     emptyItemsText = emptyItemsText,
     stickyHeader = stickyHeader,
+    backdrop = backdrop,
     provider = provider
 )
 
@@ -74,16 +79,20 @@ inline fun <T : Innertube.Item> ItemsPage(
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(R.string.no_items_found),
     stickyHeader: Boolean = false,
+    noinline backdrop: (@Composable () -> Unit)? = null,
     noinline provider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null
 ) {
     val (_, typography) = LocalAppearance.current
     val updatedProvider by rememberUpdatedState(provider)
-    val lazyListState = rememberLazyListState()
+    // Keyed by tag, plain remember (not saveable): Route equality ignores args, so a new
+    // query reuses this composition and stale remembers. Keying by tag forces fresh state
+    // (scroll + items) per query. Same tag re-entry keeps state.
+    val lazyListState = remember(tag) { LazyListState() }
     var itemsPage by persist<Innertube.ItemsPage<T>?>(tag)
 
-    val shouldLoad by remember {
+    val shouldLoad by remember(tag) {
         derivedStateOf {
-            lazyListState.layoutInfo.visibleItemsInfo.any { it.key == "loading" }
+            lazyListState.layoutInfo.visibleItemsInfo.any { it.key == "loading" || it.key == "loading-first" }
         }
     }
 
@@ -102,34 +111,25 @@ inline fun <T : Innertube.Item> ItemsPage(
         }?.exceptionOrNull()?.printStackTrace()
     }
 
+    val topInset = LocalPlayerAwareWindowInsets.current
+        .only(WindowInsetsSides.Top)
+        .asPaddingValues()
+        .calculateTopPadding()
+    val headerHeight = topInset + 52.dp
+
     Box(modifier = modifier) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current
-                .only(
-                    // ponytail: sticky wrapper supplies top inset; keeping it here too would double it
-                    WindowInsetsSides.End +
-                        if (stickyHeader) WindowInsetsSides.Bottom else WindowInsetsSides.Vertical
-                )
+            contentPadding = if (stickyHeader) LocalPlayerAwareWindowInsets.current
+                .only(WindowInsetsSides.End + WindowInsetsSides.Bottom)
+                .add(WindowInsets(top = headerHeight))
+                .asPaddingValues()
+            else LocalPlayerAwareWindowInsets.current
+                .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
                 .asPaddingValues(),
             modifier = Modifier.fillMaxSize()
         ) {
-            if (stickyHeader) stickyHeader(
-                key = "header",
-                contentType = "header"
-            ) {
-                // sticky ignores contentPadding (sticks at viewport top) — re-apply status bar
-                // inset so pinned bar never slides under OS status bar on any device
-                Box(
-                    modifier = Modifier.padding(
-                        LocalPlayerAwareWindowInsets.current
-                            .only(WindowInsetsSides.Top)
-                            .asPaddingValues()
-                    )
-                ) {
-                    header(null, null)
-                }
-            } else item(
+            if (!stickyHeader) item(
                 key = "header",
                 contentType = "header"
             ) {
@@ -152,7 +152,12 @@ inline fun <T : Innertube.Item> ItemsPage(
                 )
             }
 
-            if (!(itemsPage != null && itemsPage?.continuation == null)) item(key = "loading") {
+            if (!(itemsPage != null && itemsPage?.continuation == null)) item(
+                // ponytail: first-load placeholder gets its own key. With the shared "loading"
+                // key, Compose anchors scroll to it and follows it when page 1 moves it to the
+                // end of the list, auto-scrolling results to item ~14 on load
+                key = if (itemsPage?.items.isNullOrEmpty()) "loading-first" else "loading"
+            ) {
                 val isFirstLoad = itemsPage?.items.isNullOrEmpty()
 
                 ShimmerHost(
@@ -163,6 +168,18 @@ inline fun <T : Innertube.Item> ItemsPage(
                     }
                 }
             }
+        }
+
+        // backdrop overlays the list: fade must draw over content to be visible
+        backdrop?.invoke()
+
+        // sticky header as fixed overlay above backdrop, always pinned so the fade can't hide it
+        if (stickyHeader) Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = topInset)
+        ) {
+            header(null, null)
         }
 
         FloatingActionsContainerWithScrollToTop(lazyListState = lazyListState)
