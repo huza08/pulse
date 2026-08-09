@@ -12,7 +12,9 @@ fun PersistMapCleanup(prefix: String) {
     val context = LocalContext.current
     val persistMap = LocalPersistMap.current
 
-    DisposableEffect(persistMap) {
+    // prefix in keys: a reused composition (route whose equality ignores args) recomposes
+    // with a new query. Without re-keying, onDispose cleans the stale first prefix forever
+    DisposableEffect(persistMap, prefix) {
         onDispose {
             if (context.findActivityNullable()?.isChangingConfigurations == false)
                 persistMap?.clean(prefix)
