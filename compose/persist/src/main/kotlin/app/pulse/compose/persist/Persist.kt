@@ -18,7 +18,9 @@ fun <T> persist(
 ): MutableState<T> {
     val persistMap = LocalPersistMap.current
 
-    return remember(persistMap) {
+    // tag in remember: a reused composition (e.g. route whose equality ignores args) must
+    // re-read the map for the new tag instead of returning the old tag's stale state
+    return remember(persistMap, tag) {
         persistMap?.map?.getOrPut(tag) { mutableStateOf(initialValue, policy) } as? MutableState<T>
             ?: mutableStateOf(initialValue, policy)
     }
