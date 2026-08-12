@@ -35,19 +35,20 @@ import app.pulse.desktop.ui.components.QueuePanel
 import app.pulse.desktop.ui.screens.player.PlayerScreen
 import app.pulse.providers.innertube.Innertube.DiscoverPage
 
-/** detect UI scale — make effective resolution ~1920px wide */
-private fun detectDpiScale(): Float {
+/** detect UI scale, make effective resolution ~1920px wide when OS reports no scale (X11) */
+private fun detectDpiScale(window: java.awt.Window): Float {
     // env var override
     System.getenv("PULSE_DPI_SCALE")?.toFloatOrNull()?.let { override ->
         return override.coerceIn(1f, 3f)
     }
-    // use AWT display mode width to compute scale (works on all platforms)
     return try {
-        val dm = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
-            .defaultScreenDevice.displayMode
-        val w = dm.width
-        val h = dm.height
-        (w / 1920f).coerceIn(1f, 3f)
+        val gc = window.graphicsConfiguration
+        // OS scale already in Skiko density, X11 falls back to 1920px-equivalent
+        if (gc.defaultTransform.scaleX.coerceAtLeast(gc.normalizingTransform.scaleX) > 1f) {
+            1f
+        } else {
+            (gc.device.displayMode.width / 1920f).coerceIn(1f, 3f)
+        }
     } catch (_: Exception) {
         1f
     }
@@ -89,8 +90,8 @@ fun main() {
             window.background = java.awt.Color(10, 10, 10)
             window.minimumSize = java.awt.Dimension(Sizes.windowMinW, Sizes.windowMinH)
 
-            // scale all UI by detected monitor DPI (fixes tiny UI on 4K/Linux)
-            val dpiScale = remember { detectDpiScale() }
+            // scale UI beyond OS scale, no-op when the OS already scales (Windogs/macOS)
+            val dpiScale = remember(window.graphicsConfiguration) { detectDpiScale(window) }
             val defaultDensity = LocalDensity.current
             val scaledDensity = remember(defaultDensity, dpiScale) {
                 object : Density {
