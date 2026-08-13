@@ -92,15 +92,6 @@ android {
             signingConfig = signingConfigs.findByName("release")
         }
 
-        create("nightly") {
-            initWith(getByName("release"))
-            matchingFallbacks += "release"
-
-            // applicationIdSuffix = ".nightly"
-            versionNameSuffix = "-NIGHTLY"
-            manifestPlaceholders["appName"] = "Pulse Nightly"
-            signingConfig = signingConfigs.findByName("ci")
-        }
     }
 
     buildFeatures {

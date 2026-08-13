@@ -360,11 +360,7 @@ private fun File.calculateSha256(): String {
 
 private suspend fun fetchChecksum(apkUrl: String): String? = withContext(Dispatchers.IO) {
     runCatching {
-        val checksumUrl = if (apkUrl.contains("nightly")) {
-            apkUrl.substringBeforeLast("/") + "/checksums-nightly.txt"
-        } else {
-            apkUrl.substringBeforeLast("/") + "/checksums.txt"
-        }
+        val checksumUrl = apkUrl.substringBeforeLast("/") + "/checksums.txt"
         val connection = URL(checksumUrl).openConnection().apply {
             connectTimeout = 5000
             readTimeout = 5000
