@@ -55,7 +55,7 @@ class CatchingDataSourceFactory(
         }.getOrElse { ex ->
             ex.printStackTrace()
 
-            // ponytail: let InterruptedException propagate — ExoPlayer's LoadTask treats it as clean cancellation
+            // ponytail: let InterruptedException propagate ExoPlayer's LoadTask treats it as clean cancellation
             if (ex is InterruptedException) throw ex
             if (ex is PlaybackException) throw ex
             else throw PlaybackException(

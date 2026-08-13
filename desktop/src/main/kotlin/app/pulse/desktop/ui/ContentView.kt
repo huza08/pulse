@@ -48,7 +48,7 @@ private fun PlaceholderView(title: String) {
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            text = "$title — coming soon",
+            text = "$title coming soon",
             color = Color(0xFF686868),
             fontSize = FontSizes.searchbar.sp
         )

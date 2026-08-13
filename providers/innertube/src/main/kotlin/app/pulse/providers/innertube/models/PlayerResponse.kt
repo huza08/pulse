@@ -44,7 +44,10 @@ data class PlayerResponse(
         val highestQualityFormat: AdaptiveFormat?
             get() = adaptiveFormats?.filter { it.url != null || it.signatureCipher != null }
                 ?.let { formats ->
-                    formats.findLast { it.itag == 251 || it.itag == 140 }
+                    // Prefer AAC (140, hardware-decoded everywhere) over opus (251,
+                    // software codec2 on some devices crashes on Xiaomi/Android 10).
+                    formats.firstOrNull { it.itag == 140 }
+                        ?: formats.firstOrNull { it.itag == 251 }
                         ?: formats.maxBy { it.bitrate ?: 0L }
                 }
 

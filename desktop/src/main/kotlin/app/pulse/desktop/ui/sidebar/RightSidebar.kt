@@ -91,7 +91,7 @@ fun RightSidebar(
             .fillMaxSize()
             .hoverable(interactionSrc)
     ) {
-        // Expanded content — always in composition so artwork/images stay loaded
+        // Expanded content always in composition so artwork/images stay loaded
         Box(
             modifier = Modifier
                 .offset(x = animateOffset)
@@ -133,7 +133,7 @@ fun RightSidebar(
                 .background(Color(0xFF0a0a0a).copy(alpha = curtainAlpha))
         )
 
-        // Collapsed icon overlay — always on top of curtain
+        // Collapsed icon overlay always on top of curtain
         if (isCollapsed) {
             Box(
                 modifier = Modifier

@@ -19,8 +19,15 @@ private suspend fun Innertube.tryContexts(
     checkIsValid: Boolean,
     vararg contexts: Context
 ): PlayerResponse? {
-    contexts.forEach { context ->
+    contexts.forEach { rawContext ->
         if (!currentCoroutineContext().isActive) return null
+        val context = sessionVisitorData?.let { visitor ->
+            rawContext.copy(client = rawContext.client.copy(defaultVisitorData = visitor))
+        } ?: rawContext
+        if (isStreamClientBlocked(body.videoId, context.client.clientName)) {
+            logger.info("Skipping blocked stream client ${context.client.clientName} for ${body.videoId}")
+            return@forEach
+        }
 
         logger.info("Trying ${context.client.clientName} ${context.client.clientVersion} ${context.client.platform}")
         val cpn = generateNonce(16).decodeToString()
@@ -43,6 +50,7 @@ private suspend fun Innertube.tryContexts(
             ?.getOrNull()
             ?.takeIf { checkIsValid && it.isValid }
             ?.let {
+                markStreamClientSuccessful(body.videoId, context.client.clientName)
                 return it.copy(
                     cpn = cpn,
                     context = context
@@ -57,16 +65,23 @@ private val PlayerResponse.isValid
     get() = playabilityStatus?.status == "OK" &&
         streamingData?.adaptiveFormats?.any { it.url != null || it.signatureCipher != null } == true
 
-suspend fun Innertube.player(
-    body: PlayerBody,
-    checkIsValid: Boolean = true
-): Result<PlayerResponse?>? = runCatchingCancellable {
-    tryContexts(
-        body = body,
-        checkIsValid = checkIsValid,
+private val Innertube.playbackContexts
+    get() = listOf(
+        Context.DefaultAndroidVr,
         Context.DefaultIOS,
         Context.DefaultWeb,
         Context.DefaultAndroidMusic,
         Context.DefaultTV
+    )
+
+suspend fun Innertube.player(
+    body: PlayerBody,
+    checkIsValid: Boolean = true
+): Result<PlayerResponse?>? = runCatchingCancellable {
+    ensureVisitorData()
+    tryContexts(
+        body = body,
+        checkIsValid = checkIsValid,
+        *playbackContexts.toTypedArray()
     )
 }

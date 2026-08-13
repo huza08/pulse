@@ -148,6 +148,26 @@ data class Context(
             )
         )
 
+        // ANDROID_VR 1.65 is the most stable anonymous stream client: IOS URLs
+        // 403 at fetch time, WEB gets bot-gated, ANDROID_MUSIC/TVHTML5 demand
+        // login. yt-dlp itself rescues via this client's API, so lead with it.
+        val DefaultAndroidVr = Context(
+            client = Client(
+                clientId = 28,
+                clientName = "ANDROID_VR",
+                clientVersion = "1.65.10",
+                platform = "MOBILE",
+                deviceMake = "Oculus",
+                deviceModel = "Quest 3",
+                osName = "Android",
+                osVersion = "12L",
+                androidSdkVersion = 32,
+                userAgent = UserAgents.ANDROID_VR,
+                apiKey = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_Mz_ySM1fQ",
+                music = false
+            )
+        )
+
         val DefaultAndroidMusic = Context(
             client = Client(
                 clientId = 21,
@@ -194,4 +214,6 @@ object UserAgents {
         "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 11) gzip"
     const val IOS = "com.google.ios.youtube/20.03.02 (iPhone16,2; U; CPU iOS 18_2_1 like Mac OS X;)"
     const val TV = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version"
+    const val ANDROID_VR =
+        "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"
 }

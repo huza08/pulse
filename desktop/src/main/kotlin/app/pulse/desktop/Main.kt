@@ -137,7 +137,7 @@ fun main() {
                     }
                 }
 
-                // MiniPlayer — always visible, even on top of PlayerScreen
+                // MiniPlayer always visible, even on top of PlayerScreen
                 val playerState by player.state.collectAsState()
                 if (playerState.currentSong != null) {
                     MiniPlayer(

@@ -1,6 +1,6 @@
 package app.pulse.desktop.ui.constants.sizes
 
-// Card size config — change numbers here to resize all home cards
+// Card size config change numbers here to resize all home cards
 // Only constants actually referenced outside this file.
 object CardSizes {
     // unified card sizes
@@ -73,14 +73,14 @@ object CardSizes {
     const val gridArtistFont = 18
     const val gridTextGapSm = titleArtistGap
 
-    // skeleton — repeat counts
+    // skeleton repeat counts
     const val skelMoodCount = 4
     const val skelAlbumCount = 4
     const val skelTrendingCount = 6
     const val skelQpSongCount = 5
     const val skelQpAlbumCount = 5
 
-    // skeleton — shimmer sizes
+    // skeleton shimmer sizes
     const val skelSectionH = 18
     const val skelMoodW = 180
     const val skelMoodH = 56
@@ -90,25 +90,25 @@ object CardSizes {
     const val skelAlbumNameH = 18
     const val skelAlbumAuthorH = 12
 
-    // skeleton — section title shimmer widths
+    // skeleton section title shimmer widths
     const val skelTitleWide = 180
     const val skelTitleMid = 180
     const val skelTitleNarrow = 180
 
-    // skeleton — text placeholder widths
+    // skeleton text placeholder widths
     const val skelTrendingTitleW = 180
     const val skelTrendingArtistW = 100
     const val skelTrendingDurW = 40
     const val skelAlbumNameW = 120
     const val skelAlbumAuthorW = 80
 
-    // skeleton — gaps between text lines
+    // skeleton gaps between text lines
     const val skelTextGapSm = 4
 
-    // skeleton — thumbnail corner radiuses
+    // skeleton thumbnail corner radiuses
     const val skelMoodRadius = 12
     const val skelAlbumRadius = 8
 
-    // skeleton — shimmer rounded default radius
+    // skeleton shimmer rounded default radius
     const val skelShimmerRadius = 4
 }

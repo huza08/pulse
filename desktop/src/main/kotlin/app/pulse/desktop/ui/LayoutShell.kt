@@ -61,7 +61,7 @@ fun LayoutShell(
 ) {
     val bg = Color(0xFF0a0a0a)
 
-    // right panel width — animated triggers smooth center content re-layout
+    // right panel width animated triggers smooth center content re-layout
     var targetPanelWidth by remember { mutableStateOf(RightSidebarSizes.targetWidth.dp) }
     var panelState by remember { mutableStateOf(RightPanelState.EXPANDED) }
     var isPeeking by remember { mutableStateOf(false) }
@@ -82,7 +82,7 @@ fun LayoutShell(
             .fillMaxSize()
             .background(bg)
     ) {
-        // Main content — fills full window, touches all edges
+        // Main content fills full window, touches all edges
         Column(modifier = Modifier.fillMaxSize()) {
             // Top navigation bar
             TopNavBar(
@@ -123,7 +123,7 @@ fun LayoutShell(
                     )
                 }
 
-                // Right panel — animated width triggers smooth center reflow
+                // Right panel animated width triggers smooth center reflow
                 ResizableSidebar(
                     width = panelWidth,
                     onWidthChange = { targetPanelWidth = it },
@@ -151,7 +151,7 @@ fun LayoutShell(
     }
 }
 
-// right panel resizable wrapper — handle sits on the panel's start edge
+// right panel resizable wrapper handle sits on the panel's start edge
 @Composable
 private fun ResizableSidebar(
     width: Dp,

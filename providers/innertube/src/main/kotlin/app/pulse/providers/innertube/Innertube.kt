@@ -17,9 +17,11 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpSendPipeline
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.host
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.parameters
@@ -29,6 +31,7 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 
 internal val json = Json {
     ignoreUnknownKeys = true
@@ -111,6 +114,61 @@ object Innertube {
     @Suppress("MaximumLineLength")
     internal const val PLAYLIST_PANEL_VIDEO_RENDERER_MASK =
         "playlistPanelVideoRenderer(title,navigationEndpoint,longBylineText,shortBylineText,thumbnail,lengthText,badges)"
+
+    // Stream client failover: a stream URL that 403s at fetch time means the
+    // client that minted it is bad for this video. Block it for a backoff so
+    // the next resolve skips it and tries the next client instead of re-rolling
+    // the same dice (or falling straight to yt-dlp).
+    private const val FAILED_CLIENT_BACKOFF_MS = 10 * 60 * 1000L
+    private val blockedStreamClients = ConcurrentHashMap<String, Long>()
+    private val resolvedClientByVideoId = ConcurrentHashMap<String, String>()
+
+    fun markStreamClientFailed(videoId: String, clientName: String) {
+        blockedStreamClients["$videoId:$clientName"] = System.currentTimeMillis() + FAILED_CLIENT_BACKOFF_MS
+        resolvedClientByVideoId.remove(videoId)
+    }
+
+    internal fun isStreamClientBlocked(videoId: String, clientName: String): Boolean {
+        val until = blockedStreamClients["$videoId:$clientName"] ?: return false
+        if (until <= System.currentTimeMillis()) {
+            blockedStreamClients.remove("$videoId:$clientName")
+            return false
+        }
+        return true
+    }
+
+    internal fun markStreamClientSuccessful(videoId: String, clientName: String) {
+        resolvedClientByVideoId[videoId] = clientName
+    }
+
+    fun takeResolvedStreamClient(videoId: String): String? =
+        resolvedClientByVideoId.remove(videoId)
+
+    // The hardcoded DEFAULT_VISITOR_DATA is shared by every install worldwide, so
+    // YouTube flags it and bot-gates every anonymous client carrying it. Fetch a
+    // fresh visitorData per session (yt-dlp does the same) and inject it into all
+    // contexts; invalidate it when a stream 403s so the next resolve rotates.
+    @Volatile
+    var sessionVisitorData: String? = null
+        private set
+
+    fun invalidateVisitorData() {
+        sessionVisitorData = null
+    }
+
+    suspend fun ensureVisitorData() {
+        if (sessionVisitorData != null) return
+        runCatching { fetchVisitorData() }
+            .getOrNull()
+            ?.takeIf(String::isNotBlank)
+            ?.let { sessionVisitorData = it }
+    }
+
+    private suspend fun fetchVisitorData(): String? {
+        val html = client.get("https://www.youtube.com/").bodyAsText()
+        return Regex("\"visitorData\":\"([^\"]+)\"").find(html)?.groupValues?.getOrNull(1)
+            ?: Regex("\"VISITOR_DATA\":\"([^\"]+)\"").find(html)?.groupValues?.getOrNull(1)
+    }
 
     internal fun HttpRequestBuilder.mask(value: String = "*") =
         header("X-Goog-FieldMask", value)

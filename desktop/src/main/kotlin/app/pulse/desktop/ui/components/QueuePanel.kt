@@ -67,7 +67,7 @@ fun QueuePanel(
         modifier = modifier
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            // dim scrim — click to close
+            // dim scrim click to close
             Box(
                 modifier = Modifier
                     .weight(1f)

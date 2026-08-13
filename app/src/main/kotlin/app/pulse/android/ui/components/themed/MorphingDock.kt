@@ -57,7 +57,7 @@ fun MorphingDock(
         if (navigationState != null) lastNavState.value = navigationState
     }
 
-    // ── Single effect — no frame gap between snap and spring ─────────────────
+    // ── Single effect no frame gap between snap and spring ─────────────────
     //
     // The original had two separate LaunchedEffect blocks keyed on
     // (progress, isSubPage) and (isSubPage) respectively. When isSubPage flips,
@@ -66,7 +66,7 @@ fun MorphingDock(
     // dispatches, leaving a 1-frame window where animatable.value was stale.
     //
     // One effect keyed on (isSubPage, progress) handles both cases in a single
-    // coroutine body — the snapTo and animateTo are sequential with no gap.
+    // coroutine body the snapTo and animateTo are sequential with no gap.
     LaunchedEffect(isSubPage, progress) {
         if (!isSubPage) {
             // Home page: track scroll exactly.

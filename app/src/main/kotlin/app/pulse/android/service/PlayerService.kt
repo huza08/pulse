@@ -129,12 +129,12 @@ import app.pulse.providers.sponsorblock.SponsorBlock
 import app.pulse.providers.sponsorblock.models.Action
 import app.pulse.providers.sponsorblock.models.Category
 import app.pulse.providers.sponsorblock.requests.segments
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -175,6 +175,7 @@ val DataSpec.isLocal get() = key?.startsWith(LOCAL_KEY_PREFIX) == true
 
 val MediaItem.isLocal get() = mediaId.startsWith(LOCAL_KEY_PREFIX)
 val Song.isLocal get() = id.startsWith(LOCAL_KEY_PREFIX)
+private val String.videoId get() = removePrefix("https://youtube.com/watch?v=")
 
 private const val LIKE_ACTION = "app.pulse.android.LIKE"
 private const val LOOP_ACTION = "app.pulse.android.LOOP"
@@ -187,6 +188,12 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private lateinit var cache: Cache
     private lateinit var player: ExoPlayer
     private val uriCache = UriCache<String, Long?>()
+
+    // Bounds the codec-error retry to one attempt per media item (the decoder
+    // flake on this device is transient; a re-prepare usually lands a healthy
+    // allocation, but a stuck-dead codec must not loop).
+    @Volatile
+    private var codecRetriedMediaId: String? = null
 
     private val defaultActions =
         PlaybackState.ACTION_PLAY or
@@ -234,6 +241,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var volumeNormalizationJob: Job? = null
     private var sponsorBlockJob: Job? = null
     private var preFetchJob: Job? = null
+    private var preloadJob: Job? = null
 
     override var isInvincibilityEnabled by mutableStateOf(false)
 
@@ -449,6 +457,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
             loudnessEnhancer?.release()
             preFetchJob?.cancel()
+            preloadJob?.cancel()
             preferenceUpdaterJob?.cancel()
 
             coroutineScope.cancel()
@@ -512,6 +521,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             maybePreFetch(mediaItem)
         }
 
+        maybePreloadNext()
+
         maybeRecoverPlaybackError()
         maybeNormalizeVolume()
         maybeProcessRadio()
@@ -545,19 +556,36 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             return
         }
 
+        if (error.findCause<android.media.MediaCodec.CodecException>() != null) {
+            // Decoder died at startup (software codec2 flake on Xiaomi/Android 10:
+            // ion ENOTTY + dead bufferpool -> 0x80000000). Retry once per item.
+            val mediaId = player.currentMediaItem?.mediaId
+            if (mediaId != null && mediaId != codecRetriedMediaId) {
+                codecRetriedMediaId = mediaId
+                player.pause()
+                player.prepare()
+                player.play()
+                return
+            }
+        }
+
         if (
             error.findCause<InvalidResponseCodeException>()?.responseCode == 403
         ) {
-            val mediaId = player.currentMediaItem?.mediaId
+            val mediaId = player.currentMediaItem?.mediaId?.videoId
             if (mediaId != null) {
-                val hadUrl = runBlocking(Dispatchers.IO) {
-                    val format = Database.formatSync(mediaId)
-                    format?.url?.let {
-                        Database.insert(format.copy(url = null))
-                        true
-                    } ?: false
-                }
-                if (hadUrl) {
+                // Attribute the dead URL to the client that minted it (stamped at
+                // resolve time), block that client, and re-resolve with the next
+                // one. The blocklist bounds the loop: after every client is blocked
+                // the resolver falls to yt-dlp instead of re-rolling the same 403.
+                val format = runBlocking(Dispatchers.IO) { Database.formatSync(mediaId) }
+                val clientName = Innertube.takeResolvedStreamClient(mediaId) ?: format?.url?.let(::clientNameFromUrl)
+                if (clientName != null) {
+                    Innertube.markStreamClientFailed(mediaId, clientName)
+                    Innertube.invalidateVisitorData()
+                    runBlocking(Dispatchers.IO) {
+                        format?.url?.let { Database.insert(format.copy(url = null)) }
+                    }
                     uriCache.clear()
                     player.pause()
                     player.prepare()
@@ -620,6 +648,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         )
     }
 
+    private fun clientNameFromUrl(url: String): String? =
+        Regex("[?&]c=([^&]+)").find(url)?.groupValues?.getOrNull(1)
+            ?.let { if (it == "WEB") "WEB_REMIX" else it }
+
     private fun maybeRecoverPlaybackError() {
         if (player.playerError != null) player.prepare()
     }
@@ -630,7 +662,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (PlayerPreferences.pauseCache) return
 
         val fullKey = mediaItem.mediaId
-        val videoId = fullKey.removePrefix("https://youtube.com/watch?v=")
+        val videoId = fullKey.videoId
 
         preFetchJob = coroutineScope.launch {
             // Wait for URL to be resolved and cached by the player's resolver
@@ -670,6 +702,52 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 } catch (e: Exception) {
                     Log.w(TAG, "pre-fetch chunk $position failed: ${e.message}")
                 }
+            }
+        }
+    }
+
+    private fun maybePreloadNext() {
+        preloadJob?.cancel()
+
+        if (!player.hasNextMediaItem()) return
+        val next = player.getMediaItemAt(player.nextMediaItemIndex)
+        if (next.isLocal) return
+        // Cold start: the timeline can still be settling (current index -1), which
+        // makes "next" resolve to the current song skip the duplicate resolve.
+        if (next.mediaId == player.currentMediaItem?.mediaId) return
+
+        val videoId = next.mediaId.videoId
+        if (uriCache[videoId] != null) return
+
+        // Resolve the next track's stream URL ahead of time so the transition
+        // finds it in uriCache and skips the resolve wait. Run it shortly after
+        // the current song's resolve window (codec not up yet the calm moment):
+        // firing during active decode tripped the LMK on low-RAM devices (the +5s
+        // version killed the app at exactly the 5s mark). Innertube only never
+        // yt-dlp here, python during playback is the same LMK trip.
+        preloadJob = coroutineScope.launch {
+            delay(1_500)
+            try {
+                val body = Innertube.player(PlayerBody(videoId = videoId))?.getOrNull() ?: return@launch
+                val format = body.streamingData?.highestQualityFormat ?: return@launch
+                val url = format.url ?: return@launch
+
+                uriCache.push(key = videoId, meta = format.contentLength, uri = url.toUri())
+                runCatching {
+                    Database.insert(
+                        Format(
+                            songId = videoId,
+                            mimeType = format.mimeType,
+                            contentLength = format.contentLength,
+                            url = url
+                        )
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // A failed preload must never take down playback.
+                Log.w(TAG, "preload failed", e)
             }
         }
     }
@@ -1436,7 +1514,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 shouldCache = { !it.isLocal }
             )
         ) { dataSpec ->
-            val mediaId = dataSpec.key?.removePrefix("https://youtube.com/watch?v=")
+            val mediaId = dataSpec.key?.videoId
                 ?: error("A key must be set")
 
             fun DataSpec.ranged(contentLength: Long?) = contentLength?.let {
@@ -1472,23 +1550,30 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 }
             }.getOrNull() ?: run {
                 val (body, info) = runBlocking(Dispatchers.IO) {
-                    val bodyDeferred = async {
-                        Innertube.player(PlayerBody(videoId = mediaId))
-                    }
-                    val infoDeferred = async {
-                        runCatching { Dependencies.runDownload(mediaId) }
+                    val bodyResult = Innertube.player(PlayerBody(videoId = mediaId))?.getOrNull()
+                    val innertubeUrl = bodyResult?.streamingData?.highestQualityFormat?.url
+                    if (innertubeUrl != null) {
+                        // Innertube minted a URL: play immediately. yt-dlp is only a
+                        // last resort, so it stays off the critical path here.
+                        bodyResult to null
+                    } else {
+                        // Every innertube client failed (bot-gated or all blocked):
+                        // yt-dlp last resort.
+                        val info = runCatching { Dependencies.runDownload(mediaId) }
                             .mapCatching { YouTubeDLResponse.fromString(it) }
                             .also { it.exceptionOrNull()?.printStackTrace() }
                             .getOrNull()
+                        bodyResult to info
                     }
-                    bodyDeferred.await()?.getOrNull() to infoDeferred.await()
                 }
                 val youtubeFormat = body?.streamingData?.highestQualityFormat
-                if (info?.id != mediaId) throw VideoIdMismatchException()
-                val format = info.formats?.firstOrNull { it.formatId == info.formatId }
-
-                val uri =
-                    runCatching { info.url?.toUri() }.getOrNull() ?: throw UnplayableException()
+                val innertubeUrl = youtubeFormat?.url
+                val uri = when {
+                    innertubeUrl != null -> innertubeUrl.toUri()
+                    info?.id != mediaId -> throw VideoIdMismatchException()
+                    else -> runCatching { info?.url?.toUri() }.getOrNull() ?: throw UnplayableException()
+                }
+                val format = info?.formats?.firstOrNull { it.formatId == info.formatId }
 
                 val mediaItem = runCatching {
                     runBlocking(Dispatchers.IO) { findMediaItem(mediaId) }
@@ -1513,11 +1598,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                         Database.insert(
                             Format(
                                 songId = mediaId,
-                                itag = info.formatId?.toIntOrNull(),
+                                itag = info?.formatId?.toIntOrNull(),
                                 mimeType = youtubeFormat?.mimeType,
                                 bitrate = format?.abr?.let { it * 1000 }?.toLong(),
                                 loudnessDb = body?.playerConfig?.audioConfig?.normalizedLoudnessDb,
-                                contentLength = info.fileSize,
+                                contentLength = info?.fileSize,
                                 lastModified = youtubeFormat?.lastModified,
                                 url = uri.toString()
                             )
@@ -1527,13 +1612,13 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
                 uriCache.push(
                     key = mediaId,
-                    meta = info.fileSize,
+                    meta = info?.fileSize,
                     uri = uri
                 )
 
                 dataSpec
                     .withUri(uri)
-                    .ranged(info.fileSize)
+                    .ranged(info?.fileSize)
             }
         }.handleUnknownErrors { error ->
             if (error.findCause<InterruptedException>() == null) uriCache.clear()

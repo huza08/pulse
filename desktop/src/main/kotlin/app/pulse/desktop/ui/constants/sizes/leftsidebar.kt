@@ -38,17 +38,17 @@ object LeftSidebar {
     const val addBtnSize = 36       // w-8 h-8 header add
     const val plusBubble = 36       // w-8 h-8 collapsed add
 
-    // fixed row height — identical in collapsed/expanded so the list never
+    // fixed row height identical in collapsed/expanded so the list never
     // shifts vertically during the width animation (prevents content bounce)
     const val headerH = 72          // headerTop + headerBottom + addBtnSize
 
-    // second row (filter chips / collapsed + bubble) — SHARED fixed height in
+    // second row (filter chips / collapsed + bubble) SHARED fixed height in
     // both states, so the list column never shifts on expand/collapse.
     // expanded chip  = chipPadV*2 + 18sp line (~21) = 37  ≈ plusBubble (36)
     // row            = chip + headerBottom (16)      = 52
     const val chipsRowH = 52        // headerBottom + plusBubble
 
-    // collapsed-mode centering offsets — on collapse, elements glide from their
+    // collapsed-mode centering offsets on collapse, elements glide from their
     // expanded left position to the collapsed x-center (collapsedWidth/2 = 60)
     // with the same spring as the width, instead of riding the shrinking
     // sidebar center (no "following the right edge" slide).

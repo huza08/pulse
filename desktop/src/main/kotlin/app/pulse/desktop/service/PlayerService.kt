@@ -199,7 +199,7 @@ class PlayerService {
             if (index < 0 || index >= s.queue.size) return@update s
             val q = s.queue.toMutableList().apply { removeAt(index) }
             if (q.isEmpty()) {
-                // last song removed — clear everything
+                // last song removed clear everything
                 return@update s.copy(
                     queue = emptyList(),
                     currentIndex = -1,
@@ -374,7 +374,7 @@ class PlayerService {
         }
 
         if (!isPaused) {
-            // Restored from DB — line never started, start pipeline without wiping queue
+            // Restored from DB line never started, start pipeline without wiping queue
             if (line == null) {
                 playInternal(song, startMs = s.currentPositionMs)
                 return
@@ -859,7 +859,7 @@ class PlayerService {
             )
         }
 
-        // Restore song in paused state — user presses play to resume
+        // Restore song in paused state user presses play to resume
         val song = songs.getOrNull(saved.currentIndex) ?: return
         _state.update {
             it.copy(

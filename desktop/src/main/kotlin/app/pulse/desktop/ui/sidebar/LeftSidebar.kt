@@ -214,7 +214,7 @@ fun SidebarLeft(
                         .height(LeftSidebar.chipsRowH.dp)
                 ) {
                     // chips fade in/out via chipAlpha (fast tween) instead of
-                    // snapping on/off — the "bounce" was the instant alpha
+                    // snapping on/off the "bounce" was the instant alpha
                     // flip while the box was still narrow.
                     FilterChips(
                         active = activeFilter,
@@ -397,7 +397,7 @@ private fun FilterChip(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    // dark gray app theme — active chip is a step lighter than inactive
+    // dark gray app theme active chip is a step lighter than inactive
     val bg = if (isActive) ChipActiveBg else ChipBg
     Box(
         modifier = Modifier

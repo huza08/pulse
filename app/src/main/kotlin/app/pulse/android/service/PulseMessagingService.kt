@@ -21,7 +21,7 @@ class PulseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         Log.d(TAG, "FCM message received: ${message.data}")
 
-        val isUpdateMessage = message.data["type"] == "update_available" || 
+        val isUpdateMessage = message.data["type"] == "update_available" ||
                              message.data["key"] == "update_available" ||
                              message.data["action"] == "update_available"
 
@@ -39,7 +39,7 @@ class PulseMessagingService : FirebaseMessagingService() {
     companion object {
         /**
          * Subscribe this device to the "pulse-updates" FCM topic.
-         * This is idempotent — safe to call on every app launch.
+         * This is idempotent safe to call on every app launch.
          */
         fun subscribe() {
             FirebaseMessaging.getInstance()
