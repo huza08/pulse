@@ -217,11 +217,17 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var fadeNextId: String? = null
     private var autoTransitionHandled = false
     // Abort does not stop the tick from re-triggering: the trigger condition
-    // (within N seconds of the end) still holds, so a poisoned silent URL
-    // would restart the fade every 100ms until the boundary, churning decoders
-    // and log spam (the observed crash). After any abort, wait before fading
-    // again; the window is at most the 10s max fade, so 15s fully covers it.
-    private var nextFadeAllowedAt = 0L
+    // (within N seconds of the end) still holds, so a doomed fade (poisoned
+    // silent URL, stale short probed duration, ...) would restart every 100ms,
+    // churning decoders and log spam (the observed crash). Retrying the same
+    // (outgoing, incoming) pair is always futile, so the aborted pair is
+    // remembered and the trigger skips it. Self-clearing: once the audible
+    // moves to a different song the guard stops matching, so the next boundary
+    // fades normally. A time-based cooldown is not enough, a yt-dlp-rescued
+    // stream can report a short duration, so the window can outlive any fixed
+    // cooldown and refire anyway.
+    private var abortedFadeOutId: String? = null
+    private var abortedFadeNextId: String? = null
 
     // Bounds the codec-error retry to one attempt per media item (the decoder
     // flake on this device is transient; a re-prepare usually lands a healthy
@@ -871,13 +877,13 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         if (!fading) {
             if (a.playbackState != Player.STATE_READY || !a.isPlaying) return
-            if (SystemClock.elapsedRealtime() < nextFadeAllowedAt) return
             val duration = a.duration
             if (duration == C.TIME_UNSET || duration <= 0) return
             if (a.repeatMode == Player.REPEAT_MODE_ONE) return
             if (!a.hasNextMediaItem()) return
             val next = a.getMediaItemAt(a.nextMediaItemIndex)
             if (next.mediaId == a.currentMediaItem?.mediaId) return
+            if (abortedFadeOutId == a.currentMediaItem?.mediaId && abortedFadeNextId == next.mediaId) return
             if (duration - a.currentPosition > seconds * 1000L) return
             startCrossfade(next)
             return
@@ -1004,9 +1010,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     private fun abortCrossfade() {
         fading = false
+        // Capture before clearing: the trigger guards on this exact pair.
+        abortedFadeOutId = fadeOutId
+        abortedFadeNextId = fadeNextId
         fadeOutId = null
         fadeNextId = null
-        nextFadeAllowedAt = SystemClock.elapsedRealtime() + 15_000L
         silent.volume = 0f
         silent.pause()
         silent.stop()
