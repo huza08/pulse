@@ -56,6 +56,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
 import app.pulse.android.Database
@@ -198,6 +199,7 @@ fun Lyrics(
     val currentDurationProvider by rememberUpdatedState(durationProvider)
 
     val (colorPalette, typography) = LocalAppearance.current
+    val lyricsFontSize = PlayerPreferences.lyricsFontSize.sp
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val binder = LocalPlayerServiceBinder.current
@@ -506,10 +508,11 @@ fun Lyrics(
                             colorFilter = ColorFilter.tint(color),
                             modifier = Modifier
                                 .padding(vertical = 16.dp, horizontal = 48.dp)
-                                .size(typography.m.fontSize.dp)
+                                .size(lyricsFontSize.dp)
                         ) else BasicText(
                             text = sentence,
-                            style = if (active) typography.m.bold.color(color) else typography.m.semiBold.color(color),
+                            style = if (active) typography.m.bold.copy(fontSize = lyricsFontSize).color(color)
+                            else typography.m.semiBold.copy(fontSize = lyricsFontSize).color(color),
                             modifier = Modifier
                                 .padding(vertical = 12.dp, horizontal = 48.dp)
                                 .clickable(
@@ -527,7 +530,7 @@ fun Lyrics(
                 }
             } else BasicText(
                 text = lyrics?.fixed.orEmpty(),
-                style = typography.m.semiBold.color(colorPalette.text.copy(alpha = 0.8f)),
+                style = typography.m.semiBold.copy(fontSize = lyricsFontSize).color(colorPalette.text.copy(alpha = 0.8f)),
                 modifier = Modifier
                     .verticalFadingEdge(topSize = 4, bottomSize = 0)
                     .verticalScroll(rememberScrollState())

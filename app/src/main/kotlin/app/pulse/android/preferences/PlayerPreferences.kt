@@ -50,6 +50,7 @@ object PlayerPreferences : GlobalPreferencesHolder() {
     var showLike by boolean(false)
     var showRemaining by boolean(false)
     var lyricsKeepScreenAwake by boolean(true)
+    var lyricsFontSize by int(24)
     var lyricsShowSystemBars by boolean(true)
 
     var skipOnError by boolean(false)

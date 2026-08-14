@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -233,6 +237,20 @@ fun AppearanceSettings() {
                 text = stringResource(R.string.lyrics_keep_screen_awake_description),
                 isChecked = PlayerPreferences.lyricsKeepScreenAwake,
                 onCheckedChange = { PlayerPreferences.lyricsKeepScreenAwake = it }
+            )
+
+            val lyricsFontSizeInitial by remember { derivedStateOf { PlayerPreferences.lyricsFontSize.toFloat() } }
+            var lyricsFontSizeValue by remember(lyricsFontSizeInitial) { mutableFloatStateOf(lyricsFontSizeInitial) }
+
+            SliderSettingsEntry(
+                title = stringResource(R.string.lyrics_font_size),
+                text = stringResource(R.string.lyrics_font_size_description),
+                state = lyricsFontSizeValue,
+                onSlide = { lyricsFontSizeValue = it },
+                onSlideComplete = { PlayerPreferences.lyricsFontSize = lyricsFontSizeValue.toInt() },
+                toDisplay = { stringResource(R.string.format_sp, it.toInt()) },
+                range = 18f..28f,
+                steps = 9
             )
 
             SwitchSettingsEntry(
