@@ -75,7 +75,7 @@ fun SeekBar(
     shape: Shape = 8.dp.roundedShape,
     isActive: Boolean = binder.player.isPlaying,
     alwaysShowDuration: Boolean = false,
-    scrubberRadius: Dp = 6.dp,
+    scrubberRadius: Dp = 8.dp,
     style: PlayerPreferences.SeekBarStyle = PlayerPreferences.seekBarStyle,
     range: ClosedRange<Long> = 0L..media.duration
 ) {
@@ -164,7 +164,7 @@ private fun ClassicSeekBarBody(
     showDuration: Boolean,
     modifier: Modifier = Modifier,
     range: ClosedRange<Long> = 0L..duration,
-    barHeight: Dp = 5.dp,
+    barHeight: Dp = 7.dp,
     scrubberColor: Color = color,
     drawSteps: Boolean = false
 ) = Column {
@@ -185,8 +185,8 @@ private fun ClassicSeekBarBody(
                     else (position.toFloat() - range.start) / (range.endInclusive - range.start) * size.width
 
                 if (isDragging) {
-                    val thumbWidth = 8.dp.toPx()
-                    val thumbHeight = 16.dp.toPx()
+                    val thumbWidth = 10.dp.toPx()
+                    val thumbHeight = 20.dp.toPx()
                     drawRoundRect(
                         color = scrubberColor,
                         topLeft = Offset(
@@ -262,8 +262,8 @@ private fun WavySeekBarBody(
         label = null
     )
 
-    val currentAmplitude by transition.animateDp(label = "") { if (it || !isActive) 0.dp else 2.dp }
-    val currentScrubberHeight by transition.animateDp(label = "") { if (it) 20.dp else 15.dp }
+    val currentAmplitude by transition.animateDp(label = "") { if (it || !isActive) 0.dp else 3.dp }
+    val currentScrubberHeight by transition.animateDp(label = "") { if (it) 24.dp else 18.dp }
 
     val fraction = (position - range.start) / (range.endInclusive - range.start).toFloat()
     val progress by rememberInfiniteTransition(label = "").animateFloat(
@@ -291,12 +291,11 @@ private fun WavySeekBarBody(
                     height = currentScrubberHeight
                 )
             }
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-        ) {
+    ) {            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+            ) {
             Spacer(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -458,7 +457,7 @@ private fun Duration(
         ) {
             BasicText(
                 text = formatAsDuration(position),
-                style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
+                style = typography.xxs.semiBold.copy(fontSize = 13.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -466,7 +465,7 @@ private fun Duration(
             BasicText(
                 text = if (duration != C.TIME_UNSET) "-${formatAsDuration((duration - position).coerceAtLeast(0L))}"
                 else "--:--",
-                style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
+                style = typography.xxs.semiBold.copy(fontSize = 13.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

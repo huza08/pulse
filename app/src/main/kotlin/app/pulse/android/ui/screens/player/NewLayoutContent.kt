@@ -442,14 +442,14 @@ fun NewLayoutContent(
                         colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable { player.forceSeekToPrevious() }
-                            .size(32.dp)
+                            .size(38.dp)
                     )
 
                     Spacer(modifier = Modifier.width(48.dp))
 
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(60.dp)
                             .clickable {
                                 if (shouldBePlaying) player.pause()
                                 else {
@@ -461,7 +461,7 @@ fun NewLayoutContent(
                     ) {
                         if (isBuffering && shouldBePlaying) {
                             app.pulse.android.ui.components.themed.CircularProgressIndicator(
-                                modifier = Modifier.size(40.dp),
+                                modifier = Modifier.size(44.dp),
                                 color = colorPalette.accent
                             )
                         } else {
@@ -470,7 +470,7 @@ fun NewLayoutContent(
                                 else painterResource(R.drawable.play),
                                 contentDescription = null,
                                 colorFilter = ColorFilter.tint(colorPalette.accent),
-                                modifier = Modifier.size(40.dp)
+                                modifier = Modifier.size(44.dp)
                             )
                         }
                     }
@@ -483,7 +483,7 @@ fun NewLayoutContent(
                         colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable { player.forceSeekToNext() }
-                            .size(32.dp)
+                            .size(38.dp)
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -586,7 +586,7 @@ private fun NewLayoutVolumeSlider(
             painter = painterResource(R.drawable.volume_muted),
             contentDescription = null,
             colorFilter = ColorFilter.tint(colorPalette.accent.copy(alpha = 0.6f)),
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(18.dp)
         )
 
         Spacer(modifier = Modifier.width(8.dp))
