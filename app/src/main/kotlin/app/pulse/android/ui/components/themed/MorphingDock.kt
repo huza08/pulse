@@ -11,7 +11,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.android.ui.components.MorphingMiniPlayer
-import app.pulse.android.ui.components.CompactMiniPlayer
 import app.pulse.core.ui.Dimensions
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -99,7 +98,7 @@ fun MorphingDock(
     val p = if (!isSubPage) progress
             else animatable.value.coerceAtLeast(lastValidHomeProgress.floatValue)
 
-    // ── Phase 1 (Home Morph: 0.0 → 1.0) ─────────────────────────────────────
+    // Phase 1 (Home Morph: 0.0 → 1.0)
     // homeP is allowed to exceed 1.0 on home for overscroll wobble.
     // On sub-page it is clamped so overscroll is always 0.
     val homeP = if (!isSubPage) p else p.coerceAtMost(1f)
@@ -108,7 +107,7 @@ fun MorphingDock(
     val playerMorphProgress = ((homeP - 0.2f) / 0.7f).coerceIn(0f, 1f)
     val playerSlideProgress = ((homeP - 0.5f) / 0.4f).coerceIn(0f, 1f)
 
-    // ── Phase 2 (Sub-page Entry: 1.0 → 2.0) ──────────────────────────────────
+    // Phase 2 (Sub-page Entry: 1.0 → 2.0)
     val navHideFactor   = ((p - 1f) / 0.5f).coerceIn(0f, 1f)
     val radioShowFactor = ((p - 1.5f) / 0.5f).coerceIn(0f, 1f)
 
@@ -131,14 +130,14 @@ fun MorphingDock(
         val fullWidth = maxWidth
         val baseSize  = if (compact) Dimensions.items.collapsedPlayerHeight else 64.dp
 
-        // Structural morph: shrink circle to 80% of baseSize at p=1.0
+        // Structural morph, shrink circle to 80% of baseSize at p=1.0
         val morphFactor       = homeP.coerceIn(0f, 1f)
         val targetSize        = baseSize * (1f - 0.2f * morphFactor)
         val overscroll        = (homeP - 1f).coerceAtLeast(0f)
         val currentCircleSize = (targetSize - (baseSize * 0.4f * overscroll)).coerceAtLeast(baseSize * 0.6f)
         val commonDip         = with(density) { dockOverscrollDip.toPx() * overscroll }
 
-        // ── 1. Search button ─────────────────────────────────────────────────
+        // Search btn
         Box(
             modifier = Modifier
                 .size(currentCircleSize)
@@ -153,7 +152,7 @@ fun MorphingDock(
             FloatingSearchButton(onClick = onSearchClick, modifier = Modifier.fillMaxSize())
         }
 
-        // ── 2. Navigation bar ─────────────────────────────────────────────────
+        // Navigation bar
         val currentNavState = lastNavState.value
         if (!isLandscape && currentNavState != null && (1f - navHideFactor) > 0f) {
             val expandedNavWidth = fullWidth - baseSize - dockSpacing
@@ -183,7 +182,7 @@ fun MorphingDock(
             }
         }
 
-        // ── 3. Player & radio shared sizing ──────────────────────────────────
+        // player and radio shared sizing
         val targetCompactWidth  = dockCompactWidth
         val playerLandingWidth  = fullWidth - (currentCircleSize * 2) - (dockSpacing * 2)
         val expandedPlayerWidth = fullWidth
@@ -195,7 +194,7 @@ fun MorphingDock(
             playerLandingWidth + (targetCompactWidth - playerLandingWidth) * entryProgress
         }
 
-        // ── 4. Radio button ───────────────────────────────────────────────────
+        // radio button
         Box(
             modifier = Modifier
                 .size(currentCircleSize)
@@ -215,7 +214,7 @@ fun MorphingDock(
             )
         }
 
-        // ── 5. Mini player ────────────────────────────────────────────────────
+        // Mini player
         Box(
             modifier = Modifier
                 .height(currentCircleSize)
@@ -228,18 +227,13 @@ fun MorphingDock(
                     translationX = -(currentCircleSize / 2 + dockSpacing / 2).toPx() * radioShowFactor
                 }
         ) {
-            if (p < 1f) {
-                MorphingMiniPlayer(
-                    progress = playerMorphProgress,
-                    onClick  = onPlayerClick,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                CompactMiniPlayer(
-                    onClick  = onPlayerClick,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            // the fixed-width content is masked by the pill
+            MorphingMiniPlayer(
+                progress = playerMorphProgress,
+                onClick  = onPlayerClick,
+                modifier = Modifier.fillMaxSize(),
+                contentWidth = fullWidth
+            )
         }
     }
 }

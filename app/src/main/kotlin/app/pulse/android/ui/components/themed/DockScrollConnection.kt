@@ -50,8 +50,8 @@ fun rememberDockMorphProgress(): Float {
     return animateFloatAsState(
         targetValue = if (isScrolled) 1f else 0f,
         animationSpec = spring(
-            dampingRatio = 0.6f, // Spring.DampingRatioLowBouncy
-            stiffness = 300f
+            dampingRatio = 0.7f, // silk
+            stiffness = 260f
         ),
         label = "dockMorphProgress"
     ).value

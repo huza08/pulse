@@ -30,9 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -130,7 +133,8 @@ data class MiniPlayerState(
 fun MorphingMiniPlayer(
     progress: Float,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    contentWidth: Dp
 ) {
     val (colorPalette, typography) = LocalAppearance.current
     val state = rememberMiniPlayerState()
@@ -143,14 +147,22 @@ fun MorphingMiniPlayer(
             .clickable(
                 enabled = activeMediaItem != null,
                 onClick = onClick
-            )
+            ),
+        // the pill masks from the right only, so the artwork thumb
+        // stays visible as the pill narrows.
+        contentAlignment = Alignment.CenterStart
     ) {
         Row(
+            // the pill's clip masks the content as it narrows
+            // instead of re-laying the text out (the source of the bounce).
             modifier = Modifier
-                .fillMaxSize()
+                .width(contentWidth)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 0 at both rest states, 1 mid-morph: tuck/twist peaks in the middle.
+            val pulse = 4f * progress.coerceIn(0f, 1f) * (1f - progress.coerceIn(0f, 1f))
+            val textScale = 1f - 0.08f * pulse
             val thumbSize = (if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * (1f - 0.45f * progress)
 
             activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px)?.let { art ->
@@ -163,142 +175,107 @@ fun MorphingMiniPlayer(
                         .padding(2.dp)
                         .clip(CircleShape)
                         .background(colorPalette.background0)
+                        .graphicsLayer {
+                            rotationZ = -8f * pulse
+                        }
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
+            val density = LocalDensity.current
+            val artistLineHeight = with(density) { (typography.xs.fontSize * 1.4f).toDp() }
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
+                // Scale, don't re-measure: font-size animation re-rasterizes per
+                // frame and snaps. Full size at both rest states.
+
                 BasicText(
                     text = metadata?.title ?: stringResource(R.string.no_music_played),
                     style = typography.xs.semiBold.copy(
                         color = colorPalette.text
                     ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = textScale
+                        scaleY = textScale
+                        transformOrigin = TransformOrigin(0f, 0.5f)
+                    }
                 )
 
-                if (progress < 0.8f) {
-                    val artistFontSize = typography.xs.fontSize * (1f - 0.15f * progress)
-                    BasicText(
-                        text = metadata?.artist ?: "-",
-                        style = typography.xs.secondary.copy(
-                            color = colorPalette.textSecondary,
-                            fontSize = artistFontSize
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.graphicsLayer {
-                            alpha = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
+                val artistFade = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
+                BasicText(
+                    text = metadata?.artist ?: "-",
+                    style = typography.xs.secondary.copy(
+                        color = colorPalette.textSecondary
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        // Collapse its height with the fade so the title glides to
+                        // true center instead of snapping at the compact swap.
+                        .height(artistLineHeight * artistFade)
+                        .graphicsLayer {
+                            alpha = artistFade
+                            scaleX = textScale
+                            scaleY = textScale
+                            transformOrigin = TransformOrigin(0f, 0.5f)
                         }
-                    )
-                }
+                )
             }
 
-            if (progress < 0.8f) {
-                Row(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            alpha = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
-                        }
-                        .then(if (progress > 0.5f) Modifier.pointerInput(Unit) {} else Modifier),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (activeMediaItem != null) {
-                        AnimatedContent(
-                            targetState = shouldBePlaying to isBuffering,
-                            transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            label = ""
-                        ) { (isPlaying, buffering) ->
-                            Box(
-                                modifier = Modifier
-                                    .padding(all = 8.dp)
-                                    .size(24.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = {
-                                            if (shouldBePlaying) binder?.player?.pause()
-                                            else if (state.mediaItem != null) binder?.player?.play()
-                                            else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
-                                        }
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (buffering && isPlaying) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                } else {
-                                    androidx.compose.foundation.Image(
-                                        painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                                        contentDescription = null,
-                                        colorFilter = ColorFilter.tint(colorPalette.accent),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
+            Row(
+                modifier = Modifier
+                    .graphicsLayer {
+                        alpha = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
+                        // Spin the controls as they tuck away
+                        rotationZ = -15f * (progress / 0.8f).coerceIn(0f, 1f)
+                    }
+                    .then(if (progress > 0.5f) Modifier.pointerInput(Unit) {} else Modifier),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (activeMediaItem != null) {
+                    AnimatedContent(
+                        targetState = shouldBePlaying to isBuffering,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = ""
+                    ) { (isPlaying, buffering) ->
+                        Box(
+                            modifier = Modifier
+                                .padding(all = 8.dp)
+                                .size(24.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = {
+                                        if (shouldBePlaying) binder?.player?.pause()
+                                        else if (state.mediaItem != null) binder?.player?.play()
+                                        else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (buffering && isPlaying) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            } else {
+                                androidx.compose.foundation.Image(
+                                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint(colorPalette.accent),
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                     }
                 }
-            } else {
-                Spacer(modifier = Modifier.width(8.dp))
             }
         }
     }
 }
 
-@Composable
-fun CompactMiniPlayer(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val state = rememberMiniPlayerState()
-    val (activeMediaItem, metadata) = state
-    val (colorPalette, typography) = LocalAppearance.current
-
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(colorPalette.background1)
-            .clickable(
-                enabled = activeMediaItem != null,
-                onClick = onClick
-            )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .fillMaxSize(), // Fill height to enable vertical centering
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px)?.let { art ->
-                AsyncImage(
-                    model = art,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size((if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * 0.55f) // Smaller, more balanced size
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                        .background(colorPalette.background0)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            BasicText(
-                text = metadata?.title ?: stringResource(R.string.no_music_played),
-                style = typography.xs.semiBold.copy(color = colorPalette.text),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-    }
-}
