@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -27,8 +26,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.gestures.scrollBy
+import kotlin.math.abs
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +41,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,11 +56,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
@@ -116,6 +122,25 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val UPDATE_DELAY = 50L
+
+// Center a lyric line using measured layout metrics (ported from ArchiveTune):
+// read the item's real offset and size from layoutInfo and scroll BY the delta
+// to the viewport center, so centering is exact at every font size. When the
+// item is not composed yet (seek/initial), jump to its vicinity first; the next
+// tick's measured branch then centers it precisely.
+private suspend fun LazyListState.centerActiveItem(targetIndex: Int) {
+    val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+    if (itemInfo != null) {
+        val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+        val center = layoutInfo.viewportStartOffset + viewportHeight / 2
+        val delta = itemInfo.offset + itemInfo.size / 2 - center
+        if (abs(delta) > 5) scrollBy(delta.toFloat())
+    } else {
+        val distance = abs(targetIndex - firstVisibleItemIndex)
+        if (distance > 15) scrollToItem(targetIndex)
+        else animateScrollToItem(targetIndex, 0)
+    }
+}
 
 internal suspend fun fetchLyricsParallel(
     mediaId: String,
@@ -192,7 +217,8 @@ fun Lyrics(
     },
     shouldKeepScreenAwake: Boolean = PlayerPreferences.lyricsKeepScreenAwake,
     shouldUpdateLyrics: Boolean = true,
-    showControls: Boolean = true
+    showControls: Boolean = true,
+    lazyListState: LazyListState = rememberLazyListState()
 ) {
     val currentEnsureSongInserted by rememberUpdatedState(ensureSongInserted)
     val currentMediaMetadataProvider by rememberUpdatedState(mediaMetadataProvider)
@@ -203,7 +229,6 @@ fun Lyrics(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val binder = LocalPlayerServiceBinder.current
-    val density = LocalDensity.current
     val view = LocalView.current
 
     val pip = isInPip()
@@ -385,11 +410,6 @@ fun Lyrics(
             }
             .fillMaxSize()
     ) {
-        val animatedHeight by animateDpAsState(
-            targetValue = this.maxHeight, // `this` needed, thanks Android Lint!
-            label = ""
-        )
-
         AnimatedVisibility(
             visible = error,
             enter = slideInVertically { -it },
@@ -458,25 +478,58 @@ fun Lyrics(
             contentAlignment = Alignment.TopStart,
             label = ""
         ) { synchronized ->
-            val lazyListState = rememberLazyListState()
             if (synchronized) {
-                LaunchedEffect(synchronizedLyrics, density, animatedHeight) {
-                    val currentSynchronizedLyrics = synchronizedLyrics ?: return@LaunchedEffect
-                    val centerOffset = with(density) { (-animatedHeight / 12).roundToPx() }
 
-                    lazyListState.animateScrollToItem(
-                        index = currentSynchronizedLyrics.index + 1,
-                        scrollOffset = centerOffset
-                    )
+                var autoFollowPausedUntil by remember { mutableStateOf(0L) }
+
+                val manualScrollConnection = remember {
+                    var lastScrollTime = 0L
+                    object : NestedScrollConnection {
+                        override fun onPostScroll(
+                            consumed: Offset,
+                            available: Offset,
+                            source: NestedScrollSource
+                        ): Offset {
+                            if (source == NestedScrollSource.UserInput) {
+                                val now = System.currentTimeMillis()
+                                if (now - lastScrollTime > 50) {
+                                    autoFollowPausedUntil =
+                                        now + 2.seconds.inWholeMilliseconds
+                                    lastScrollTime = now
+                                }
+                            }
+                            return super.onPostScroll(consumed, available, source)
+                        }
+
+                        override suspend fun onPostFling(
+                            consumed: Velocity,
+                            available: Velocity
+                        ): Velocity {
+                            autoFollowPausedUntil =
+                                System.currentTimeMillis() + 2.seconds.inWholeMilliseconds
+                            return super.onPostFling(consumed, available)
+                        }
+                    }
+                }
+
+                LaunchedEffect(synchronizedLyrics, lyricsFontSize) {
+                    val currentSynchronizedLyrics = synchronizedLyrics ?: return@LaunchedEffect
+
+                    // Wait for the first layout: before items exist the helper's
+                    // fallback animates a jump, which the 50ms tick then snaps to
+                    // center - the visible open/close bounce. Centering only after
+                    // layout lands dead-center without any animation.
+                    while (lazyListState.layoutInfo.visibleItemsInfo.isEmpty()) {
+                        delay(UPDATE_DELAY)
+                    }
+                    lazyListState.centerActiveItem(currentSynchronizedLyrics.index + 1)
 
                     while (true) {
                         delay(UPDATE_DELAY)
-                        if (!currentSynchronizedLyrics.update()) continue
+                        currentSynchronizedLyrics.update()
+                        if (autoFollowPausedUntil > System.currentTimeMillis()) continue
 
-                        lazyListState.scrollToItem(
-                            index = currentSynchronizedLyrics.index + 1,
-                            scrollOffset = centerOffset
-                        )
+                        lazyListState.centerActiveItem(currentSynchronizedLyrics.index + 1)
                     }
                 }
 
@@ -487,10 +540,11 @@ fun Lyrics(
                     verticalArrangement = Arrangement.Top,
                     modifier = Modifier
                         .verticalFadingEdge(topSize = 10, bottomSize = 2)
+                        .nestedScroll(manualScrollConnection)
                         .fillMaxWidth()
                 ) {
                     item(key = "header", contentType = 0) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(maxHeight / 2))
                     }
                     itemsIndexed(
                         items = synchronizedLyrics.sentences.values.toImmutableList()
@@ -500,8 +554,6 @@ fun Lyrics(
                             if (active) Color.White
                             else colorPalette.text.copy(alpha = 0.5f)
                         )
-                        val scale by animateDpAsState(if (active) 1.dp else 0.dp)
-
                         if (sentence.isBlank()) Image(
                             painter = painterResource(R.drawable.musical_notes),
                             contentDescription = null,
