@@ -215,6 +215,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var fadeSeconds = 0
     private var fadeOutId: String? = null
     private var fadeNextId: String? = null
+    private var autoTransitionHandled = false
 
     // Bounds the codec-error retry to one attempt per media item (the decoder
     // flake on this device is transient; a re-prepare usually lands a healthy
@@ -554,6 +555,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         // own position and stop the fading-in copy (the AUTO boundary is
         // handled by completeCrossfade on the next tick instead).
         if (fading && reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) abortCrossfade()
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && fading && mediaItem?.mediaId == fadeNextId)
+            autoTransitionHandled = true
 
         if (
             AppearancePreferences.hideExplicit &&
@@ -933,6 +936,9 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         s.prepare()
         s.play()
         fading = true
+        // fade start the boundary only handles the audio handoff
+        autoTransitionHandled = false
+        mediaItemState.update { next }
         Log.d(TAG, "crossfade $fadeOutId -> $fadeNextId (${fadeSeconds}s)")
     }
 
@@ -975,9 +981,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         // The outgoing player's AUTO transition to the next song may have been
         // delivered before or after this swap (we just removed its listener), so
         // push the transition handling ourselves to keep UI state in sync.
-        // Guarded: if the event already ran, re-running it would double-enqueue
-        // radio songs (maybeProcessRadio is not idempotent).
-        if (mediaItemState.value?.mediaId != incoming.currentMediaItem?.mediaId) {
+        // Guarded by autoTransitionHandled: if the event already ran, re-running
+        // it would double-enqueue radio songs (maybeProcessRadio is not
+        // idempotent). The mediaItemState compare is unusable here the early
+        // UI flip already set it to the incoming song.
+        if (!autoTransitionHandled) {
             handler.post {
                 onMediaItemTransition(
                     incoming.currentMediaItem,
@@ -995,6 +1003,9 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         silent.pause()
         silent.stop()
         audible.volume = 1f
+        // The UI was flipped to the incoming song at fade start: restore the
+        // actual current item so an aborted fade never leaves it stuck.
+        player.currentMediaItem?.let { mediaItemState.update { it } }
         Log.d(TAG, "crossfade aborted")
     }
 
@@ -1541,6 +1552,9 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     inner class Binder : AndroidBinder() {
         val player: ExoPlayer
             get() = this@PlayerService.player
+
+        val mediaItemState: StateFlow<MediaItem?>
+            get() = this@PlayerService.mediaItemState
 
         val cache: Cache
             get() = this@PlayerService.cache

@@ -133,6 +133,14 @@ fun Player(
             policy = neverEqualPolicy()
         )
     }
+
+    // The service flips mediaItemState to the incoming song at crossfade
+    // start; collect it so the screen follows the fade, not only the audible
+    // player's boundary transition. (The listener below re-sets the same
+    // value at the boundary harmless, neverEqualPolicy forces a redraw.)
+    LaunchedEffect(binder) {
+        binder?.mediaItemState?.collect { mediaItem = it }
+    }
     var shouldBePlaying by remember(binder) { mutableStateOf(binder?.player?.shouldBePlaying == true) }
     val isBuffering = binder?.player.rememberIsBuffering()
 

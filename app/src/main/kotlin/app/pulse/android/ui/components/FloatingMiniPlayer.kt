@@ -70,6 +70,11 @@ fun rememberMiniPlayerState(): MiniPlayerState {
             policy = neverEqualPolicy()
         )
     }
+    // Follow the service's song flow so the dock flips to the incoming song
+    // at crossfade start, not only at the boundary transition.
+    LaunchedEffect(binder) {
+        binder?.mediaItemState?.collect { mediaItem = it }
+    }
     var shouldBePlaying by remember(binder) { mutableStateOf(binder?.player?.shouldBePlaying == true) }
     val isBuffering = binder?.player?.rememberIsBuffering() ?: false
 
