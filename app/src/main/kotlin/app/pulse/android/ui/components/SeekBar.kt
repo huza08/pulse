@@ -15,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -456,21 +455,17 @@ private fun Duration(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 0.dp)
         ) {
             BasicText(
-                text = if (PlayerPreferences.showRemaining) "-${formatAsDuration(duration - position)}"
-                else formatAsDuration(position),
+                text = formatAsDuration(position),
                 style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable {
-                    PlayerPreferences.showRemaining = !PlayerPreferences.showRemaining
-                }
+                overflow = TextOverflow.Ellipsis
             )
 
             BasicText(
-                text = if (duration != C.TIME_UNSET) formatAsDuration(duration) else "--:--",
+                text = if (duration != C.TIME_UNSET) "-${formatAsDuration((duration - position).coerceAtLeast(0L))}"
+                else "--:--",
                 style = typography.xxs.semiBold.copy(fontSize = 10.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

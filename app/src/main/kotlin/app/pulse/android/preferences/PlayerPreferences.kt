@@ -48,7 +48,6 @@ object PlayerPreferences : GlobalPreferencesHolder() {
     var seekBarStyle by enum(SeekBarStyle.Wavy)
     var wavySeekBarQuality by enum(WavySeekBarQuality.Great)
     var showLike by boolean(false)
-    var showRemaining by boolean(false)
     var lyricsKeepScreenAwake by boolean(true)
     var lyricsFontSize by int(24)
     var lyricsShowSystemBars by boolean(true)
