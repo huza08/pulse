@@ -23,6 +23,8 @@ object DataPreferences : GlobalPreferencesHolder() {
     val topListPeriodProperty = enum(TopListPeriod.AllTime)
     var topListPeriod by topListPeriodProperty
     var quickPicksSource by enum(QuickPicksSource.Trending)
+    val homeFeedCacheDaysProperty = int(7)
+    var homeFeedCacheDays by homeFeedCacheDaysProperty
     var versionCheckPeriod by enum(VersionCheckPeriod.Daily)
     var autoSyncPlaylists by boolean(true)
     var pendingUpdateVersion by string("")

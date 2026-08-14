@@ -22,6 +22,7 @@ import androidx.compose.runtime.DisposableEffect
 import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -194,6 +195,23 @@ fun OtherSettings() {
                             selectedValue = DataPreferences.quickPicksSource,
                             onValueSelect = { DataPreferences.quickPicksSource = it },
                             valueText = { it.displayName() }
+                        )
+
+                        val cacheDaysInitial by remember { derivedStateOf { DataPreferences.homeFeedCacheDays.toFloat() } }
+                        var cacheDaysValue by remember(cacheDaysInitial) { mutableFloatStateOf(cacheDaysInitial) }
+
+                        SliderSettingsEntry(
+                            title = stringResource(R.string.home_feed_cache_days),
+                            text = stringResource(R.string.home_feed_cache_days_description),
+                            state = cacheDaysValue,
+                            onSlide = { cacheDaysValue = it },
+                            onSlideComplete = { DataPreferences.homeFeedCacheDays = cacheDaysValue.toInt() },
+                            toDisplay = { days ->
+                                if (days.toInt() == 0) stringResource(R.string.home_feed_cache_off)
+                                else stringResource(R.string.format_days, days.toInt())
+                            },
+                            range = 0f..7f,
+                            steps = 6
                         )
                     }
                     SettingsGroup(title = stringResource(R.string.dynamic_thumbnails)) {

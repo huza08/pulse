@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -110,9 +111,22 @@ fun HomeDiscovery(
         .padding(endPaddingValues)
 
     var discoverPage by persist<Result<Innertube.DiscoverPage>>("home/discovery")
+    val context = LocalContext.current.applicationContext
 
     LaunchedEffect(Unit) {
-        if (discoverPage?.isSuccess != true) discoverPage = Innertube.discoverPage()
+        // Restore the disk cache first so a cold open renders instantly and
+        // skips the network while the cache is fresh (TTL-configurable).
+        if (discoverPage?.isSuccess != true) {
+            val restored = HomeCache.restoreDiscover(context.filesDir)
+            if (restored != null) {
+                discoverPage = restored
+            } else {
+                discoverPage = Innertube.discoverPage()
+                discoverPage?.getOrNull()?.let { HomeCache.saveDiscover(context.filesDir, it) }
+            }
+        }
+        // Warm the thumbnails so the cached feed renders fully offline.
+        HomeCache.prefetchThumbs(context, discoverPage?.getOrNull(), null)
     }
 
     BoxWithConstraints {

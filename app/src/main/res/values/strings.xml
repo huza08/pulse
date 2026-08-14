@@ -3,6 +3,9 @@
     <string name="format_minutes">%1$dm</string>
     <string name="format_hours">%1$dh</string>
     <string name="format_days">%1$dd</string>
+    <string name="home_feed_cache_days">Home feed cache duration</string>
+    <string name="home_feed_cache_days_description">How long Quick Picks and Discover stay cached before refetching. Off disables the cache.</string>
+    <string name="home_feed_cache_off">Off</string>
     <string name="format_time_left">%1$s left</string>
     <string name="format_db">%1$s dB</string>
     <string name="format_kbps">%1$s kbps</string>

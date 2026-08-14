@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
@@ -101,10 +102,20 @@ fun QuickPicks(
 
     var relatedPageResult by persist<Result<Innertube.RelatedPage?>?>(tag = "home/relatedPageResult")
 
+    // Restore the disk cache first so a cold open renders instantly and
+    // skips the network while the cache is fresh (TTL-configurable).
+    val context = LocalContext.current.applicationContext
+
     LaunchedEffect(DataPreferences.quickPicksSource) {
+        if (relatedPageResult == null) {
+            HomeCache.restoreRelated(context.filesDir)?.let { relatedPageResult = it }
+        }
+        // Warm the thumbnails so the cached feed renders fully offline.
+        HomeCache.prefetchThumbs(context, null, relatedPageResult?.getOrNull())
+
         suspend fun handleSong(song: Song?) {
             var seedId = song?.id
-            if (seedId == null && trending == null) {
+            if (seedId == null && trending == null && relatedPageResult == null) {
                 Innertube.trendingCharts()
                     ?.getOrNull()
                     ?.firstOrNull()
@@ -119,10 +130,15 @@ fun QuickPicks(
                     }
             }
             seedId = seedId ?: "J7p4bzqLvCw"
-            if (relatedPageResult == null || (trending != null && trending?.id != song?.id)) relatedPageResult =
-                Innertube.relatedPage(
+            if (relatedPageResult == null || (trending != null && trending?.id != song?.id)) {
+                relatedPageResult = Innertube.relatedPage(
                     body = NextBody(videoId = seedId)
                 )
+                relatedPageResult?.getOrNull()?.let {
+                    HomeCache.saveRelated(context.filesDir, it)
+                    HomeCache.prefetchThumbs(context, null, it)
+                }
+            }
             if (song != null) trending = song
         }
 
