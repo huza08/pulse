@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./app/src/main/ic_launcher-playstore.png" width="128" height="128" style="display: block; margin: 0 auto"/>
+    <img src="./app/src/main/banner.png" height="600" style="display: block; margin: 0 auto"/>
     <h1>Pulse</h1>
     <p>Music streaming for everyone</p>
 </div>
@@ -7,23 +7,17 @@
 <details>
   <summary><b>Click to view screenshots</b></summary>
 
-<div align="left">
-  
 **1.2.7**
----
+
 <img src="./assets/screenshots/4.jpg" width="30%" /> 
 <img src="./assets/screenshots/5.jpg" width="30%" /> 
 <img src="./assets/screenshots/6.jpg" width="30%" />
-<br><br>
 
 **1.2.6**
----
+
 <img src="./assets/screenshots/1.png" width="30%" /> 
 <img src="./assets/screenshots/2.png" width="30%" /> 
 <img src="./assets/screenshots/3.png" width="30%" />
-
-</div>
-
 </details>
 
 ## Features
@@ -50,28 +44,21 @@
 
 ## Installation
 
-[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png"
-alt="Get it on GitHub"
-height="80"
-align="center">](https://github.com/khuza08/Pulse/releases/latest)
+[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="80">](https://github.com/khuza08/Pulse/releases/latest)
 
+## Discuss & Feature Requests
 
+[![Telegram](https://img.shields.io/badge/Telegram-Discuss-0088cc?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+uS2sD8z5_uthYThl)
 
 ## Acknowledgments
 
-- [**YouTube-Internal-Clients**](https://github.com/zerodytrash/YouTube-Internal-Clients): A Python
-  script that discovers hidden YouTube API clients. Just a research project.
-- [**ionicons**](https://github.com/ionic-team/ionicons): Premium hand-crafted icons built by Ionic,
-  for Ionic apps and web apps everywhere.
+- [**YouTube-Internal-Clients**](https://github.com/zerodytrash/YouTube-Internal-Clients): A Python script that discovers hidden YouTube API clients. Just a research project.
+- [**ionicons**](https://github.com/ionic-team/ionicons): Premium hand-crafted icons built by Ionic, for Ionic apps and web apps everywhere.
 - [**Framer: Shapes 2.0**](https://www.shapes.gallery/): the app's logo uses modified icon made by mo.
-- [**Python for Android**](https://github.com/chaquo/chaquopy): A tool for running Python code
-  on Android.
-
+- [**Python for Android**](https://github.com/chaquopy/chaquopy): A tool for running Python code on Android.
 
 ## Disclaimer
 
-Pulse is a based on [ViTune](https://github.com/bartoostveen/ViTune) and [ViMusic](https://github.com/vfsfitvnm/ViMusic).
-
+Pulse is based on [ViTune](https://github.com/bartoostveen/ViTune) and [ViMusic](https://github.com/vfsfitvnm/ViMusic).
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
-
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
