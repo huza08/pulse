@@ -99,26 +99,32 @@ fun PlaylistItem(
 
     PlaylistItem(
         thumbnailContent = {
-            if (thumbnails.toSet().size == 1) AsyncImage(
-                model = thumbnails.first().thumbnail(thumbnailSizePx),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = it
-            ) else Box(modifier = it.fillMaxSize()) {
+            if (thumbnails.toSet().size == 1) {
+                thumbnails.firstOrNull()?.let { single ->
+                    AsyncImage(
+                        model = single.thumbnail(thumbnailSizePx),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = it
+                    )
+                }
+            } else Box(modifier = it.fillMaxSize()) {
                 listOf(
                     Alignment.TopStart,
                     Alignment.TopEnd,
                     Alignment.BottomStart,
                     Alignment.BottomEnd
                 ).forEachIndexed { index, alignment ->
-                    AsyncImage(
-                        model = thumbnails.getOrNull(index),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .align(alignment)
-                            .fillMaxSize(.5f)
-                    )
+                    thumbnails.getOrNull(index)?.let { thumbnail ->
+                        AsyncImage(
+                            model = thumbnail,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .fillMaxSize(.5f)
+                        )
+                    }
                 }
             }
         },
@@ -158,12 +164,14 @@ fun PlaylistItem(
     alternative: Boolean = false
 ) = PlaylistItem(
     thumbnailContent = {
-        AsyncImage(
-            model = thumbnailUrl?.thumbnail(thumbnailSize.px),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = it
-        )
+        thumbnailUrl?.thumbnail(thumbnailSize.px)?.let { url ->
+            AsyncImage(
+                model = url,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = it
+            )
+        }
     },
     songCount = songCount,
     name = name,

@@ -148,16 +148,18 @@ fun MorphingMiniPlayer(
         ) {
             val thumbSize = (if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * (1f - 0.45f * progress)
 
-            AsyncImage(
-                model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(thumbSize)
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(colorPalette.background0)
-            )
+            activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px)?.let { art ->
+                AsyncImage(
+                    model = art,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(thumbSize)
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(colorPalette.background0)
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -268,16 +270,18 @@ fun CompactMiniPlayer(
                 .fillMaxSize(), // Fill height to enable vertical centering
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size((if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * 0.55f) // Smaller, more balanced size
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(colorPalette.background0)
-            )
+            activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px)?.let { art ->
+                AsyncImage(
+                    model = art,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size((if (AppearancePreferences.compactDock) Dimensions.items.collapsedPlayerHeight else 64.dp) * 0.55f) // Smaller, more balanced size
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(colorPalette.background0)
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 

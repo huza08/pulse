@@ -66,10 +66,10 @@ fun adaptiveThumbnailContent(
             modifier = innerModifier
                 .shimmer()
                 .background(colorPalette.shimmer)
-        ) else AsyncImage(
-            model = url?.thumbnail(thumbnailSize.px),
+        ) else if (url != null) AsyncImage(
+            model = url.thumbnail(thumbnailSize.px),
             contentDescription = null,
             modifier = innerModifier.background(colorPalette.background1)
-        )
+        ) else Spacer(modifier = innerModifier.background(colorPalette.background1))
     }
 }

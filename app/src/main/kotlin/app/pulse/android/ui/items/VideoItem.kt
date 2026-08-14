@@ -63,14 +63,16 @@ fun VideoItem(
     val (colorPalette, typography, thumbnailShapeCorners) = LocalAppearance.current
 
     Box {
-        AsyncImage(
-            model = thumbnailUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .clip(thumbnailShapeCorners.roundedShape)
-                .size(width = thumbnailWidth, height = thumbnailHeight)
-        )
+        if (thumbnailUrl != null) {
+            AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .clip(thumbnailShapeCorners.roundedShape)
+                    .size(width = thumbnailWidth, height = thumbnailHeight)
+            )
+        }
 
         duration?.let {
             BasicText(

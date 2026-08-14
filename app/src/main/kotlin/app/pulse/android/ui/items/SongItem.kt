@@ -156,13 +156,15 @@ private fun SongItem(
                     .background(colorPalette.background1)
                     .fillMaxSize()
             ) {
-                AsyncImage(
-                    model = thumbnailUrl,
-                    error = painterResource(id = R.mipmap.ic_launcher_foreground),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (thumbnailUrl != null) {
+                    AsyncImage(
+                        model = thumbnailUrl,
+                        error = painterResource(id = R.mipmap.ic_launcher_foreground),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
                 if (index != null) {
                     Box(

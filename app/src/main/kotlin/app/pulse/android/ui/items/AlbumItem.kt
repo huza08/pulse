@@ -72,14 +72,16 @@ fun AlbumItem(
     val typography = LocalAppearance.current.typography
     val thumbnailShape = LocalAppearance.current.thumbnailShape
 
-    AsyncImage(
-        model = thumbnailUrl?.thumbnail(thumbnailSize.px),
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-            .clip(thumbnailShape)
-            .size(thumbnailSize)
-    )
+    if (thumbnailUrl != null) {
+        AsyncImage(
+            model = thumbnailUrl.thumbnail(thumbnailSize.px),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .clip(thumbnailShape)
+                .size(thumbnailSize)
+        )
+    }
 
     ItemInfoContainer {
         title?.let {

@@ -71,13 +71,15 @@ fun ArtistItem(
 ) {
     val (_, typography) = LocalAppearance.current
 
-    AsyncImage(
-        model = thumbnailUrl?.thumbnail(thumbnailSize.px),
-        contentDescription = null,
-        modifier = Modifier
-            .clip(CircleShape)
-            .requiredSize(thumbnailSize)
-    )
+    if (thumbnailUrl != null) {
+        AsyncImage(
+            model = thumbnailUrl.thumbnail(thumbnailSize.px),
+            contentDescription = null,
+            modifier = Modifier
+                .clip(CircleShape)
+                .requiredSize(thumbnailSize)
+        )
+    }
 
     ItemInfoContainer(
         horizontalAlignment = if (alternative) Alignment.CenterHorizontally else Alignment.Start
