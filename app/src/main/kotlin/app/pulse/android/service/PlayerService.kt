@@ -186,14 +186,50 @@ private const val LOOP_ACTION = "app.pulse.android.LOOP"
 class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListener.Callback {
     private lateinit var mediaSession: MediaSession
     private lateinit var cache: Cache
-    private lateinit var player: ExoPlayer
+
+    // Two players alternate roles at each song boundary to crossfade (the
+    // audible one owns the queue timeline and drives all UI state; the silent
+    // one fades in the next song's intro). The `player` property always refers
+    // to the audible player, so existing call sites are role-agnostic.
+    // This should be fine, and not causing bug in the future lmao
+    private lateinit var playerA: ExoPlayer
+    private lateinit var playerB: ExoPlayer
+    private lateinit var audible: ExoPlayer
+    private val player: ExoPlayer get() = audible
+    private val silent: ExoPlayer get() = if (audible === playerA) playerB else playerA
+
+    private val audioAttributes = AudioAttributes.Builder()
+        .setUsage(C.USAGE_MEDIA)
+        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+        .build()
+
     private val uriCache = UriCache<String, Long?>()
+
+    // Crossfade state (see crossfadeTick / startCrossfade / completeCrossfade).
+    // All of it is touched only on the main thread: the tick runs on
+    // Dispatchers.Main and player callbacks dispatch on the application looper.
+    private var fadeJob: Job? = null
+    private var fading = false
+    private var fadeSeconds = 0
+    private var fadeOutId: String? = null
+    private var fadeNextId: String? = null
 
     // Bounds the codec-error retry to one attempt per media item (the decoder
     // flake on this device is transient; a re-prepare usually lands a healthy
     // allocation, but a stuck-dead codec must not loop).
     @Volatile
     private var codecRetriedMediaId: String? = null
+
+    // The silent player must never drive UI state, so only the audible player
+    // gets the service listener. Errors on the silent player abort the fade
+    // and fall back to the normal hard cut. Both players always carry the
+    // playback-stats listener (playtime is counted by whichever played).
+    private val silentGuard = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            Log.w(TAG, "silent player error ${error.errorCode}, aborting crossfade")
+            if (fading) abortCrossfade()
+        }
+    }
 
     private val defaultActions =
         PlaybackState.ACTION_PLAY or
@@ -307,43 +343,38 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         )
 
         cache = createCache(this)
-        player = ExoPlayer.Builder(this, createRendersFactory(), createMediaSourceFactory())
-            .setLoadControl(
-                DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(
-                        /* minBufferMs             = */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
-                        /* maxBufferMs             = */ DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
-                        /* bufferForPlaybackMs     = */ DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
-                        /* bufferForPlaybackAfterRebufferMs = */ 10_000
-                    )
-                    .build()
-            )
-            .setHandleAudioBecomingNoisy(true)
-            .setWakeMode(C.WAKE_MODE_LOCAL)
-            .setAudioAttributes(
-                /* audioAttributes = */ AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .build(),
-                /* handleAudioFocus = */ PlayerPreferences.handleAudioFocus
-            )
-            .setUsePlatformDiagnostics(false)
-            .build()
-            .apply {
-                skipSilenceEnabled = PlayerPreferences.skipSilence
-                addListener(this@PlayerService)
-                addAnalyticsListener(
-                    PlaybackStatsListener(
-                        /* keepHistory = */ false,
-                        /* callback = */ this@PlayerService
-                    )
+        // One explicit session for both players so the loudness/bass/reverb
+        // effects (bound to player.audioSessionId) apply to the crossfade mix.
+        val sharedSessionId = (getSystemService(AUDIO_SERVICE) as AudioManager).generateAudioSessionId()
+        playerA = createPlayer(handleAudioFocus = PlayerPreferences.handleAudioFocus).apply {
+            setAudioSessionId(sharedSessionId)
+            skipSilenceEnabled = PlayerPreferences.skipSilence
+            addListener(this@PlayerService)
+            addAnalyticsListener(
+                PlaybackStatsListener(
+                    /* keepHistory = */ false,
+                    /* callback = */ this@PlayerService
                 )
-            }
+            )
+        }
+        playerB = createPlayer(handleAudioFocus = false).apply {
+            setAudioSessionId(sharedSessionId)
+            skipSilenceEnabled = PlayerPreferences.skipSilence
+            addListener(silentGuard)
+            addAnalyticsListener(
+                PlaybackStatsListener(
+                    /* keepHistory = */ false,
+                    /* callback = */ this@PlayerService
+                )
+            )
+        }
+        audible = playerA
 
-        app.pulse.core.data.di.setExoPlayer(player)
+        app.pulse.core.data.di.setExoPlayer(playerA)
 
         updateRepeatMode()
         maybeRestorePlayerQueue()
+        startFadeJob()
 
         mediaSession = MediaSession(baseContext, TAG).apply {
             setCallback(SessionCallback())
@@ -425,11 +456,15 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private fun updateRepeatMode() {
-        player.repeatMode = when {
+        // Both players need the same repeat mode: the silent player becomes the
+        // audible one at each boundary, and REPEAT_MODE_ONE also gates the fade.
+        val mode = when {
             PlayerPreferences.trackLoopEnabled -> Player.REPEAT_MODE_ONE
             PlayerPreferences.queueLoopEnabled -> Player.REPEAT_MODE_ALL
             else -> Player.REPEAT_MODE_OFF
         }
+        player.repeatMode = mode
+        silent.repeatMode = mode
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -445,9 +480,15 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         runCatching {
             maybeSavePlayerQueue()
 
-            player.removeListener(this)
-            player.stop()
-            player.release()
+            fadeJob?.cancel()
+            playerA.removeListener(this)
+            playerA.removeListener(silentGuard)
+            playerB.removeListener(this)
+            playerB.removeListener(silentGuard)
+            playerA.stop()
+            playerA.release()
+            playerB.stop()
+            playerB.release()
 
             unregisterReceiver(notificationActionReceiver)
 
@@ -507,6 +548,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        // A manual skip/seek mid-fade: let the audible player take over at its
+        // own position and stop the fading-in copy (the AUTO boundary is
+        // handled by completeCrossfade on the next tick instead).
+        if (fading && reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) abortCrossfade()
+
         if (
             AppearancePreferences.hideExplicit &&
             mediaItem?.mediaMetadata?.extras?.songBundle?.explicit == true
@@ -542,6 +588,15 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) return
         updateMediaSessionQueue(timeline)
         maybeSavePlayerQueue()
+    }
+
+    override fun onPositionDiscontinuity(
+        oldPosition: Player.PositionInfo,
+        newPosition: Player.PositionInfo,
+        reason: Int
+    ) {
+        // Seeking mid-fade desyncs the two players' copies: drop the fade.
+        if (fading && reason == Player.DISCONTINUITY_REASON_SEEK) abortCrossfade()
     }
 
     override fun onPlayerError(error: PlaybackException) {
@@ -752,6 +807,178 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         }
     }
 
+    // The audible player owns the queue timeline and drives all UI; the silent
+    // player is seeded with the same list at the fade window and fades in over
+    // the outgoing outro. At the boundary roles swap and the outgoing player is
+    // stopped for reuse in the next transition. Manual next/prev/seek abort the
+    // fade and fall back to the plain hard cut. mid-fade queue
+    // mutations are reconciled at the boundary by rebuilding the incoming
+    // player's tail from the authoritative timeline (see completeCrossfade).
+    private fun startFadeJob() {
+        fadeJob?.cancel()
+        // ExoPlayer requires all access (getters included) on the application
+        // looper, so the tick must run on Main, not the service's IO scope.
+        fadeJob = coroutineScope.launch(Dispatchers.Main) {
+            while (true) {
+                delay(100)
+                try {
+                    crossfadeTick()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w(TAG, "crossfade tick failed", e)
+                }
+            }
+        }
+    }
+
+    private fun crossfadeTick() {
+        val a = audible
+        val s = silent
+        val seconds = PlayerPreferences.crossfadeSeconds
+        if (seconds <= 0) {
+            if (fading) abortCrossfade()
+            return
+        }
+
+        if (!fading) {
+            if (a.playbackState != Player.STATE_READY || !a.isPlaying) return
+            val duration = a.duration
+            if (duration == C.TIME_UNSET || duration <= 0) return
+            if (a.repeatMode == Player.REPEAT_MODE_ONE) return
+            if (!a.hasNextMediaItem()) return
+            val next = a.getMediaItemAt(a.nextMediaItemIndex)
+            if (next.mediaId == a.currentMediaItem?.mediaId) return
+            if (duration - a.currentPosition > seconds * 1000L) return
+            startCrossfade(next)
+            return
+        }
+
+        if (a.repeatMode == Player.REPEAT_MODE_ONE) {
+            abortCrossfade()
+            return
+        }
+
+        val currentId = a.currentMediaItem?.mediaId
+        when {
+            // The outgoing song ended and the audible player auto-advanced.
+            currentId == fadeNextId -> completeCrossfade()
+            // Stopped / ended without advancing (sleep timer, error): no clean handoff.
+            currentId != fadeOutId -> abortCrossfade()
+            else -> {
+                // The upcoming item changed mid-fade: the mix no longer matches
+                // the queue, so drop it (removal/skip keeps the hard cut).
+                if (
+                    a.nextMediaItemIndex !in 0 until a.mediaItemCount ||
+                    a.getMediaItemAt(a.nextMediaItemIndex).mediaId != fadeNextId
+                ) {
+                    abortCrossfade()
+                    return
+                }
+                // Keep playWhenReady in lockstep so pause/resume/focus-loss
+                // freezes and resumes both players together.
+                if (s.playWhenReady != a.playWhenReady) s.playWhenReady = a.playWhenReady
+                if (!a.isPlaying) return
+                if (s.playbackState != Player.STATE_READY) return // still preparing: ramp later
+                if (s.playbackParameters != a.playbackParameters) s.playbackParameters = a.playbackParameters
+                val remaining = a.duration - a.currentPosition
+                val progress = 1f - (remaining.toFloat() / (fadeSeconds * 1000f))
+                a.volume = (1f - progress).coerceIn(0f, 1f)
+                s.volume = progress.coerceIn(0f, 1f)
+            }
+        }
+    }
+
+    private fun startCrossfade(next: MediaItem) {
+        if (
+            AppearancePreferences.hideExplicit &&
+            next.mediaMetadata.extras?.songBundle?.explicit == true
+        ) return
+
+        val a = audible
+        val s = silent
+        fadeOutId = a.currentMediaItem?.mediaId ?: return
+        fadeNextId = next.mediaId
+        fadeSeconds = PlayerPreferences.crossfadeSeconds.coerceIn(1, 10)
+
+        val items = a.currentTimeline.mediaItems
+        val index = a.nextMediaItemIndex
+        if (index !in items.indices) return
+        // Resolver hits uriCache (preload already fetched the URL) so prepare
+        // is fast; if it misses, the resolver runs and the fade falls back to a
+        // hard cut if the silent player is not ready by the boundary.
+        s.setMediaItems(items, index, 0)
+        s.volume = 0f
+        s.playbackParameters = a.playbackParameters
+        s.playWhenReady = a.playWhenReady
+        s.prepare()
+        s.play()
+        fading = true
+        Log.d(TAG, "crossfade $fadeOutId -> $fadeNextId (${fadeSeconds}s)")
+    }
+
+    private fun completeCrossfade() {
+        val outgoing = audible
+        val incoming = silent
+        if (incoming.playbackState != Player.STATE_READY && incoming.playbackState != Player.STATE_BUFFERING) {
+            abortCrossfade() // the fader never made it: keep the plain hard cut
+            return
+        }
+        fading = false
+        fadeOutId = null
+        fadeNextId = null
+
+        // If the queue mutated during the fade window the incoming tail is
+        // stale: rebuild it from the outgoing (authoritative) timeline. Rare
+        // path (radio near the queue end is the usual trigger).
+        val authoritative = outgoing.currentTimeline.mediaItems
+        if (authoritative.map { it.mediaId } != incoming.currentTimeline.mediaItems.map { it.mediaId }) {
+            val newIndex = authoritative.indexOfFirst { it.mediaId == incoming.currentMediaItem?.mediaId }
+            if (newIndex >= 0) incoming.setMediaItems(authoritative, newIndex, incoming.currentPosition)
+        }
+
+        outgoing.removeListener(this)
+        incoming.removeListener(silentGuard)
+        incoming.addListener(this)
+        outgoing.addListener(silentGuard)
+        audible = incoming
+        // Audio focus follows the audible player so interruptions pause the
+        // right one.
+        outgoing.setAudioAttributes(audioAttributes, false)
+        incoming.setAudioAttributes(audioAttributes, true)
+
+        incoming.volume = 1f
+        outgoing.volume = 0f
+        outgoing.pause()
+        outgoing.stop() // releases the decoder so the overlap window stays short
+        Log.d(TAG, "crossfade complete, audible=${incoming.currentMediaItem?.mediaId}")
+
+        // The outgoing player's AUTO transition to the next song may have been
+        // delivered before or after this swap (we just removed its listener), so
+        // push the transition handling ourselves to keep UI state in sync.
+        // Guarded: if the event already ran, re-running it would double-enqueue
+        // radio songs (maybeProcessRadio is not idempotent).
+        if (mediaItemState.value?.mediaId != incoming.currentMediaItem?.mediaId) {
+            handler.post {
+                onMediaItemTransition(
+                    incoming.currentMediaItem,
+                    Player.MEDIA_ITEM_TRANSITION_REASON_AUTO
+                )
+            }
+        }
+    }
+
+    private fun abortCrossfade() {
+        fading = false
+        fadeOutId = null
+        fadeNextId = null
+        silent.volume = 0f
+        silent.pause()
+        silent.stop()
+        audible.volume = 1f
+        Log.d(TAG, "crossfade aborted")
+    }
+
     private fun maybeProcessRadio() {
         if (player.mediaItemCount - player.currentMediaItemIndex > 3) return
 
@@ -824,6 +1051,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private fun maybeNormalizeVolume() {
+        // Volume is ramp-controlled while a crossfade is active; normalization
+        // re-applies itself at the next song transition.
+        if (fading) return
+
         if (!PlayerPreferences.volumeNormalization) {
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
@@ -1232,6 +1463,24 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             override fun isEligibleForFallback(exception: IOException) = true
         }
     )
+
+    private fun createPlayer(handleAudioFocus: Boolean) =
+        ExoPlayer.Builder(this, createRendersFactory(), createMediaSourceFactory())
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        /* minBufferMs             = */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
+                        /* maxBufferMs             = */ DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
+                        /* bufferForPlaybackMs     = */ DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                        /* bufferForPlaybackAfterRebufferMs = */ 10_000
+                    )
+                    .build()
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setAudioAttributes(audioAttributes, handleAudioFocus)
+            .setUsePlatformDiagnostics(false)
+            .build()
 
     private fun createRendersFactory() = object : DefaultRenderersFactory(this) {
         override fun buildAudioSink(
