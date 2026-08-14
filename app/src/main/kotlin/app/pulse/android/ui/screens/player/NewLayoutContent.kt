@@ -8,6 +8,7 @@ import android.media.AudioManager
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -35,6 +36,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -48,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.skydoves.cloudy.cloudy
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
@@ -281,19 +284,20 @@ fun NewLayoutContent(
                 )
             }
 
+            val lyricsContentAlpha by animateFloatAsState(
+                targetValue = if (isShowingLyrics) 1f else 0f,
+                label = "lyricsContentAlpha"
+            )
+
             Column(modifier = Modifier.fillMaxSize()) {
-                AnimatedVisibility(
-                    visible = isShowingLyrics,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(lyricsContentAlpha)
+                        .padding(horizontal = 48.dp)
+                        .padding(top = 32.dp, bottom = 8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 48.dp)
-                            .padding(top = 32.dp, bottom = 8.dp)
-                    ) {
                         if (artworkUri != null) {
                             AsyncImage(
                                 model = artworkUri,
@@ -330,15 +334,20 @@ fun NewLayoutContent(
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
-                                .clickable {
+                                .clickable(enabled = isShowingLyrics) {
                                     setLikedAt(
                                         if (likedAt == null) System.currentTimeMillis() else null
                                     )
                                 }
                                 .size(24.dp)
                         )
-                    }
                 }
+
+                // Hoisted above the AnimatedVisibility so the lyric scroll
+                // position survives close/reopen, otherwise the list resets
+                // to the top and the follow-effect visibly re-centers on every
+                // open (the vertical bounce).
+                val lyricsListState = rememberLazyListState()
 
                 Box(
                     modifier = Modifier
@@ -359,23 +368,20 @@ fun NewLayoutContent(
                             durationProvider = { player.duration },
                             ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
                             modifier = Modifier.fillMaxSize(),
-                            showControls = false
+                            showControls = false,
+                            lazyListState = lyricsListState
                         )
                     }
                 }
 
-                this@Column.AnimatedVisibility(
-                    visible = !isShowingLyrics,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(1f - lyricsContentAlpha)
+                        .padding(horizontal = 48.dp)
+                        .padding(top = 8.dp, bottom = 16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 48.dp)
-                            .padding(top = 8.dp, bottom = 16.dp)
-                    ) {
                         Column(modifier = Modifier.weight(1f)) {
                             BasicText(
                                 text = metadata?.title?.toString().orEmpty(),
@@ -399,14 +405,13 @@ fun NewLayoutContent(
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
-                                .clickable {
+                                .clickable(enabled = !isShowingLyrics) {
                                     setLikedAt(
                                         if (likedAt == null) System.currentTimeMillis() else null
                                     )
                                 }
                                 .size(24.dp)
                         )
-                    }
                 }
 
                 if (uiMedia != null) {
