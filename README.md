@@ -1,7 +1,7 @@
 <div align="center">
-    <img src="./app/src/main/banner.png" height="600" style="display: block; margin: 0 auto"/>
-    <h1>Pulse</h1>
-    <p>Music streaming for everyone</p>
+    <img src="./app/src/main/banner.png" height="400" style="display: block; margin: 0 auto"/>
+    <h1 style="display: inline;">Pulse</h1>
+    <p style="display: inline;">Music streaming for everyone</p>
 </div>
 
 <details>
