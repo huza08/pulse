@@ -109,6 +109,23 @@ fun PlayerSettings() {
                                 )
                             }
 
+                            val crossfadeInitial by remember { derivedStateOf { crossfadeSeconds.toFloat() } }
+                            var crossfadeValue by remember(crossfadeInitial) { mutableFloatStateOf(crossfadeInitial) }
+
+                            SliderSettingsEntry(
+                                title = stringResource(R.string.crossfade),
+                                text = stringResource(R.string.crossfade_description),
+                                state = crossfadeValue,
+                                onSlide = { crossfadeValue = it },
+                                onSlideComplete = { crossfadeSeconds = crossfadeValue.toInt() },
+                                toDisplay = {
+                                    if (it == 0f) stringResource(R.string.off_label)
+                                    else stringResource(R.string.format_seconds, it.toInt())
+                                },
+                                range = 0f..10f,
+                                steps = 9
+                            )
+
                             SwitchSettingsEntry(
                                 title = stringResource(R.string.skip_silence),
                                 text = stringResource(R.string.skip_silence_description),
