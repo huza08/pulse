@@ -103,6 +103,8 @@ import app.pulse.android.utils.readOnlyWhen
 import app.pulse.android.utils.setPlaybackPitch
 import app.pulse.android.utils.shouldBePlaying
 import app.pulse.android.utils.thumbnail
+import coil3.imageLoader
+import coil3.request.ImageRequest
 import app.pulse.android.utils.timer
 import app.pulse.android.utils.toast
 import app.pulse.compose.preferences.SharedPreferencesProperty
@@ -767,9 +769,26 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (!player.hasNextMediaItem()) return
         val next = player.getMediaItemAt(player.nextMediaItemIndex)
         if (next.isLocal) return
-        // Cold start: the timeline can still be settling (current index -1), which
+        // Cold start the timeline can still be settling (current index -1), which
         // makes "next" resolve to the current song skip the duplicate resolve.
         if (next.mediaId == player.currentMediaItem?.mediaId) return
+
+        // Warm Coil's cache with the next song's fullscreen artwork so the
+        // boundary doesn't flash a blank thumbnail while it fetches. Explicit
+        // memoryCacheKey matches the AsyncImage request in NewLayoutContent.
+        next.mediaMetadata.artworkUri?.toString()?.thumbnail(
+            maxOf(
+                resources.displayMetrics.widthPixels,
+                resources.displayMetrics.heightPixels
+            )
+        )?.let { url ->
+            applicationContext.imageLoader.enqueue(
+                ImageRequest.Builder(applicationContext)
+                    .data(url)
+                    .memoryCacheKey(url)
+                    .build()
+            )
+        }
 
         val videoId = next.mediaId.videoId
         if (uriCache[videoId] != null) return

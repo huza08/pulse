@@ -197,6 +197,8 @@ fun NewLayoutContent(
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(artworkUri)
+                        // fixed key so the service's next-track preload hits it
+                        .memoryCacheKey(artworkUri.toString())
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
@@ -292,14 +294,16 @@ fun NewLayoutContent(
                             .padding(horizontal = 48.dp)
                             .padding(top = 32.dp, bottom = 8.dp)
                     ) {
-                        AsyncImage(
-                            model = artworkUri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(thumbnailCornerSize.roundedShape)
-                        )
+                        if (artworkUri != null) {
+                            AsyncImage(
+                                model = artworkUri,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(thumbnailCornerSize.roundedShape)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.width(16.dp))
 
