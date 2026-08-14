@@ -242,7 +242,23 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private val silentGuard = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             Log.w(TAG, "silent player error ${error.errorCode}, aborting crossfade")
-            if (fading) abortCrossfade()
+            if (!fading) return
+            val mediaId = silent.currentMediaItem?.mediaId?.videoId
+            abortCrossfade()
+            // A 403 here means the client that minted the silent's URL is bad
+            // for this song, and the audible-only recovery never sees it. Block
+            // it synchronously so the verify loop below skips straight to the
+            // next client, then verify that one in the background and lift the
+            // pair guard only when it verifies, so the tick refires the fade
+            // with a known-good URL. Nothing verified -> the guard holds and
+            // the boundary hard-cuts (no yt-dlp rescue inside the dual-decode
+            // overlap window).
+            if (error.findCause<InvalidResponseCodeException>()?.responseCode == 403 && mediaId != null) {
+                blockStreamClientOn403(mediaId)
+                coroutineScope.launch {
+                    if (resolveVerifiedStream(mediaId) != null) clearCrossfadeGuardFor(mediaId)
+                }
+            }
         }
     }
 
@@ -645,23 +661,23 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             error.findCause<InvalidResponseCodeException>()?.responseCode == 403
         ) {
             val mediaId = player.currentMediaItem?.mediaId?.videoId
-            if (mediaId != null) {
-                // Attribute the dead URL to the client that minted it (stamped at
-                // resolve time), block that client, and re-resolve with the next
-                // one. The blocklist bounds the loop: after every client is blocked
+            if (mediaId != null && blockStreamClientOn403(mediaId) != null) {
+                // The blocklist bounds the loop: after every client is blocked
                 // the resolver falls to yt-dlp instead of re-rolling the same 403.
-                val format = runBlocking(Dispatchers.IO) { Database.formatSync(mediaId) }
-                val clientName = Innertube.takeResolvedStreamClient(mediaId) ?: format?.url?.let(::clientNameFromUrl)
-                if (clientName != null) {
-                    Innertube.markStreamClientFailed(mediaId, clientName)
-                    Innertube.invalidateVisitorData()
-                    runBlocking(Dispatchers.IO) {
-                        format?.url?.let { Database.insert(format.copy(url = null)) }
+                uriCache.clear()
+                // Verify the replacement URL in the background before letting
+                // the player re-prepare: each poisoned client is blocked (in
+                // probeStreamUrl) and the next resolve skips it, so at most
+                // one player error + re-prepare is surfaced instead of one
+                // per client. All clients exhausted -> the re-prepare's own
+                // resolver ladder falls to yt-dlp.
+                coroutineScope.launch {
+                    resolveVerifiedStream(mediaId)
+                    handler.post {
+                        player.pause()
+                        player.prepare()
+                        player.play()
                     }
-                    uriCache.clear()
-                    player.pause()
-                    player.prepare()
-                    player.play()
                 }
             }
             return
@@ -821,6 +837,13 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 val format = body.streamingData?.highestQualityFormat ?: return@launch
                 val url = format.url ?: return@launch
 
+                // Verify before caching: a URL that 403s at fetch time (POT-gated)
+                // would seed the silent player with a doomed stream at fade start.
+                // On a 403 the minting client is blocked here, so the fade and the
+                // boundary resolve skip it and land on the next client instead of
+                // the slow yt-dlp rescue.
+                if (probeStreamUrl(videoId, url) != null) return@launch
+
                 uriCache.push(key = videoId, meta = format.contentLength, uri = url.toUri())
                 runCatching {
                     Database.insert(
@@ -837,6 +860,121 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             } catch (e: Exception) {
                 // A failed preload must never take down playback.
                 Log.w(TAG, "preload failed", e)
+            }
+        }
+    }
+
+    // Verify a resolved stream URL before it is trusted into the cache. Probes
+    // the first byte with the same data source config the players fetch with,
+    // so a 403 here is exactly what the silent/audible fetch would hit. On a
+    // 403, block the minting client and rotate the visitor so the next resolve
+    // skips it; any other failure just leaves the entry uncached and the
+    // boundary resolves live (probe failure must never be worse than no
+    // preload).
+    //
+    // Returns null when the URL verified; otherwise the HTTP status (403 means
+    // the minting client was just blocked, anything else is a transient
+    // failure). clearGuard controls whether a deterministic outcome lifts the
+    // crossfade pair guard (the preload wants that; recovery loops gate the
+    // lift on a verified URL themselves).
+    private fun probeStreamUrl(videoId: String, url: String, clearGuard: Boolean = true): Int? {
+        val dataSource = applicationContext.defaultDataSource.createDataSource()
+        return try {
+            dataSource.open(DataSpec(url.toUri()).subrange(0, 1))
+            dataSource.close()
+            // A deterministic probe outcome changes the guarded pair's fate: a
+            // verified URL is now cached, so a stale pair guard (set by an abort
+            // on an unverified URL) would suppress a fade that can now succeed.
+            if (clearGuard) clearCrossfadeGuardFor(videoId)
+            null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: InvalidResponseCodeException) {
+            if (e.responseCode == 403) {
+                val clientName = Innertube.takeResolvedStreamClient(videoId) ?: url.let(::clientNameFromUrl)
+                if (clientName != null) {
+                    Innertube.markStreamClientFailed(videoId, clientName)
+                    Innertube.invalidateVisitorData()
+                }
+                // The blocklist just made the guarded pair viable: the next
+                // resolve skips the poisoned client, so an earlier abort's pair
+                // guard would now suppress a fade that can succeed.
+                if (clearGuard) clearCrossfadeGuardFor(videoId)
+                Log.w(TAG, "probe 403 for $videoId ($clientName), not caching")
+            } else {
+                Log.w(TAG, "probe ${e.responseCode} for $videoId, not caching")
+            }
+            e.responseCode
+        } catch (e: Exception) {
+            Log.w(TAG, "probe failed for $videoId: ${e.message}")
+            -1
+        }
+    }
+
+    // Attribute a 403 to the client that minted the URL (stamped at resolve
+    // time), block it for a backoff, rotate the visitor, and drop the dead URL
+    // from the DB. Returns the blocked client name, null when unattributable.
+    // Synchronous (callers run on the main thread); the DB work hops to IO.
+    private fun blockStreamClientOn403(mediaId: String): String? {
+        val format = runBlocking(Dispatchers.IO) { Database.formatSync(mediaId) }
+        val clientName = Innertube.takeResolvedStreamClient(mediaId) ?: format?.url?.let(::clientNameFromUrl)
+        if (clientName != null) {
+            Innertube.markStreamClientFailed(mediaId, clientName)
+            Innertube.invalidateVisitorData()
+            runBlocking(Dispatchers.IO) {
+                format?.url?.let { Database.insert(format.copy(url = null)) }
+            }
+        }
+        return clientName
+    }
+
+    // Resolve and probe-verify a stream URL in the background. Each poisoned
+    // client is blocked (in probeStreamUrl) so the next resolve skips it; the
+    // first verified URL is cached for the players' resolvers to pick up.
+    // Returns null when no client produced a verified URL (all blocked or a
+    // transient failure), the resolver's own ladder then falls to yt-dlp.
+    // Guard-clearing is deliberately left to the caller: a probe outcome alone
+    // is not enough to make a fade refire worthwhile (see silentGuard).
+    private suspend fun resolveVerifiedStream(mediaId: String): Format? {
+        var verified: Format? = null
+        var attempts = 0
+        while (verified == null && attempts < 5) {
+            attempts++
+            val body = Innertube.player(PlayerBody(videoId = mediaId))?.getOrNull() ?: break
+            val stream = body.streamingData?.highestQualityFormat ?: break
+            val candidate = stream.url ?: break
+            val probe = probeStreamUrl(mediaId, candidate, clearGuard = false)
+            if (probe == null) {
+                verified = Format(
+                    songId = mediaId,
+                    mimeType = stream.mimeType,
+                    contentLength = stream.contentLength,
+                    url = candidate
+                )
+            } else if (probe != 403) {
+                break // transient failure: retrying the same client is pointless
+            }
+            // probe == 403: client blocked, next resolve skips it
+        }
+        verified?.let { v ->
+            v.url?.let { url ->
+                uriCache.push(key = mediaId, meta = v.contentLength, uri = url.toUri())
+                runCatching { Database.insert(v) }
+            }
+        }
+        return verified
+    }
+
+    // Single-shot un-suppression: only the probe runs after an abort can know
+    // the guarded pair is viable again, so it is the only thing that clears the
+    // guard. Runs on main (guard state is main-thread-only); the probe itself
+    // runs on IO.
+    private fun clearCrossfadeGuardFor(videoId: String) {
+        handler.post {
+            if (abortedFadeNextId == videoId) {
+                abortedFadeOutId = null
+                abortedFadeNextId = null
+                Log.d(TAG, "probe cleared crossfade guard for $videoId")
             }
         }
     }
