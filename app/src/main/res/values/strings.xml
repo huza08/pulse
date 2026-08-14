@@ -7,6 +7,7 @@
     <string name="format_db">%1$s dB</string>
     <string name="format_kbps">%1$s kbps</string>
     <string name="format_ms">%1$s ms</string>
+    <string name="format_seconds">%1$s s</string>
     <string name="format_px">%1$spx</string>
     <string name="format_go_to_artist">More from %1$s</string>
     <string name="format_top_playlist">Top %1$s</string>
@@ -404,6 +405,8 @@
     <string name="yt_dlp_success">Upgrading yt-dlp succeeded</string>
     <string name="yt_dlp_fail">Upgrading yt-dlp failed</string>
     <string name="upgrade_yt_dlp">Upgrade yt-dlp</string>
+    <string name="crossfade">Crossfade</string>
+    <string name="crossfade_description">Overlap the end of each song with the start of the next</string>
     <plurals name="format_reset_blacklist_description">
         <item quantity="one">Remove %1$s song from the blacklist</item>
         <item quantity="other">Remove all %1$s songs from the blacklist</item>
