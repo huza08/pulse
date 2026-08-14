@@ -15,6 +15,7 @@ object PlayerPreferences : GlobalPreferencesHolder() {
     var queueLoopEnabled by queueLoopEnabledProperty
     val skipSilenceProperty = boolean(false)
     var skipSilence by skipSilenceProperty
+    var crossfadeSeconds by int(6)
     val volumeNormalizationProperty = boolean(false)
     var volumeNormalization by volumeNormalizationProperty
     val volumeNormalizationBaseGainProperty = float(5.00f)
