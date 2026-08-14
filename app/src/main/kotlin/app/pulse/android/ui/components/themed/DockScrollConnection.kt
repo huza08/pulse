@@ -23,8 +23,13 @@ fun rememberDockScrollConnection(
 ): NestedScrollConnection {
     return remember(isScrolled) {
         object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val delta = available.y
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                val delta = consumed.y
                 if (delta < -threshold) {
                     isScrolled.value = true
                 } else if (delta > threshold) {
