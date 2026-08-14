@@ -184,7 +184,7 @@ fun MorphingNavigationBar(
             }) {
                 PillNavigationItem(
                     tab = selectedTab,
-                    isSelected = true,
+                    isSelected = false,
                     onClick = { dockScrolled.value = false },
                     enabled = progress > 0.8f
                 )
