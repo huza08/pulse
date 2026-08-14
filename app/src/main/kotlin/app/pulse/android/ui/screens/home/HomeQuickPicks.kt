@@ -28,17 +28,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import app.pulse.android.Database
 import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.LocalPlayerServiceBinder
@@ -105,6 +110,21 @@ fun QuickPicks(
     // Restore the disk cache first so a cold open renders instantly and
     // skips the network while the cache is fresh (TTL-configurable).
     val context = LocalContext.current.applicationContext
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // Seed id for the related feed: current trending song, else charts head, else fallback.
+    suspend fun seedId(): String =
+        trending?.id ?: Innertube.trendingCharts()?.getOrNull()?.firstOrNull()?.key ?: "J7p4bzqLvCw"
+
+    // force a fresh related page, bypassing the cache TTL.
+    suspend fun refreshRelated() {
+        relatedPageResult = Innertube.relatedPage(body = NextBody(videoId = seedId()))
+        relatedPageResult?.getOrNull()?.let {
+            HomeCache.saveRelated(context.filesDir, it)
+            HomeCache.prefetchThumbs(context, null, it)
+        }
+    }
 
     LaunchedEffect(DataPreferences.quickPicksSource) {
         if (relatedPageResult == null) {
@@ -167,7 +187,19 @@ fun QuickPicks(
 
     val (currentMediaId, playing) = playingSong(binder)
 
-    BoxWithConstraints {
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                refreshRelated()
+                isRefreshing = false
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        BoxWithConstraints {
         val quickPicksLazyGridItemWidthFactor =
             if (isLandscape && maxWidth * 0.475f >= 320.dp) 0.475f else 0.75f
 
@@ -405,5 +437,6 @@ fun QuickPicks(
             scrollState = scrollState,
             icon = null
         )
+    }
     }
 }

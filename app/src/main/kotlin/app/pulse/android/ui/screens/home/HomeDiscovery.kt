@@ -31,11 +31,14 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +82,7 @@ import app.pulse.core.ui.utils.isLandscape
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.NavigationEndpoint
 import app.pulse.providers.innertube.requests.discoverPage
+import kotlinx.coroutines.launch
 
 // TODO: a lot of duplicate code all around the codebase, especially for discover
 
@@ -112,24 +116,41 @@ fun HomeDiscovery(
 
     var discoverPage by persist<Result<Innertube.DiscoverPage>>("home/discovery")
     val context = LocalContext.current.applicationContext
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    suspend fun fetchDiscover(): Result<Innertube.DiscoverPage>? {
+        val result = Innertube.discoverPage()
+        result?.getOrNull()?.let {
+            HomeCache.saveDiscover(context.filesDir, it)
+            HomeCache.prefetchThumbs(context, it, null)
+        }
+        return result
+    }
 
     LaunchedEffect(Unit) {
         // Restore the disk cache first so a cold open renders instantly and
         // skips the network while the cache is fresh (TTL-configurable).
         if (discoverPage?.isSuccess != true) {
-            val restored = HomeCache.restoreDiscover(context.filesDir)
-            if (restored != null) {
-                discoverPage = restored
-            } else {
-                discoverPage = Innertube.discoverPage()
-                discoverPage?.getOrNull()?.let { HomeCache.saveDiscover(context.filesDir, it) }
-            }
+            discoverPage = HomeCache.restoreDiscover(context.filesDir) ?: fetchDiscover()
         }
         // Warm the thumbnails so the cached feed renders fully offline.
         HomeCache.prefetchThumbs(context, discoverPage?.getOrNull(), null)
     }
 
-    BoxWithConstraints {
+    // Pull down from the top to force a fresh fetch, bypassing the cache TTL.
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                fetchDiscover()
+                isRefreshing = false
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        BoxWithConstraints {
         val widthFactor = if (isLandscape && maxWidth * 0.475f >= 320.dp) 0.475f else 0.75f
         val moodSnapLayoutInfoProvider = rememberSnapLayoutInfo(
             lazyGridState = moodGridState,
@@ -368,6 +389,7 @@ fun HomeDiscovery(
                     }
                 }
         }
+    }
     }
 
     FloatingActionsContainerWithScrollToTop(
