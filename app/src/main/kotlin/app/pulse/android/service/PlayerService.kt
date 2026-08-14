@@ -216,6 +216,12 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var fadeOutId: String? = null
     private var fadeNextId: String? = null
     private var autoTransitionHandled = false
+    // Abort does not stop the tick from re-triggering: the trigger condition
+    // (within N seconds of the end) still holds, so a poisoned silent URL
+    // would restart the fade every 100ms until the boundary, churning decoders
+    // and log spam (the observed crash). After any abort, wait before fading
+    // again; the window is at most the 10s max fade, so 15s fully covers it.
+    private var nextFadeAllowedAt = 0L
 
     // Bounds the codec-error retry to one attempt per media item (the decoder
     // flake on this device is transient; a re-prepare usually lands a healthy
@@ -865,6 +871,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         if (!fading) {
             if (a.playbackState != Player.STATE_READY || !a.isPlaying) return
+            if (SystemClock.elapsedRealtime() < nextFadeAllowedAt) return
             val duration = a.duration
             if (duration == C.TIME_UNSET || duration <= 0) return
             if (a.repeatMode == Player.REPEAT_MODE_ONE) return
@@ -999,6 +1006,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         fading = false
         fadeOutId = null
         fadeNextId = null
+        nextFadeAllowedAt = SystemClock.elapsedRealtime() + 15_000L
         silent.volume = 0f
         silent.pause()
         silent.stop()
