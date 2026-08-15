@@ -457,7 +457,7 @@ private fun Duration(
         ) {
             BasicText(
                 text = formatAsDuration(position),
-                style = typography.xxs.semiBold.copy(fontSize = 13.sp, color = fadedText),
+                style = typography.xxs.semiBold.copy(fontSize = 12.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -465,7 +465,7 @@ private fun Duration(
             BasicText(
                 text = if (duration != C.TIME_UNSET) "-${formatAsDuration((duration - position).coerceAtLeast(0L))}"
                 else "--:--",
-                style = typography.xxs.semiBold.copy(fontSize = 13.sp, color = fadedText),
+                style = typography.xxs.semiBold.copy(fontSize = 12.sp, color = fadedText),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
