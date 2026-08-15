@@ -6,6 +6,11 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -25,12 +30,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.gestures.scrollBy
-import kotlin.math.abs
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -54,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -118,23 +124,30 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val UPDATE_DELAY = 50L
+private const val CENTER_TWEEN_MS = 280
+private const val ACTIVE_LINE_SCALE = 1.05f
 
 // Center a lyric line using measured layout metrics (ported from ArchiveTune):
 // read the item's real offset and size from layoutInfo and scroll BY the delta
 // to the viewport center, so centering is exact at every font size. When the
 // item is not composed yet (seek/initial), jump to its vicinity first; the next
-// tick's measured branch then centers it precisely.
-private suspend fun LazyListState.centerActiveItem(targetIndex: Int) {
+// tick's measured branch then centers it precisely. `animated` glides a line
+// change to center; drift corrections stay instant so the beat is never lost.
+private suspend fun LazyListState.centerActiveItem(targetIndex: Int, animated: Boolean = false) {
     val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
     if (itemInfo != null) {
         val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
         val center = layoutInfo.viewportStartOffset + viewportHeight / 2
         val delta = itemInfo.offset + itemInfo.size / 2 - center
-        if (abs(delta) > 5) scrollBy(delta.toFloat())
+        if (abs(delta) > 5) {
+            if (animated) animateScrollBy(delta.toFloat(), tween(CENTER_TWEEN_MS, easing = FastOutSlowInEasing))
+            else scrollBy(delta.toFloat())
+        }
     } else {
         val distance = abs(targetIndex - firstVisibleItemIndex)
         if (distance > 15) scrollToItem(targetIndex)
@@ -524,12 +537,19 @@ fun Lyrics(
                     }
                     lazyListState.centerActiveItem(currentSynchronizedLyrics.index + 1)
 
+                    var lastIndex = currentSynchronizedLyrics.index + 1
                     while (true) {
                         delay(UPDATE_DELAY)
                         currentSynchronizedLyrics.update()
                         if (autoFollowPausedUntil > System.currentTimeMillis()) continue
+                        if (lazyListState.isScrollInProgress) continue
 
-                        lazyListState.centerActiveItem(currentSynchronizedLyrics.index + 1)
+                        val targetIndex = currentSynchronizedLyrics.index + 1
+                        lazyListState.centerActiveItem(
+                            targetIndex,
+                            animated = targetIndex != lastIndex
+                        )
+                        lastIndex = targetIndex
                     }
                 }
 
@@ -554,11 +574,23 @@ fun Lyrics(
                             if (active) Color.White
                             else colorPalette.text.copy(alpha = 0.5f)
                         )
+                        val scale by animateFloatAsState(
+                            targetValue = if (active) ACTIVE_LINE_SCALE else 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            label = "lyricLineScale"
+                        )
                         if (sentence.isBlank()) Image(
                             painter = painterResource(R.drawable.musical_notes),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(color),
                             modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .padding(vertical = 16.dp, horizontal = 48.dp)
                                 .size(lyricsFontSize.dp)
                         ) else BasicText(
@@ -566,6 +598,10 @@ fun Lyrics(
                             style = if (active) typography.m.bold.copy(fontSize = lyricsFontSize).color(color)
                             else typography.m.semiBold.copy(fontSize = lyricsFontSize).color(color),
                             modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .padding(vertical = 12.dp, horizontal = 48.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
