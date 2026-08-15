@@ -349,6 +349,14 @@ fun Lyrics(
         }
     }
 
+    // close when the song has no lyrics
+    LaunchedEffect(error) {
+        if (error) {
+            delay(2.seconds)
+            if (error) onDismiss()
+        }
+    }
+
     AnimatedVisibility(
         visible = isDisplayed,
         enter = fadeIn(),
