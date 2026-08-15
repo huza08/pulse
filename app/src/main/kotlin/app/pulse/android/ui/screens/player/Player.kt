@@ -182,10 +182,6 @@ fun Player(
         }
     }
 
-    LaunchedEffect(mediaItem) {
-        isShowingLyrics = false
-    }
-
     binder?.player.DisposableListener {
         object : Player.Listener {
             override fun onMediaItemTransition(newMediaItem: MediaItem?, reason: Int) {
