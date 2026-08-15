@@ -43,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -197,19 +198,21 @@ fun NewLayoutContent(
             modifier = Modifier.fillMaxSize()
         ) {
             if (artworkUri != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(artworkUri)
-                        // fixed key so the service's next-track preload hits it
-                        .memoryCacheKey(artworkUri.toString())
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(if (isShowingLyrics) Modifier.cloudy(radius = 96) else Modifier)
-                )
+                // re-create per artwork so it re-captures
+                key(if (isShowingLyrics) artworkUri else Unit) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(artworkUri)
+                            .memoryCacheKey(artworkUri.toString())
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (isShowingLyrics) Modifier.cloudy(radius = 96) else Modifier)
+                    )
+                }
             }
 
             Box(
