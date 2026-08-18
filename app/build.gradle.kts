@@ -130,7 +130,7 @@ android {
             )
             version = "3.11"
             pip {
-                install("yt-dlp>=2026.06.09")
+                install("yt_dlp-2026.8.17.73947.dev0-py3-none-any.whl")
                 install("yt-dlp-ejs")
                 install("pip")
             }
