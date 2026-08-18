@@ -1985,48 +1985,20 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                         .ranged(format.contentLength)
                 }
             }.getOrNull() ?: run {
-                val (body, info) = runBlocking(Dispatchers.IO) {
-                    val bodyResult = Innertube.player(PlayerBody(videoId = mediaId))?.getOrNull()
-                    val innertubeUrl = bodyResult?.streamingData?.highestQualityFormat?.url
-                    if (innertubeUrl != null) {
-                        // Innertube minted a URL: play immediately. yt-dlp is only a
-                        // last resort, so it stays off the critical path here.
-                        bodyResult to null
-                    } else {
-                        // Every innertube client failed (bot-gated or all blocked):
-                        // yt-dlp last resort.
-                        val info = runCatching { Dependencies.runDownload(mediaId) }
-                            .mapCatching { YouTubeDLResponse.fromString(it) }
-                            .also { it.exceptionOrNull()?.printStackTrace() }
-                            .getOrNull()
-                        bodyResult to info
-                    }
+                val info = runBlocking(Dispatchers.IO) {
+                    // disable innertube for now, will be enabled if needed
+                    runCatching { Dependencies.runDownload(mediaId) }
+                        .mapCatching { YouTubeDLResponse.fromString(it) }
+                        .also { it.exceptionOrNull()?.printStackTrace() }
+                        .getOrNull()
                 }
-                val youtubeFormat = body?.streamingData?.highestQualityFormat
-                val innertubeUrl = youtubeFormat?.url
-                val uri = when {
-                    innertubeUrl != null -> innertubeUrl.toUri()
-                    info?.id != mediaId -> throw VideoIdMismatchException()
-                    else -> runCatching { info?.url?.toUri() }.getOrNull() ?: throw UnplayableException()
-                }
+                val uri = runCatching { info?.url?.toUri() }.getOrNull()
+                    ?: throw UnplayableException()
                 val format = info?.formats?.firstOrNull { it.formatId == info.formatId }
 
                 val mediaItem = runCatching {
                     runBlocking(Dispatchers.IO) { findMediaItem(mediaId) }
                 }.getOrNull()
-
-                val extras = mediaItem?.mediaMetadata?.extras?.songBundle
-                if (extras?.durationText == null) body
-                    ?.streamingData
-                    ?.highestQualityFormat
-                    ?.approxDurationMs
-                    ?.div(1000)
-                    ?.let(DateUtils::formatElapsedTime)
-                    ?.removePrefix("0")
-                    ?.let { durationText ->
-                        extras?.durationText = durationText
-                        Database.updateDurationText(mediaId, durationText)
-                    }
 
                 transaction {
                     runCatching {
@@ -2035,11 +2007,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                             Format(
                                 songId = mediaId,
                                 itag = info?.formatId?.toIntOrNull(),
-                                mimeType = youtubeFormat?.mimeType,
+                                mimeType = null,
                                 bitrate = format?.abr?.let { it * 1000 }?.toLong(),
-                                loudnessDb = body?.playerConfig?.audioConfig?.normalizedLoudnessDb,
+                                loudnessDb = null,
                                 contentLength = info?.fileSize,
-                                lastModified = youtubeFormat?.lastModified,
+                                lastModified = null,
                                 url = uri.toString()
                             )
                         )
