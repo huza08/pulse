@@ -481,12 +481,15 @@ fun Lyrics(
             )
         }
 
-        val synchronizedLyrics = remember(lyricsState) {
+        val synchronizedLyrics = remember(lyricsState, mediaId) {
             invalidLrc = lyricsState.sentences == null
             lyricsState.sentences?.let {
                 SynchronizedLyrics(it.toImmutableMap()) {
                     binder?.player?.let { player ->
-                        player.currentPosition + lyricsState.offset -
+                        // During crossfade, player.currentMediaItem still points
+                        // to old song — return 0 so lyrics stay at top.
+                        if (player.currentMediaItem?.mediaId != mediaId) 0L
+                        else player.currentPosition + lyricsState.offset -
                             (lyrics?.startTime ?: 0L)
                     } ?: 0L
                 }
@@ -533,6 +536,11 @@ fun Lyrics(
                     }
                 }
 
+                // reset scroll on song change
+                LaunchedEffect(mediaId) {
+                    lazyListState.scrollToItem(0)
+                }
+
                 LaunchedEffect(synchronizedLyrics, lyricsFontSize) {
                     val currentSynchronizedLyrics = synchronizedLyrics ?: return@LaunchedEffect
 
@@ -543,9 +551,11 @@ fun Lyrics(
                     while (lazyListState.layoutInfo.visibleItemsInfo.isEmpty()) {
                         delay(UPDATE_DELAY)
                     }
-                    lazyListState.centerActiveItem(currentSynchronizedLyrics.index + 1)
 
-                    var lastIndex = currentSynchronizedLyrics.index + 1
+                    val initIdx = currentSynchronizedLyrics.index + 1
+                    lazyListState.centerActiveItem(initIdx)
+
+                    var lastIndex = initIdx
                     while (true) {
                         delay(UPDATE_DELAY)
                         currentSynchronizedLyrics.update()
