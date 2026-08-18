@@ -88,8 +88,14 @@ import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
 import coil3.compose.AsyncImage
+import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.request.allowHardware
+import coil3.toBitmap
+import app.pulse.android.preferences.AppearancePreferences
+import app.pulse.core.ui.ColorPalette
+import app.pulse.core.ui.colorPaletteOf
 import app.pulse.android.Database
 import app.pulse.android.service.LOCAL_KEY_PREFIX
 import app.pulse.android.transaction
@@ -113,7 +119,7 @@ fun NewLayoutContent(
     onShowLyrics: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (colorPalette, typography, thumbnailCornerSize) = LocalAppearance.current
+    val (baseColorPalette, typography, thumbnailCornerSize) = LocalAppearance.current
     val context = LocalContext.current
     val player = binder?.player ?: return
     val shouldBePlaying = player.shouldBePlaying
@@ -127,6 +133,35 @@ fun NewLayoutContent(
         }
         mediaItem.mediaMetadata.artworkUri?.thumbnail(thumbSize)
     }
+    var localColorPalette by remember(mediaId) { mutableStateOf<ColorPalette?>(null) }
+    val dynamicSource = AppearancePreferences.colorSource
+    val darkMode = AppearancePreferences.darkness
+    val isDark = baseColorPalette.isDark
+
+    LaunchedEffect(mediaId, artworkUri) {
+        if (artworkUri == null) {
+            localColorPalette = null
+            return@LaunchedEffect
+        }
+        val result = context.imageLoader.execute(
+            ImageRequest.Builder(context)
+                .data(artworkUri)
+                .allowHardware(false)
+                .build()
+        )
+        if (result is coil3.request.SuccessResult) {
+            localColorPalette = colorPaletteOf(
+                source = dynamicSource,
+                darkness = darkMode,
+                isDark = isDark,
+                materialAccentColor = null,
+                sampleBitmap = result.image.toBitmap()
+            )
+        }
+    }
+
+    val colorPalette = localColorPalette ?: baseColorPalette
+
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
     var lyricsReady by remember(mediaId) { mutableStateOf(LyricsCache[mediaId] != null) }
