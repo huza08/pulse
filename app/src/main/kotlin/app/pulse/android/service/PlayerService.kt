@@ -610,6 +610,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             when {
                 mediaItem == null -> load(null)
                 mediaItem.mediaMetadata.artworkUri == lastUri -> bitmapProvider.load(lastUri)
+                else -> bitmapProvider.load(mediaItem.mediaMetadata.artworkUri)
             }
         }
 
