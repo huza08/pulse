@@ -5,13 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
-import android.util.Log
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,7 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.skydoves.cloudy.cloudy
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -61,6 +55,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.input.pointer.util.addPointerInputChange
@@ -118,6 +113,8 @@ fun NewLayoutContent(
     onDragEnd: (Float) -> Unit,
     isShowingLyrics: Boolean,
     onShowLyrics: (Boolean) -> Unit,
+    isShowingQueue: Boolean = false,
+    onShowQueue: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val (baseColorPalette, typography, thumbnailCornerSize) = LocalAppearance.current
@@ -234,8 +231,7 @@ fun NewLayoutContent(
             modifier = Modifier.fillMaxSize()
         ) {
             if (artworkUri != null) {
-                // re-create per artwork so it re-captures
-                key(if (isShowingLyrics) artworkUri else Unit) {
+                key(artworkUri, isShowingLyrics || isShowingQueue) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
                             .data(artworkUri)
@@ -246,7 +242,7 @@ fun NewLayoutContent(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .then(if (isShowingLyrics) Modifier.cloudy(radius = 96) else Modifier)
+                            .then(if (isShowingLyrics || isShowingQueue) Modifier.blur(96.dp) else Modifier)
                     )
                 }
             }
@@ -265,17 +261,14 @@ fun NewLayoutContent(
                     )
             )
 
-            AnimatedVisibility(
-                visible = isShowingLyrics,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colorPalette.background0.copy(alpha = 0.5f))
-                )
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = if (isShowingLyrics || isShowingQueue) 0.5f else 0f
+                    }
+                    .background(colorPalette.background0)
+            )
 
         }
 
@@ -324,7 +317,7 @@ fun NewLayoutContent(
             }
 
             val lyricsContentAlpha by animateFloatAsState(
-                targetValue = if (isShowingLyrics) 1f else 0f,
+                targetValue = if (isShowingLyrics || isShowingQueue) 1f else 0f,
                 label = "lyricsContentAlpha"
             )
 
@@ -373,7 +366,7 @@ fun NewLayoutContent(
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
-                                .clickable(enabled = isShowingLyrics) {
+                                .clickable(enabled = isShowingLyrics || isShowingQueue) {
                                     setLikedAt(
                                         if (likedAt == null) System.currentTimeMillis() else null
                                     )
@@ -393,22 +386,27 @@ fun NewLayoutContent(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    this@Column.AnimatedVisibility(
-                        visible = isShowingLyrics,
-                        enter = fadeIn(),
-                        exit = fadeOut(),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Lyrics(
-                            mediaId = mediaId,
-                            isDisplayed = true,
-                            onDismiss = { onShowLyrics(false) },
-                            mediaMetadataProvider = { mediaItem!!.mediaMetadata },
-                            durationProvider = { player.duration },
-                            ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
-                            modifier = Modifier.fillMaxSize(),
-                            showControls = false,
-                            lazyListState = lyricsListState
+                    Lyrics(
+                        mediaId = mediaId,
+                        isDisplayed = true,
+                        onDismiss = { onShowLyrics(false) },
+                        mediaMetadataProvider = { mediaItem!!.mediaMetadata },
+                        durationProvider = { player.duration },
+                        ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(if (isShowingLyrics) 1f else 0f),
+                        showControls = false,
+                        lazyListState = lyricsListState
+                    )
+
+                    if (binder != null) {
+                        QueueOverlay(
+                            binder = binder,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(if (isShowingQueue) 1f else 0f),
+                            onDismiss = { onShowQueue(false) }
                         )
                     }
                 }
@@ -574,7 +572,10 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.list),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette.accent),
+                        colorFilter = ColorFilter.tint(
+                            if (isShowingQueue) colorPalette.accent
+                            else colorPalette.accent.copy(alpha = 0.25f)
+                        ),
                         modifier = Modifier
                             .clickable(onClick = onQueueClick)
                             .size(24.dp)
