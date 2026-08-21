@@ -160,6 +160,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -235,6 +236,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     @Volatile
     private var codecRetriedMediaId: String? = null
 
+    // Dedup guard for 403 recovery: only one in-flight recovery per mediaId.
+    // Cancelled on new 403 so the latest attempt wins.
+    private var recoveryJob: Job? = null
+
     // The silent player must never drive UI state, so only the audible player
     // gets the service listener. Errors on the silent player abort the fade
     // and fall back to the normal hard cut. Both players always carry the
@@ -245,18 +250,16 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             if (!fading) return
             val mediaId = silent.currentMediaItem?.mediaId?.videoId
             abortCrossfade()
-            // A 403 here means the client that minted the silent's URL is bad
-            // for this song, and the audible-only recovery never sees it. Block
-            // it synchronously so the verify loop below skips straight to the
-            // next client, then verify that one in the background and lift the
-            // pair guard only when it verifies, so the tick refires the fade
-            // with a known-good URL. Nothing verified -> the guard holds and
-            // the boundary hard-cuts (no yt-dlp rescue inside the dual-decode
-            // overlap window).
+            // A 403 here means the client that minted the URL is bad for
+            // this song. Block the client and verify a replacement in the
+            // background: each poisoned client is skipped on the next resolve;
+            // the first verified URL lifts the guard so the tick refires the
+            // fade. Nothing verified -> guard holds, boundary hard-cuts.
             if (error.findCause<InvalidResponseCodeException>()?.responseCode == 403 && mediaId != null) {
-                blockStreamClientOn403(mediaId)
                 coroutineScope.launch {
-                    if (resolveVerifiedStream(mediaId) != null) clearCrossfadeGuardFor(mediaId)
+                    blockStreamClientOn403(mediaId)
+                    val verified = withTimeoutOrNull(8_000L) { resolveVerifiedStream(mediaId) }
+                    if (verified != null) clearCrossfadeGuardFor(mediaId)
                 }
             }
         }
@@ -661,24 +664,22 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (
             error.findCause<InvalidResponseCodeException>()?.responseCode == 403
         ) {
+            // skip recovery during crossfade: the silent player already has
+            // a fresh URL and will become audible at the boundary.
+            if (fading) return
             val mediaId = player.currentMediaItem?.mediaId?.videoId
-            if (mediaId != null && blockStreamClientOn403(mediaId) != null) {
-                // The blocklist bounds the loop: after every client is blocked
-                // the resolver falls to yt-dlp instead of re-rolling the same 403.
-                uriCache.clear()
-                // Verify the replacement URL in the background before letting
-                // the player re-prepare: each poisoned client is blocked (in
-                // probeStreamUrl) and the next resolve skips it, so at most
-                // one player error + re-prepare is surfaced instead of one
-                // per client. All clients exhausted -> the re-prepare's own
-                // resolver ladder falls to yt-dlp.
-                coroutineScope.launch {
-                    resolveVerifiedStream(mediaId)
-                    handler.post {
-                        player.pause()
-                        player.prepare()
-                        player.play()
-                    }
+            mediaId?.let { uriCache.remove(it) }
+            // cancel any in-flight recovery for this mediaId
+            recoveryJob?.cancel()
+            recoveryJob = coroutineScope.launch {
+                if (mediaId != null) {
+                    blockStreamClientOn403(mediaId)
+                    withTimeoutOrNull(8_000L) { resolveVerifiedStream(mediaId) }
+                }
+                handler.post {
+                    player.pause()
+                    player.prepare()
+                    player.play()
                 }
             }
             return
@@ -915,19 +916,18 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     // Attribute a 403 to the client that minted the URL (stamped at resolve
     // time), block it for a backoff, rotate the visitor, and drop the dead URL
     // from the DB. Returns the blocked client name, null when unattributable.
-    // Synchronous (callers run on the main thread); the DB work hops to IO.
-    private fun blockStreamClientOn403(mediaId: String): String? {
-        val format = runBlocking(Dispatchers.IO) { Database.formatSync(mediaId) }
-        val clientName = Innertube.takeResolvedStreamClient(mediaId) ?: format?.url?.let(::clientNameFromUrl)
-        if (clientName != null) {
-            Innertube.markStreamClientFailed(mediaId, clientName)
-            Innertube.invalidateVisitorData()
-            runBlocking(Dispatchers.IO) {
+    private suspend fun blockStreamClientOn403(mediaId: String): String? =
+        withContext(Dispatchers.IO) {
+            val format = Database.formatSync(mediaId)
+            val clientName = Innertube.takeResolvedStreamClient(mediaId)
+                ?: format?.url?.let(::clientNameFromUrl)
+            if (clientName != null) {
+                Innertube.markStreamClientFailed(mediaId, clientName)
+                Innertube.invalidateVisitorData()
                 format?.url?.let { Database.insert(format.copy(url = null)) }
             }
+            clientName
         }
-        return clientName
-    }
 
     // Resolve and probe-verify a stream URL in the background. Each poisoned
     // client is blocked (in probeStreamUrl) so the next resolve skips it; the
