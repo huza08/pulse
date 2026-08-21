@@ -383,11 +383,7 @@ fun Lyrics(
         }
     }
 
-    AnimatedVisibility(
-        visible = isDisplayed,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
+    if (isDisplayed) {
         if (editing) TextFieldDialog(
         hintText = stringResource(R.string.enter_lyrics),
         initialTextInput = (if (shouldShowSynchronizedLyrics) lyrics?.synced else lyrics?.fixed)
