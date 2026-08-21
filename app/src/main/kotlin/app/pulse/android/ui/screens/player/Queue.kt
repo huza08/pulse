@@ -96,6 +96,7 @@ import app.pulse.android.utils.semiBold
 import app.pulse.android.utils.shouldBePlaying
 import app.pulse.android.utils.shuffleQueue
 import app.pulse.android.utils.smoothScrollToTop
+import app.pulse.android.utils.bold
 import app.pulse.android.utils.windows
 import app.pulse.compose.persist.persist
 import app.pulse.compose.reordering.animateItemPlacement
@@ -432,7 +433,6 @@ fun Queue(
             Row(
                 modifier = Modifier
                     .clickable(onClick = layoutState::collapseSoft)
-                    .background(colorPalette.background2)
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .padding(horizontalBottomPaddingValues)
@@ -571,5 +571,235 @@ private value class ContentType private constructor(val value: Int) {
         val Divider = ContentType(value = 1)
         val Suggestion = ContentType(value = 2)
         val Placeholder = ContentType(value = 3)
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun QueueOverlay(
+    binder: PlayerService.Binder,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {},
+    windowInsets: WindowInsets = WindowInsets.systemBars
+) {
+    val (colorPalette, typography, _, thumbnailShape) = LocalAppearance.current
+    val menuState = LocalMenuState.current
+
+    var mediaItemIndex by remember {
+        mutableIntStateOf(if (binder.player.mediaItemCount == 0) -1 else binder.player.currentMediaItemIndex)
+    }
+    var windows by remember { mutableStateOf(binder.player.currentTimeline.windows) }
+    var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
+
+    val lazyListState = rememberLazyListState()
+    val reorderingState = rememberReorderingState(
+        lazyListState = lazyListState,
+        key = windows,
+        onDragEnd = binder.player::moveMediaItem
+    )
+
+    binder.player.DisposableListener {
+        object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                mediaItemIndex = if (binder.player.mediaItemCount == 0) -1 else binder.player.currentMediaItemIndex
+            }
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                windows = timeline.windows
+                mediaItemIndex = if (binder.player.mediaItemCount == 0) -1 else binder.player.currentMediaItemIndex
+            }
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                shouldBePlaying = binder.player.shouldBePlaying
+            }
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                shouldBePlaying = binder.player.shouldBePlaying
+            }
+        }
+    }
+
+    val musicBarsTransition = updateTransition(
+        targetState = if (reorderingState.isDragging) -1L else mediaItemIndex,
+        label = ""
+    )
+
+    LaunchedEffect(Unit) {
+        lazyListState.scrollToItem(mediaItemIndex.coerceAtLeast(0))
+    }
+
+    Column(modifier = modifier) {
+        // header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BasicText(
+                text = stringResource(R.string.queue),
+                style = typography.l.bold.copy(color = colorPalette.text)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            BasicText(
+                text = stringResource(R.string.clear),
+                style = typography.xxs.medium.copy(color = colorPalette.accent),
+                modifier = Modifier.clickable {
+                    val currentIndex = binder.player.currentMediaItemIndex
+                    val count = binder.player.mediaItemCount
+                    if (count > 0 && currentIndex >= 0) {
+                        // remove all items except current
+                        val toRemove = (0 until count).filter { it != currentIndex }
+                        toRemove.sortedDescending().forEach { binder.player.removeMediaItem(it) }
+                    }
+                }
+            )
+        }
+
+        // shuffle, repeat, autoplay, crossfade
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(R.drawable.shuffle),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(
+                    if (binder.player.shuffleModeEnabled) colorPalette.accent else colorPalette.text
+                ),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        reorderingState.coroutineScope.launch {
+                            lazyListState.smoothScrollToTop()
+                        }.invokeOnCompletion {
+                            binder.player.shuffleQueue()
+                        }
+                    }
+            )
+            Image(
+                painter = painterResource(
+                    if (binder.player.repeatMode != Player.REPEAT_MODE_OFF) R.drawable.repeat_on
+                    else R.drawable.repeat
+                ),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(
+                    if (binder.player.repeatMode != Player.REPEAT_MODE_OFF) colorPalette.accent else colorPalette.text
+                ),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        binder.player.repeatMode = when (binder.player.repeatMode) {
+                            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                            else -> Player.REPEAT_MODE_OFF
+                        }
+                    }
+            )
+            Image(
+                painter = painterResource(R.drawable.infinite),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(
+                    if (PlayerPreferences.queueLoopEnabled) colorPalette.accent else colorPalette.text
+                ),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { PlayerPreferences.queueLoopEnabled = !PlayerPreferences.queueLoopEnabled }
+            )
+            Image(
+                painter = painterResource(R.drawable.sync),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(colorPalette.text),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        // Song list
+        LookaheadScope {
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier.weight(1f)
+            ) {
+                itemsIndexed(
+                    items = windows,
+                    key = { _, window -> window.uid.hashCode() }
+                ) { i, window ->
+                    val isPlayingThisMediaItem = mediaItemIndex == window.firstPeriodIndex
+
+                    SongItem(
+                        song = window.mediaItem,
+                        thumbnailSize = Dimensions.thumbnails.song,
+                        onThumbnailContent = {
+                            musicBarsTransition.AnimatedVisibility(
+                                visible = { it == window.firstPeriodIndex },
+                                enter = fadeIn(tween(800)),
+                                exit = fadeOut(tween(800))
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .background(
+                                            color = Color.Black.copy(alpha = 0.25f),
+                                            shape = thumbnailShape
+                                        )
+                                        .size(Dimensions.thumbnails.song)
+                                ) {
+                                    if (shouldBePlaying) MusicBars(
+                                        color = colorPalette.onOverlay,
+                                        modifier = Modifier.height(24.dp)
+                                    ) else Image(
+                                        painter = painterResource(R.drawable.play),
+                                        contentDescription = null,
+                                        colorFilter = ColorFilter.tint(colorPalette.onOverlay),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        },
+                        trailingContent = {
+                            ReorderHandle(
+                                reorderingState = reorderingState,
+                                index = i
+                            )
+                        },
+                        modifier = Modifier
+                            .combinedClickable(
+                                onLongClick = {
+                                    menuState.display {
+                                        QueuedMediaItemMenu(
+                                            mediaItem = window.mediaItem,
+                                            indexInQueue = if (isPlayingThisMediaItem) null else window.firstPeriodIndex,
+                                            onDismiss = menuState::hide
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    if (isPlayingThisMediaItem) {
+                                        if (shouldBePlaying) binder.player.pause() else binder.player.play()
+                                    } else {
+                                        binder.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                        binder.player.playWhenReady = true
+                                    }
+                                }
+                            )
+                            .animateItemPlacement(reorderingState)
+                            .draggedItem(reorderingState = reorderingState, index = i)
+                            .let {
+                                if (!isPlayingThisMediaItem)
+                                    it.swipeToClose(
+                                        key = windows,
+                                        delay = 100.milliseconds,
+                                        requireUnconsumed = true
+                                    ) {
+                                        binder.player.removeMediaItem(window.firstPeriodIndex)
+                                    }
+                                else it
+                            },
+                        clip = !reorderingState.isDragging,
+                        hideExplicit = !isPlayingThisMediaItem && AppearancePreferences.hideExplicit
+                    )
+                }
+            }
+        }
     }
 }
