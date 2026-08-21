@@ -98,7 +98,6 @@ import app.pulse.compose.persist.PersistMapCleanup
 import app.pulse.compose.routing.OnGlobalRoute
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
-import app.pulse.core.ui.ThumbnailRoundness
 import app.pulse.core.ui.collapsedPlayerProgressBar
 import app.pulse.core.ui.utils.isLandscape
 import app.pulse.core.ui.utils.px
@@ -245,126 +244,39 @@ fun Player(
             )
             .padding(bottom = playerBottomSheetState.collapsedBound)
 
-        val thumbnailContent: @Composable (modifier: Modifier) -> Unit = { innerModifier ->
-            Pip(
-                numerator = 1,
-                denominator = 1,
-                modifier = innerModifier
-            ) {
-                Thumbnail(
-                    isShowingLyrics = isShowingLyrics,
-                    onShowLyrics = { isShowingLyrics = it },
-                    isShowingStatsForNerds = isShowingStatsForNerds,
-                    onShowStatsForNerds = { isShowingStatsForNerds = it },
-                    onOpenDialog = { isShowingLyricsDialog = true },
-                    likedAt = likedAt,
-                    setLikedAt = { likedAt = it },
-                    modifier = Modifier
-                        .nestedScroll(layoutState.preUpPostDownNestedScrollConnection)
-                        .pinchToToggle(
-                            key = isShowingLyricsDialog,
-                            direction = PinchDirection.Out,
-                            threshold = 1.05f,
-                            onPinch = {
-                                if (isShowingLyrics) isShowingLyricsDialog = true
-                            }
-                        )
-                        .pinchToToggle(
-                            key = isShowingLyricsDialog,
-                            direction = PinchDirection.In,
-                            threshold = .95f,
-                            onPinch = {
-                                pipHandler.enterPictureInPictureMode()
-                            }
-                        )
-                )
-            }
-        }
-
-        val controlsContent: @Composable (modifier: Modifier) -> Unit = { innerModifier ->
-            Controls(
-                media = activeMediaItem?.toUiMedia(duration),
-                binder = binder,
-                likedAt = likedAt,
-                setLikedAt = { likedAt = it },
-                shouldBePlaying = shouldBePlaying,
-                position = position,
-                modifier = innerModifier,
-                isBuffering = isBuffering
-            )
-        }
-
         var audioDialogOpen by rememberSaveable { mutableStateOf(false) }
         var boostDialogOpen by rememberSaveable { mutableStateOf(false) }
 
-        if (playerLayout == PlayerPreferences.PlayerLayout.New) {
-            NewLayoutContent(
-                mediaItem = activeMediaItem,
-                binder = binder,
-                likedAt = likedAt,
-                setLikedAt = { likedAt = it },
-                position = position,
-                duration = duration,
-                onLyricsClick = { isShowingLyrics = !isShowingLyrics },
-                onQueueClick = { playerBottomSheetState.expandSoft() },
-                onMenuLaunch = {
-                    mediaItem?.let {
-                        menuState.display {
-                            PlayerMenu(
-                                onDismiss = menuState::hide,
-                                mediaItem = it,
-                                binder = binder!!,
-                                onShowSpeedDialog = { audioDialogOpen = true },
-                                onShowNormalizationDialog = {
-                                    boostDialogOpen = true
-                                }.takeIf { volumeNormalization }
-                            )
-                        }
+        NewLayoutContent(
+            mediaItem = activeMediaItem,
+            binder = binder,
+            likedAt = likedAt,
+            setLikedAt = { likedAt = it },
+            position = position,
+            duration = duration,
+            onLyricsClick = { isShowingLyrics = !isShowingLyrics },
+            onQueueClick = { playerBottomSheetState.expandSoft() },
+            onMenuLaunch = {
+                mediaItem?.let {
+                    menuState.display {
+                        PlayerMenu(
+                            onDismiss = menuState::hide,
+                            mediaItem = it,
+                            binder = binder!!,
+                            onShowSpeedDialog = { audioDialogOpen = true },
+                            onShowNormalizationDialog = {
+                                boostDialogOpen = true
+                            }.takeIf { volumeNormalization }
+                        )
                     }
-                },
-                onDrag = { layoutState.dispatchRawDelta(it) },
-                onDragEnd = { layoutState.fling(it, dismissAction) },
-                isShowingLyrics = isShowingLyrics,
-                onShowLyrics = { isShowingLyrics = it },
-                modifier = containerModifier
-            )
-        } else if (isLandscape) Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = containerModifier.padding(top = 32.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(0.66f)
-                    .padding(bottom = 16.dp)
-            ) {
-                thumbnailContent(Modifier.padding(horizontal = 16.dp))
-            }
-
-            controlsContent(
-                Modifier
-                    .padding(vertical = 8.dp)
-                    .fillMaxHeight()
-                    .weight(1f)
-            )
-        } else Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = containerModifier.padding(top = 54.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.weight(1.25f)
-            ) {
-                thumbnailContent(Modifier.padding(horizontal = 32.dp, vertical = 8.dp))
-            }
-
-            controlsContent(
-                Modifier
-                    .padding(vertical = 8.dp)
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
-        }
+                }
+            },
+            onDrag = { layoutState.dispatchRawDelta(it) },
+            onDragEnd = { layoutState.fling(it, dismissAction) },
+            isShowingLyrics = isShowingLyrics,
+            onShowLyrics = { isShowingLyrics = it },
+            modifier = containerModifier
+        )
 
         if (audioDialogOpen) SliderDialog(
             onDismiss = { audioDialogOpen = false },
