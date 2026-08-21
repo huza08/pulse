@@ -384,6 +384,7 @@ fun NewLayoutContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(bottom = if (isShowingLyrics || isShowingQueue) 16.dp else 0.dp)
                         .weight(1f)
                 ) {
                     Lyrics(
