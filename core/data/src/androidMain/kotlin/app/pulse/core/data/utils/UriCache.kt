@@ -21,5 +21,7 @@ class UriCache<Key : Any, Meta>(size: Int = 16) {
         buffer += CachedUri(key, meta, uri)
     }
 
+    fun remove(key: Key) = buffer.removeIf { it?.key == key }
+
     fun clear() = buffer.clear()
 }
