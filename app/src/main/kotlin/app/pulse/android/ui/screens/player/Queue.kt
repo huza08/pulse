@@ -83,6 +83,7 @@ import app.pulse.android.ui.components.themed.ReorderHandle
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.TextToggle
+import app.pulse.android.ui.modifiers.verticalFadingEdge
 import app.pulse.android.ui.items.SongItem
 import app.pulse.android.ui.items.SongItemPlaceholder
 import app.pulse.android.ui.modifiers.swipeToClose
@@ -718,7 +719,13 @@ fun QueueOverlay(
         LookaheadScope {
             LazyColumn(
                 state = lazyListState,
-                modifier = Modifier.weight(1f)
+                contentPadding = WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal)
+                    .asPaddingValues(),
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .verticalFadingEdge(topSize = 3, bottomSize = 3)
+                    .weight(1f)
             ) {
                 itemsIndexed(
                     items = windows,
