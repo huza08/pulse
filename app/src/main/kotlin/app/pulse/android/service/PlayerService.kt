@@ -318,6 +318,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var sponsorBlockJob: Job? = null
     private var preFetchJob: Job? = null
     private var preloadJob: Job? = null
+    private var urlRefreshJob: Job? = null
 
     override var isInvincibilityEnabled by mutableStateOf(false)
 
@@ -476,6 +477,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             subscribe(PlayerPreferences.volumeNormalizationBaseGainProperty) { maybeNormalizeVolume() }
             subscribe(PlayerPreferences.volumeNormalizationProperty) { maybeNormalizeVolume() }
             subscribe(PlayerPreferences.sponsorBlockEnabledProperty) { maybeSponsorBlock() }
+
+            startUrlRefreshJob()
 
             launch {
                 val audioManager = getSystemService<AudioManager>()
@@ -749,6 +752,30 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private fun clientNameFromUrl(url: String): String? =
         Regex("[?&]c=([^&]+)").find(url)?.groupValues?.getOrNull(1)
             ?.let { if (it == "WEB") "WEB_REMIX" else it }
+
+    private fun startUrlRefreshJob() {
+        urlRefreshJob?.cancel()
+        urlRefreshJob = coroutineScope.launch {
+            while (isActive) {
+                delay(60_000) // check every minute
+                val expiring = uriCache.expiringSoon()
+                for (entry in expiring) {
+                    val expiresIn = entry.expiresAt?.let { (it - System.currentTimeMillis()) / 1000 } ?: continue
+                    Log.d(TAG, "refreshing URL for ${entry.key} (expires in ${expiresIn}s)")
+                    try {
+                        val body = Innertube.player(PlayerBody(videoId = entry.key))?.getOrNull() ?: continue
+                        val format = body.streamingData?.highestQualityFormat ?: continue
+                        val url = format.url ?: continue
+                        uriCache.update(key = entry.key, meta = format.contentLength, uri = url.toUri())
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.w(TAG, "URL refresh failed for ${entry.key}", e)
+                    }
+                }
+            }
+        }
+    }
 
     private fun maybeRecoverPlaybackError() {
         if (player.playerError != null) player.prepare()
