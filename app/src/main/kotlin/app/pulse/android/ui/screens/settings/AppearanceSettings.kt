@@ -25,13 +25,10 @@ import app.pulse.android.ui.screens.Route
 import app.pulse.android.utils.currentLocale
 import app.pulse.android.utils.findActivity
 import app.pulse.android.utils.startLanguagePicker
-import app.pulse.core.ui.BuiltInFontFamily
 import app.pulse.core.ui.ColorMode
 import app.pulse.core.ui.ColorSource
 import app.pulse.core.ui.Darkness
 import app.pulse.core.ui.LocalAppearance
-import app.pulse.core.ui.ThumbnailRoundness
-import app.pulse.core.ui.googleFontsAvailable
 import app.pulse.core.ui.utils.isAtLeastAndroid13
 import kotlinx.collections.immutable.toImmutableList
 import app.pulse.compose.routing.RouteHandler
@@ -109,27 +106,6 @@ fun AppearanceSettings() {
                 isChecked = compactDock,
                 onCheckedChange = { compactDock = it }
             )
-            EnumValueSelectorSettingsEntry(
-                title = stringResource(R.string.thumbnail_roundness),
-                selectedValue = thumbnailRoundness,
-                onValueSelect = { thumbnailRoundness = it },
-                trailingContent = {
-                    Spacer(
-                        modifier = Modifier
-                            .border(
-                                width = 1.dp,
-                                color = colorPalette.accent,
-                                shape = thumbnailRoundness.shape
-                            )
-                            .background(
-                                color = colorPalette.background1,
-                                shape = thumbnailRoundness.shape
-                            )
-                            .size(36.dp)
-                    )
-                },
-                valueText = { it.nameLocalized }
-            )
         }
         SettingsGroup(title = stringResource(R.string.text)) {
             if (isAtLeastAndroid13) SettingsEntry(
@@ -139,29 +115,6 @@ fun AppearanceSettings() {
                 onClick = {
                     context.findActivity().startLanguagePicker()
                 }
-            )
-
-            if (googleFontsAvailable()) EnumValueSelectorSettingsEntry(
-                title = stringResource(R.string.font),
-                selectedValue = fontFamily,
-                onValueSelect = { fontFamily = it },
-                valueText = {
-                    if (it == BuiltInFontFamily.System) stringResource(R.string.use_system_font) else it.name
-                }
-            ) else SwitchSettingsEntry(
-                title = stringResource(R.string.use_system_font),
-                text = stringResource(R.string.use_system_font_description),
-                isChecked = fontFamily == BuiltInFontFamily.System,
-                onCheckedChange = {
-                    fontFamily = if (it) BuiltInFontFamily.System else BuiltInFontFamily.Poppins
-                }
-            )
-
-            SwitchSettingsEntry(
-                title = stringResource(R.string.apply_font_padding),
-                text = stringResource(R.string.apply_font_padding_description),
-                isChecked = applyFontPadding,
-                onCheckedChange = { applyFontPadding = it }
             )
         }
         if (!isAtLeastAndroid13) SettingsGroup(title = stringResource(R.string.lockscreen)) {
@@ -173,58 +126,6 @@ fun AppearanceSettings() {
             )
         }
         SettingsGroup(title = stringResource(R.string.player)) {
-            SwitchSettingsEntry(
-                title = stringResource(R.string.previous_button_while_collapsed),
-                text = stringResource(R.string.previous_button_while_collapsed_description),
-                isChecked = PlayerPreferences.isShowingPrevButtonCollapsed,
-                onCheckedChange = { PlayerPreferences.isShowingPrevButtonCollapsed = it }
-            )
-
-            SwitchSettingsEntry(
-                title = stringResource(R.string.swipe_horizontally_to_close),
-                text = stringResource(R.string.swipe_horizontally_to_close_description),
-                isChecked = PlayerPreferences.horizontalSwipeToClose,
-                onCheckedChange = { PlayerPreferences.horizontalSwipeToClose = it }
-            )
-
-            EnumValueSelectorSettingsEntry(
-                title = stringResource(R.string.player_layout),
-                selectedValue = PlayerPreferences.playerLayout,
-                onValueSelect = { PlayerPreferences.playerLayout = it },
-                valueText = { it.displayName() }
-            )
-
-            AnimatedVisibility(
-                visible = PlayerPreferences.playerLayout == PlayerPreferences.PlayerLayout.New,
-                label = ""
-            ) {
-                SwitchSettingsEntry(
-                    title = stringResource(R.string.show_like_button),
-                    text = stringResource(R.string.show_like_button_description),
-                    isChecked = PlayerPreferences.showLike,
-                    onCheckedChange = { PlayerPreferences.showLike = it }
-                )
-            }
-
-            EnumValueSelectorSettingsEntry(
-                title = stringResource(R.string.seek_bar_style),
-                selectedValue = PlayerPreferences.seekBarStyle,
-                onValueSelect = { PlayerPreferences.seekBarStyle = it },
-                valueText = { it.displayName() }
-            )
-
-            AnimatedVisibility(
-                visible = PlayerPreferences.seekBarStyle == PlayerPreferences.SeekBarStyle.Wavy,
-                label = ""
-            ) {
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(R.string.seek_bar_quality),
-                    selectedValue = PlayerPreferences.wavySeekBarQuality,
-                    onValueSelect = { PlayerPreferences.wavySeekBarQuality = it },
-                    valueText = { it.displayName() }
-                )
-            }
-
             SwitchSettingsEntry(
                 title = stringResource(R.string.swipe_to_remove_item),
                 text = stringResource(R.string.swipe_to_remove_item_description),
@@ -333,14 +234,4 @@ val Darkness.nameLocalized
         }
     )
 
-val ThumbnailRoundness.nameLocalized
-    @Composable get() = stringResource(
-        when (this) {
-            ThumbnailRoundness.None -> R.string.none
-            ThumbnailRoundness.Light -> R.string.thumbnail_roundness_light
-            ThumbnailRoundness.Medium -> R.string.thumbnail_roundness_medium
-            ThumbnailRoundness.Heavy -> R.string.thumbnail_roundness_heavy
-            ThumbnailRoundness.Heavier -> R.string.thumbnail_roundness_heavier
-            ThumbnailRoundness.Heaviest -> R.string.thumbnail_roundness_heaviest
-        }
-    )
+
