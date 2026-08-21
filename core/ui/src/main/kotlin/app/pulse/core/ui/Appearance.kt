@@ -14,6 +14,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import app.pulse.core.ui.utils.isAtLeastAndroid6
 import app.pulse.core.ui.utils.isAtLeastAndroid8
@@ -54,9 +55,6 @@ fun appearance(
     darkness: Darkness,
     materialAccentColor: Color?,
     sampleBitmap: Bitmap?,
-    fontFamily: BuiltInFontFamily,
-    applyFontPadding: Boolean,
-    thumbnailRoundness: Dp,
     isSystemInDarkTheme: Boolean = isSystemInDarkTheme()
 ): Appearance {
     val isDark = remember(mode, isSystemInDarkTheme) {
@@ -78,6 +76,10 @@ fun appearance(
             sampleBitmap = sampleBitmap
         )
     }
+
+    val fontFamily = BuiltInFontFamily.Poppins
+    val applyFontPadding = false
+    val thumbnailRoundness = 8.dp
 
     return rememberAppearance(
         colorPalette,
