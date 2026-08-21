@@ -40,7 +40,6 @@ object PlayerPreferences : GlobalPreferencesHolder() {
     var isShowingLyrics by boolean(false)
     var isShowingSynchronizedLyrics by boolean(true)
 
-    var horizontalSwipeToRemoveItem by boolean(false)
 
     var lyricsKeepScreenAwake by boolean(true)
     var lyricsFontSize by int(24)
