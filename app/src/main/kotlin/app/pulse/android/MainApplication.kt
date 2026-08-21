@@ -269,11 +269,8 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
             source = colorSource,
             mode = colorMode,
             darkness = darkness,
-            fontFamily = fontFamily,
             materialAccentColor = Color(monet.getAccentColor(this@MainActivity)),
-            sampleBitmap = sampleBitmap,
-            applyFontPadding = applyFontPadding,
-            thumbnailRoundness = thumbnailRoundness.dp
+            sampleBitmap = sampleBitmap
         )
 
         SystemBarAppearance(palette = appearance.colorPalette)
