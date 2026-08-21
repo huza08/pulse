@@ -160,7 +160,7 @@
     <string name="view_album">View album</string>
     <string name="view_playlist">View playlist</string>
     <string name="search_placeholder">Search…</string>
-    <string name="format_version_credits">v%1$s by Huizengek &amp; vfsfitvnm | Maintained by khuza08</string>
+    <string name="format_version_credits">Maintained by khuza08</string>
 
 
     <string name="social">Social</string>
@@ -196,30 +196,13 @@
     <string name="color_mode_light">Light</string>
     <string name="color_mode_dark">Dark</string>
     <string name="color_mode_system">System</string>
-    <string name="thumbnail_roundness">Thumbnail roundness</string>
-    <string name="none">None</string>
-    <string name="thumbnail_roundness_light">Light</string>
-    <string name="thumbnail_roundness_medium">Medium</string>
-    <string name="thumbnail_roundness_heavy">Heavy</string>
-    <string name="thumbnail_roundness_heavier">Even heavier</string>
-    <string name="thumbnail_roundness_heaviest">Heaviest</string>
     <string name="text">Text</string>
-    <string name="font">Font</string>
-    <string name="use_system_font">Use system font</string>
-    <string name="use_system_font_description">Use the font applied by the system</string>
-    <string name="apply_font_padding">Apply font padding</string>
-    <string name="apply_font_padding_description">Add spacing around texts</string>
+    <string name="none">None</string>
     <string name="language">Language</string>
     <string name="lockscreen">Lock screen</string>
     <string name="show_song_cover">Show song cover</string>
     <string name="show_song_cover_description">Use the playing song cover as the lockscreen wallpaper</string>
     <string name="player">Player</string>
-    <string name="previous_button_while_collapsed">Previous button while collapsed</string>
-    <string name="previous_button_while_collapsed_description">Shows the previous song button while the player is collapsed</string>
-    <string name="swipe_horizontally_to_close">Swipe horizontally to close</string>
-    <string name="swipe_horizontally_to_close_description">Closes the player when swiping left/right on the collapsed player. Useful for users with Android\'s one-handed mode enabled.</string>
-    <string name="show_like_button">Show like button</string>
-    <string name="show_like_button_description">Show the like button directly in the player</string>
     <string name="swipe_to_remove_item">Swipe to remove item</string>
     <string name="swipe_to_remove_item_description">Swipe left to remove an item from the queue</string>
     <string name="lyrics_keep_screen_awake">Keep screen awake (lyrics)</string>
@@ -323,9 +306,6 @@
     <string name="last_interaction">Last Played</string>
     <string name="trending">Trending</string>
     <string name="quick_picks_source">Quick Picks Source</string>
-    <string name="player_layout">Player layout</string>
-    <string name="classic_player_layout_name">Classic</string>
-    <string name="new_player_layout_name">Modern (new)</string>
     <string name="piped">Piped</string>
     <string name="instance">Instance</string>
     <string name="click_to_select">Click to select</string>
@@ -341,16 +321,6 @@
     <string name="custom_instance">Use Custom Instance</string>
     <string name="base_api_url">Instance API URL</string>
     <string name="piped_session_created_successfully">Piped session created successfully</string>
-    <string name="seek_bar_style">Seek bar style</string>
-    <string name="static_seek_bar_name">Static</string>
-    <string name="wavy_seek_bar_name">Wavy</string>
-    <string name="seek_bar_quality">Wavy seek bar quality</string>
-    <string name="seek_bar_quality_poor">Poor</string>
-    <string name="seek_bar_quality_low">Low</string>
-    <string name="seek_bar_quality_medium">Medium</string>
-    <string name="seek_bar_quality_high">High</string>
-    <string name="seek_bar_quality_great">Great</string>
-    <string name="seek_bar_quality_subpixel">Subpixel</string>
     <string name="remove_from_blacklist">Remove from blacklist</string>
     <string name="add_to_blacklist">Add to blacklist</string>
     <string name="reset_blacklist">Reset blacklist</string>
