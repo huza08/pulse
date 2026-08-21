@@ -673,9 +673,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (
             error.findCause<InvalidResponseCodeException>()?.responseCode == 403
         ) {
-            // skip recovery during crossfade: the silent player already has
-            // a fresh URL and will become audible at the boundary.
-            if (fading) return
+            // resolve a fresh URL in the background so the player is ready for the next transition.
             val mediaId = player.currentMediaItem?.mediaId?.videoId
             mediaId?.let { uriCache.remove(it) }
             // cancel any in-flight recovery for this mediaId
@@ -687,6 +685,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                         resolveVerifiedStream(mediaId)
                     }
                 }
+                // Skip re-prepare if crossfade completed while resolving —
+                // the old player is now silent and will be re-prepared
+                // when it becomes audible again.
+                if (fading) return@launch
                 handler.post {
                     player.pause()
                     player.prepare()
