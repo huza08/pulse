@@ -76,7 +76,6 @@ fun SeekBar(
     isActive: Boolean = binder.player.isPlaying,
     alwaysShowDuration: Boolean = false,
     scrubberRadius: Dp = 8.dp,
-    style: PlayerPreferences.SeekBarStyle = PlayerPreferences.seekBarStyle,
     range: ClosedRange<Long> = 0L..media.duration
 ) {
     var scrubbingPosition by remember(media) { mutableStateOf<Long?>(null) }
@@ -117,38 +116,18 @@ fun SeekBar(
             )
         }
 
-    when (style) {
-        PlayerPreferences.SeekBarStyle.Static -> {
-            ClassicSeekBarBody(
-                position = scrubbingPosition ?: animatedPosition.toLong(),
-                duration = media.duration,
-                poiTimestamp = binder.poiTimestamp,
-                isDragging = isDragging,
-                color = color,
-                backgroundColor = backgroundColor,
-                showDuration = alwaysShowDuration || scrubbingPosition != null,
-                modifier = innerModifier,
-                scrubberRadius = scrubberRadius,
-                shape = shape
-            )
-        }
-
-        PlayerPreferences.SeekBarStyle.Wavy -> {
-            WavySeekBarBody(
-                position = scrubbingPosition ?: animatedPosition.toLong(),
-                duration = media.duration,
-                poiTimestamp = binder.poiTimestamp,
-                isDragging = isDragging,
-                color = color,
-                backgroundColor = backgroundColor,
-                modifier = innerModifier,
-                scrubberRadius = scrubberRadius,
-                shape = shape,
-                showDuration = alwaysShowDuration || scrubbingPosition != null,
-                isActive = isActive
-            )
-        }
-    }
+    ClassicSeekBarBody(
+        position = scrubbingPosition ?: animatedPosition.toLong(),
+        duration = media.duration,
+        poiTimestamp = binder.poiTimestamp,
+        isDragging = isDragging,
+        color = color,
+        backgroundColor = backgroundColor,
+        showDuration = alwaysShowDuration || scrubbingPosition != null,
+        modifier = innerModifier,
+        scrubberRadius = scrubberRadius,
+        shape = shape
+    )
 }
 
 @Composable
@@ -232,100 +211,6 @@ private fun ClassicSeekBarBody(
                 .background(color = color, shape = shape)
                 .align(Alignment.CenterStart)
         )
-    }
-
-    Duration(
-        position = position,
-        duration = duration,
-        show = showDuration,
-        color = color
-    )
-}
-
-@Composable
-private fun WavySeekBarBody(
-    position: Long,
-    duration: Long,
-    poiTimestamp: Long?,
-    isDragging: Boolean,
-    color: Color,
-    backgroundColor: Color,
-    shape: Shape,
-    showDuration: Boolean,
-    modifier: Modifier = Modifier,
-    range: ClosedRange<Long> = 0L..duration,
-    isActive: Boolean = true,
-    scrubberRadius: Dp = 6.dp
-) = Column {
-    val transition = updateTransition(
-        targetState = isDragging,
-        label = null
-    )
-
-    val currentAmplitude by transition.animateDp(label = "") { if (it || !isActive) 0.dp else 3.dp }
-    val currentScrubberHeight by transition.animateDp(label = "") { if (it) 24.dp else 18.dp }
-
-    val fraction = (position - range.start) / (range.endInclusive - range.start).toFloat()
-    val progress by rememberInfiniteTransition(label = "").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
-        label = ""
-    )
-
-            Box(
-        modifier = modifier
-            .drawWithContent {
-                drawContent()
-
-                if (poiTimestamp != null && position <= poiTimestamp) drawPoi(
-                    range = range,
-                    position = poiTimestamp,
-                    color = color
-                )
-
-                drawScrubber(
-                    range = range,
-                    position = position,
-                    color = color,
-                    height = currentScrubberHeight
-                )
-            }
-    ) {            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-            ) {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(1f - fraction)
-                    .background(
-                        color = backgroundColor,
-                        shape = shape
-                    )
-                    .align(Alignment.CenterEnd)
-            )
-
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth(fraction)
-                    .height(currentAmplitude)
-                    .align(Alignment.CenterStart)
-            ) {
-                drawPath(
-                    path = wavePath(
-                        size = size,
-                        progress = progress
-                    ),
-                    color = color,
-                    style = Stroke(
-                        width = 3.dp.toPx(),
-                        cap = StrokeCap.Round
-                    )
-                )
-            }
-        }
     }
 
     Duration(
@@ -471,25 +356,4 @@ private fun Duration(
             )
         }
     }
-}
-
-private fun Density.wavePath(
-    size: Size,
-    progress: Float,
-    quality: Float = PlayerPreferences.wavySeekBarQuality.quality
-) = Path().apply {
-    val (width, height) = size
-    val progressTau = progress * 2 * PI.toFloat()
-    val scale = 7.dp.toPx()
-
-    fun f(x: Float) = (sin(x / scale + progressTau) + 0.5f) * height
-
-    moveTo(0f, f(0f))
-
-    var x = 0f
-    while (x < width) {
-        lineTo(x, f(x))
-        x += quality
-    }
-    lineTo(width, f(width))
 }
