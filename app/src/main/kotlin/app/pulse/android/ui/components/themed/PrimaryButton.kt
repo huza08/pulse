@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.surface
-import app.pulse.core.ui.utils.roundedShape
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun PrimaryButton(
@@ -28,10 +28,10 @@ fun PrimaryButton(
 
     Box(
         modifier = modifier
-            .clip(16.dp.roundedShape)
+            .clip(CircleShape)
             .clickable(enabled = enabled, onClick = onClick)
             .background(colorPalette.surface)
-            .size(62.dp)
+            .size(48.dp)
     ) {
         Image(
             painter = painterResource(icon),
