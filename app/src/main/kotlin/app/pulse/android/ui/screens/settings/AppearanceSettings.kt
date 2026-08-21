@@ -127,13 +127,6 @@ fun AppearanceSettings() {
         }
         SettingsGroup(title = stringResource(R.string.player)) {
             SwitchSettingsEntry(
-                title = stringResource(R.string.swipe_to_remove_item),
-                text = stringResource(R.string.swipe_to_remove_item_description),
-                isChecked = PlayerPreferences.horizontalSwipeToRemoveItem,
-                onCheckedChange = { PlayerPreferences.horizontalSwipeToRemoveItem = it }
-            )
-
-            SwitchSettingsEntry(
                 title = stringResource(R.string.lyrics_keep_screen_awake),
                 text = stringResource(R.string.lyrics_keep_screen_awake_description),
                 isChecked = PlayerPreferences.lyricsKeepScreenAwake,
