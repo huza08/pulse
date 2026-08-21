@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -530,11 +531,17 @@ fun NewLayoutContent(
                 Spacer(modifier = Modifier.height(162.dp))
             }
 
+            val navBottomPadding = WindowInsets.navigationBars
+                .only(WindowInsetsSides.Bottom)
+                .asPaddingValues()
+                .calculateBottomPadding()
+                .coerceAtLeast(32.dp)
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-
+                    .padding(bottom = navBottomPadding)
             ) {
                 Spacer(modifier = Modifier.height(28.dp))
 
@@ -551,7 +558,7 @@ fun NewLayoutContent(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 48.dp).padding(top = 28.dp, bottom = 48.dp)
+                        .padding(horizontal = 48.dp).padding(top = 28.dp, bottom = 16.dp)
                 ) {
                     Image(
                         painter = painterResource(R.drawable.lyrics),
