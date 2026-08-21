@@ -148,6 +148,7 @@
     <string name="playback_settings">Speed &amp; pitch</string>
     <string name="minimum_speed_value">Why would you do this?!</string>
     <string name="volume_boost">Volume boost</string>
+    <string name="queue">Queue</string>
     <string name="queue_loop">Queue loop</string>
     <string name="add_queue_to_playlist">Add queue to playlist</string>
     <string name="id">Id</string>
