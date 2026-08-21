@@ -411,11 +411,10 @@ fun NewLayoutContent(
                     }
                 }
 
-                Row(
+                if (!isShowingLyrics && !isShowingQueue) Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .alpha(1f - lyricsContentAlpha)
                         .padding(horizontal = 48.dp)
                         .padding(top = 8.dp, bottom = 16.dp)
                 ) {
@@ -442,7 +441,7 @@ fun NewLayoutContent(
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
-                                .clickable(enabled = !isShowingLyrics) {
+                                .clickable {
                                     setLikedAt(
                                         if (likedAt == null) System.currentTimeMillis() else null
                                     )
