@@ -325,7 +325,7 @@ fun Queue(
                                     )
                                     .background(colorPalette.background1)
                                     .let {
-                                        if (PlayerPreferences.horizontalSwipeToRemoveItem && !isPlayingThisMediaItem)
+                                        if (!isPlayingThisMediaItem)
                                             it.swipeToClose(
                                                 key = windows,
                                                 delay = 100.milliseconds,
