@@ -3,11 +3,9 @@ package app.pulse.android.preferences
 import app.pulse.android.GlobalPreferencesHolder
 import app.pulse.android.preferences.OldPreferences.ColorPaletteMode
 import app.pulse.android.preferences.OldPreferences.ColorPaletteName
-import app.pulse.core.ui.BuiltInFontFamily
 import app.pulse.core.ui.ColorMode
 import app.pulse.core.ui.ColorSource
 import app.pulse.core.ui.Darkness
-import app.pulse.core.ui.ThumbnailRoundness
 
 object AppearancePreferences : GlobalPreferencesHolder() {
     var colorSource by enum(ColorSource.Dynamic)
@@ -26,9 +24,6 @@ object AppearancePreferences : GlobalPreferencesHolder() {
             ColorPaletteName.AMOLED -> Darkness.AMOLED
         }
     )
-    var thumbnailRoundness by enum(ThumbnailRoundness.Medium)
-    var fontFamily by enum(BuiltInFontFamily.Poppins)
-    var applyFontPadding by boolean(false)
     val isShowingThumbnailInLockscreenProperty = boolean(true)
     var isShowingThumbnailInLockscreen by isShowingThumbnailInLockscreenProperty
     var swipeToHideSong by boolean(false)
