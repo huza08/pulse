@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -46,6 +45,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -62,6 +63,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -69,6 +71,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
 import app.pulse.android.Database
@@ -123,35 +127,57 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val UPDATE_DELAY = 50L
-private const val CENTER_TWEEN_MS = 280
+
 private const val ACTIVE_LINE_SCALE = 1.05f
 
 // Center a lyric line using measured layout metrics (ported from ArchiveTune):
 // read the item's real offset and size from layoutInfo and scroll BY the delta
 // to the viewport center, so centering is exact at every font size. When the
 // item is not composed yet (seek/initial), jump to its vicinity first; the next
-// tick's measured branch then centers it precisely. `animated` glides a line
-// change to center; drift corrections stay instant so the beat is never lost.
-private suspend fun LazyListState.centerActiveItem(targetIndex: Int, animated: Boolean = false) {
-    val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-    if (itemInfo != null) {
-        val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-        val center = layoutInfo.viewportStartOffset + viewportHeight / 2
-        val delta = itemInfo.offset + itemInfo.size / 2 - center
-        if (abs(delta) > 5) {
-            if (animated) animateScrollBy(delta.toFloat(), tween(CENTER_TWEEN_MS, easing = FastOutSlowInEasing))
-            else scrollBy(delta.toFloat())
-        }
-    } else {
+// tick's measured branch then centers it precisely.
+private const val LYRIC_FOCUS_TOP_GUARD = 0.30f
+private const val LYRIC_FOCUS_BOTTOM_GUARD = 0.70f
+private const val LYRIC_FOCUS_MIN_SCROLL_PX = 8
+
+private suspend fun LazyListState.centerActiveItem(targetIndex: Int) {
+    var itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+    if (itemInfo == null) {
         val distance = abs(targetIndex - firstVisibleItemIndex)
         if (distance > 15) scrollToItem(targetIndex)
         else animateScrollToItem(targetIndex, 0)
+        // wait one frame for layout to update after scroll
+        withFrameNanos { }
+        itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+    }
+    itemInfo ?: return
+
+    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+    if (viewportHeight <= 0) return
+
+    val itemCenter = itemInfo.offset + itemInfo.size / 2
+    val center = layoutInfo.viewportStartOffset + viewportHeight / 2
+    val delta = itemCenter - center
+
+    // Guard zone: skip if item is already in the sweet spot (30-70% of viewport)
+    val topGuard = layoutInfo.viewportStartOffset + (viewportHeight * LYRIC_FOCUS_TOP_GUARD).toInt()
+    val bottomGuard = layoutInfo.viewportEndOffset - (viewportHeight * LYRIC_FOCUS_BOTTOM_GUARD).toInt()
+    if (itemCenter in topGuard..bottomGuard) return
+
+    if (abs(delta) > LYRIC_FOCUS_MIN_SCROLL_PX) {
+        animateScrollBy(
+            value = delta.toFloat(),
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
     }
 }
 
@@ -536,11 +562,6 @@ fun Lyrics(
                     }
                 }
 
-                // reset scroll on song change
-                LaunchedEffect(mediaId) {
-                    lazyListState.scrollToItem(0)
-                }
-
                 LaunchedEffect(synchronizedLyrics, lyricsFontSize) {
                     val currentSynchronizedLyrics = synchronizedLyrics ?: return@LaunchedEffect
 
@@ -552,10 +573,19 @@ fun Lyrics(
                         delay(UPDATE_DELAY)
                     }
 
+                    // Update index from current position before reading it.
+                    // Without this, index is stale (-1 from init) and lyrics
+                    // center at the top of the list instead of the active line.
+                    currentSynchronizedLyrics.update()
                     val initIdx = currentSynchronizedLyrics.index + 1
+
+                    // centerActiveItem handles both cases:
+                    // - Item visible: centers via spring animation
+                    // - Item not visible: scrollToItem to vicinity, then centers
+                    // No separate scrollToItem needed — avoids race when
+                    // active line changes simultaneously with panel open.
                     lazyListState.centerActiveItem(initIdx)
 
-                    var lastIndex = initIdx
                     while (true) {
                         delay(UPDATE_DELAY)
                         currentSynchronizedLyrics.update()
@@ -563,12 +593,28 @@ fun Lyrics(
                         if (lazyListState.isScrollInProgress) continue
 
                         val targetIndex = currentSynchronizedLyrics.index + 1
-                        lazyListState.centerActiveItem(
-                            targetIndex,
-                            animated = targetIndex != lastIndex
-                        )
-                        lastIndex = targetIndex
+                        lazyListState.centerActiveItem(targetIndex)
                     }
+                }
+
+                // re-center active line when app returns from background.
+                // The tick loop may have stale layoutInfo after the view was
+                // detached, causing centerActiveItem to scroll to the wrong
+                // position, forcing a fresh center on resume fixes this.
+                val lifecycleOwner = LocalLifecycleOwner.current
+                val resumeScope = rememberCoroutineScope()
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            val current = synchronizedLyrics ?: return@LifecycleEventObserver
+                            current.update()
+                            resumeScope.launch {
+                                lazyListState.centerActiveItem(current.index + 1)
+                            }
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                 }
 
                 if (synchronizedLyrics != null) LazyColumn(
