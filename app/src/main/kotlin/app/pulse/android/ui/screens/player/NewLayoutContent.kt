@@ -461,7 +461,6 @@ fun NewLayoutContent(
                             media = uiMedia,
                             alwaysShowDuration = true,
                             color = colorPalette.accent,
-                            style = PlayerPreferences.SeekBarStyle.Static,
                         )
                     }
                 }
