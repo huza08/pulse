@@ -1,15 +1,8 @@
 package app.pulse.android.ui.screens.player
 
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,10 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SnapshotMutationPolicy
@@ -44,17 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -70,43 +51,25 @@ import app.pulse.android.transaction
 import app.pulse.android.ui.components.BottomSheet
 import app.pulse.android.ui.components.BottomSheetState
 import app.pulse.android.ui.components.LocalMenuState
-import app.pulse.android.ui.components.rememberBottomSheetState
 import app.pulse.android.ui.components.themed.BaseMediaItemMenu
-import app.pulse.android.ui.components.themed.IconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.SliderDialog
 import app.pulse.android.ui.components.themed.SliderDialogBody
-import app.pulse.android.ui.modifiers.PinchDirection
-import app.pulse.android.ui.modifiers.onSwipe
-import app.pulse.android.ui.modifiers.pinchToToggle
 import app.pulse.android.utils.DisposableListener
-import app.pulse.android.utils.Pip
 import app.pulse.android.utils.asMediaItem
-import app.pulse.android.utils.forcePlay
-import app.pulse.android.utils.forceSeekToNext
-import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.positionAndDurationState
 import app.pulse.android.utils.rememberEqualizerLauncher
 import app.pulse.android.utils.rememberPipHandler
 import app.pulse.android.utils.seamlessPlay
-import app.pulse.android.utils.secondary
-import app.pulse.android.utils.semiBold
 import app.pulse.android.utils.rememberIsBuffering
 import app.pulse.android.utils.shouldBePlaying
-import app.pulse.android.utils.thumbnail
 import app.pulse.compose.persist.PersistMapCleanup
 import app.pulse.compose.routing.OnGlobalRoute
-import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
-import app.pulse.core.ui.collapsedPlayerProgressBar
-import app.pulse.core.ui.utils.isLandscape
-import app.pulse.core.ui.utils.px
 import app.pulse.core.ui.utils.roundedShape
 import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.models.NavigationEndpoint
-import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlin.math.absoluteValue
 
 @Composable
 fun Player(
@@ -119,7 +82,7 @@ fun Player(
     windowInsets: WindowInsets = WindowInsets.systemBars
 ) = with(PlayerPreferences) {
     val menuState = LocalMenuState.current
-    val (colorPalette, typography, thumbnailCornerSize) = LocalAppearance.current
+    val (colorPalette, _, _) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
 
     val pipHandler = rememberPipHandler()
@@ -225,14 +188,11 @@ fun Player(
     ) {
         var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
         var isShowingLyricsDialog by rememberSaveable { mutableStateOf(false) }
+        var overlayMode by rememberSaveable { mutableStateOf(OverlayMode.None) }
+        val isShowingLyrics = overlayMode == OverlayMode.Lyrics
+        val isShowingQueue = overlayMode == OverlayMode.Queue
 
         if (isShowingLyricsDialog) LyricsDialog(onDismiss = { isShowingLyricsDialog = false })
-
-        val playerBottomSheetState = rememberBottomSheetState(
-            dismissedBound = 0.dp,
-            collapsedBound = 0.dp,
-            expandedBound = layoutState.expandedBound
-        )
 
         val containerModifier = Modifier
             .clip(shape)
@@ -242,7 +202,6 @@ fun Player(
                     1f to colorPalette.background0
                 )
             )
-            .padding(bottom = playerBottomSheetState.collapsedBound)
 
         var audioDialogOpen by rememberSaveable { mutableStateOf(false) }
         var boostDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -254,8 +213,12 @@ fun Player(
             setLikedAt = { likedAt = it },
             position = position,
             duration = duration,
-            onLyricsClick = { isShowingLyrics = !isShowingLyrics },
-            onQueueClick = { playerBottomSheetState.expandSoft() },
+            onLyricsClick = {
+                overlayMode = if (overlayMode == OverlayMode.Lyrics) OverlayMode.None else OverlayMode.Lyrics
+            },
+            onQueueClick = {
+                overlayMode = if (overlayMode == OverlayMode.Queue) OverlayMode.None else OverlayMode.Queue
+            },
             onMenuLaunch = {
                 mediaItem?.let {
                     menuState.display {
@@ -274,7 +237,9 @@ fun Player(
             onDrag = { layoutState.dispatchRawDelta(it) },
             onDragEnd = { layoutState.fling(it, dismissAction) },
             isShowingLyrics = isShowingLyrics,
-            onShowLyrics = { isShowingLyrics = it },
+            onShowLyrics = { overlayMode = if (it) OverlayMode.Lyrics else OverlayMode.None },
+            isShowingQueue = isShowingQueue,
+            onShowQueue = { overlayMode = if (it) OverlayMode.Queue else OverlayMode.None },
             modifier = containerModifier
         )
 
@@ -366,39 +331,7 @@ fun Player(
             }
         }
 
-        if (binder != null) Queue(
-            layoutState = playerBottomSheetState,
-            binder = binder,
-            beforeContent = {
-                Spacer(modifier = Modifier.width(20.dp))
-            },
-            afterContent = {
-                IconButton(
-                    icon = R.drawable.ellipsis_horizontal,
-                    color = colorPalette.text,
-                    onClick = {
-                        mediaItem?.let {
-                            menuState.display {
-                                PlayerMenu(
-                                    onDismiss = menuState::hide,
-                                    mediaItem = it,
-                                    binder = binder,
-                                    onShowSpeedDialog = { audioDialogOpen = true },
-                                    onShowNormalizationDialog = {
-                                        boostDialogOpen = true
-                                    }.takeIf { volumeNormalization }
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .size(20.dp)
-                )
-            },
-            modifier = Modifier.align(Alignment.BottomCenter),
-            shape = shape
-        )
+
     }
 }
 
@@ -432,3 +365,5 @@ private fun onDismiss(binder: PlayerService.Binder) {
     binder.stopRadio()
     binder.player.clearMediaItems()
 }
+
+private enum class OverlayMode { None, Lyrics, Queue }
