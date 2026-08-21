@@ -246,21 +246,27 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     // playback-stats listener (playtime is counted by whichever played).
     private val silentGuard = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
-            Log.w(TAG, "silent player error ${error.errorCode}, aborting crossfade")
-            if (!fading) return
+            Log.w(TAG, "silent player error ${error.errorCode}, fading=$fading")
             val mediaId = silent.currentMediaItem?.mediaId?.videoId
-            abortCrossfade()
-            // A 403 here means the client that minted the URL is bad for
-            // this song. Block the client and verify a replacement in the
-            // background: each poisoned client is skipped on the next resolve;
-            // the first verified URL lifts the guard so the tick refires the
-            // fade. Nothing verified -> guard holds, boundary hard-cuts.
+
+            // during crossfade abort the fade. After crossfade just
+            // re-prepare the silent player so it stays usable
+            if (fading) {
+                abortCrossfade()
+            }
+
+            // block bad client and re-prepare on 403
             if (error.findCause<InvalidResponseCodeException>()?.responseCode == 403 && mediaId != null) {
                 coroutineScope.launch {
-                    blockStreamClientOn403(mediaId)
-                    val verified = withTimeoutOrNull(8_000L) { resolveVerifiedStream(mediaId) }
-                    if (verified != null) clearCrossfadeGuardFor(mediaId)
+                    withTimeoutOrNull(10_000L) {
+                        blockStreamClientOn403(mediaId)
+                        resolveVerifiedStream(mediaId)
+                    }
                 }
+            }
+            // re-prepare so the player is ready for the next transition
+            handler.post {
+                silent.prepare()
             }
         }
     }
@@ -673,8 +679,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             recoveryJob?.cancel()
             recoveryJob = coroutineScope.launch {
                 if (mediaId != null) {
-                    blockStreamClientOn403(mediaId)
-                    withTimeoutOrNull(8_000L) { resolveVerifiedStream(mediaId) }
+                    withTimeoutOrNull(10_000L) {
+                        blockStreamClientOn403(mediaId)
+                        resolveVerifiedStream(mediaId)
+                    }
                 }
                 handler.post {
                     player.pause()
